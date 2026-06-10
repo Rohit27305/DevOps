@@ -1,0 +1,2151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep — Rohit Verma | DevOps Engineer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg-primary: #0a0e17;
+    --bg-secondary: #0f1520;
+    --bg-card: #141c2b;
+    --bg-card-hover: #1a2438;
+    --bg-code: #0d1117;
+    --border: #1e2d45;
+    --border-bright: #2a3f5f;
+    --text-primary: #e2e8f0;
+    --text-secondary: #8899b4;
+    --text-muted: #4a6080;
+    --accent-cyan: #00c8ff;
+    --accent-green: #00e5a0;
+    --accent-yellow: #ffd060;
+    --accent-orange: #ff8c42;
+    --accent-red: #ff4757;
+    --accent-purple: #a78bfa;
+    --accent-pink: #f472b6;
+    --tag-must: rgba(255, 71, 87, 0.15);
+    --tag-must-border: rgba(255, 71, 87, 0.4);
+    --tag-high: rgba(255, 140, 66, 0.15);
+    --tag-high-border: rgba(255, 140, 66, 0.4);
+    --tag-nice: rgba(0, 200, 255, 0.12);
+    --tag-nice-border: rgba(0, 200, 255, 0.3);
+    --tag-adv: rgba(167, 139, 250, 0.12);
+    --tag-adv-border: rgba(167, 139, 250, 0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    display: flex;
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 0 0 2rem;
+    display: flex;
+    flex-direction: column;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-bright) transparent;
+  }
+
+  .sidebar-header {
+    padding: 1.5rem 1.25rem 1rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg-secondary);
+    z-index: 10;
+  }
+
+  .sidebar-header .name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .sidebar-header .role {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .sidebar-nav {
+    padding: 0.75rem 0;
+    flex: 1;
+  }
+
+  .nav-group-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 0.75rem 1.25rem 0.25rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1.25rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+  }
+
+  .nav-item:hover { color: var(--text-primary); background: rgba(255,255,255,0.03); }
+  .nav-item.active { color: var(--accent-cyan); border-left-color: var(--accent-cyan); background: rgba(0,200,255,0.05); }
+
+  .nav-item .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    min-width: 18px;
+  }
+
+  /* ── MAIN ── */
+  #main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2.5rem 3rem;
+    max-width: calc(100vw - 260px);
+  }
+
+  .page-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .page-header h1 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-header p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  .meta-chips {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+  }
+
+  .chip {
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    border: 1px solid;
+  }
+
+  .chip-cyan { color: var(--accent-cyan); border-color: rgba(0,200,255,0.3); background: rgba(0,200,255,0.07); }
+  .chip-green { color: var(--accent-green); border-color: rgba(0,229,160,0.3); background: rgba(0,229,160,0.07); }
+  .chip-yellow { color: var(--accent-yellow); border-color: rgba(255,208,96,0.3); background: rgba(255,208,96,0.07); }
+  .chip-red { color: var(--accent-red); border-color: rgba(255,71,87,0.3); background: rgba(255,71,87,0.07); }
+  .chip-purple { color: var(--accent-purple); border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.07); }
+
+  /* ── SECTIONS ── */
+  .section {
+    display: none;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .section.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .section-title .icon { font-size: 1.1rem; }
+
+  .section-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .section-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.15s;
+  }
+
+  .card:hover { border-color: var(--border-bright); }
+
+  .card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .card-body {
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+
+  .card-body ul { padding-left: 1.25rem; }
+  .card-body li { margin-bottom: 0.3rem; }
+  .card-body p { margin-bottom: 0.5rem; }
+
+  /* strength / weakness / challenge cards */
+  .card.strength { border-left: 3px solid var(--accent-green); }
+  .card.weakness { border-left: 3px solid var(--accent-red); }
+  .card.challenge { border-left: 3px solid var(--accent-yellow); }
+  .card.gap { border-left: 3px solid var(--accent-orange); }
+  .card.info { border-left: 3px solid var(--accent-cyan); }
+  .card.purple-card { border-left: 3px solid var(--accent-purple); }
+
+  /* ── Q&A ── */
+  .qa-block {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+
+  .qa-question {
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    transition: background 0.15s;
+  }
+
+  .qa-question:hover { background: var(--bg-card-hover); }
+
+  .qa-q-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .qa-q-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    min-width: 30px;
+    padding-top: 2px;
+  }
+
+  .qa-arrow {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+    min-width: 16px;
+  }
+
+  .qa-block.open .qa-arrow { transform: rotate(180deg); }
+
+  .qa-answer {
+    display: none;
+    padding: 0 1.25rem 1.1rem 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .qa-block.open .qa-answer { display: block; }
+
+  .qa-answer-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent-green);
+    margin-top: 0.85rem;
+    margin-bottom: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .qa-answer-text {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.85;
+  }
+
+  .qa-answer-text ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+  .qa-answer-text li { margin-bottom: 0.3rem; }
+  .qa-answer-text code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    background: var(--bg-code);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    color: var(--accent-cyan);
+    border: 1px solid var(--border);
+  }
+
+  .followup-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent-yellow);
+    margin-top: 1rem;
+    margin-bottom: 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .followup-text {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.7;
+  }
+
+  /* ── PRIORITY TAGS ── */
+  .ptag {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+  }
+
+  .ptag-must { background: var(--tag-must); color: var(--accent-red); border: 1px solid var(--tag-must-border); }
+  .ptag-high { background: var(--tag-high); color: var(--accent-orange); border: 1px solid var(--tag-high-border); }
+  .ptag-nice { background: var(--tag-nice); color: var(--accent-cyan); border: 1px solid var(--tag-nice-border); }
+  .ptag-adv { background: var(--tag-adv); color: var(--accent-purple); border: 1px solid var(--tag-adv-border); }
+
+  /* ── GRID ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+  /* ── SCORE BAR ── */
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .score-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    min-width: 200px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .score-bar-wrap {
+    flex: 1;
+    background: var(--bg-code);
+    border-radius: 4px;
+    height: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease;
+  }
+
+  .score-val {
+    font-size: 0.78rem;
+    font-family: 'JetBrains Mono', monospace;
+    min-width: 36px;
+    text-align: right;
+  }
+
+  /* ── TABLE ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .data-table th {
+    background: var(--bg-code);
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-align: left;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .data-table td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+
+  .data-table tr:hover td { background: var(--bg-card-hover); }
+
+  /* ── WARNING BOX ── */
+  .warn-box {
+    background: rgba(255, 71, 87, 0.07);
+    border: 1px solid rgba(255, 71, 87, 0.25);
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.82rem;
+    color: #ff8596;
+    line-height: 1.7;
+  }
+
+  .info-box {
+    background: rgba(0, 200, 255, 0.05);
+    border: 1px solid rgba(0, 200, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.82rem;
+    color: #7dd3fc;
+    line-height: 1.7;
+  }
+
+  .success-box {
+    background: rgba(0, 229, 160, 0.05);
+    border: 1px solid rgba(0, 229, 160, 0.2);
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.82rem;
+    color: #6ee7b7;
+    line-height: 1.7;
+  }
+
+  .section-h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    margin: 1.75rem 0 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-h2::before {
+    content: '//';
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .mock-round {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+
+  .mock-round-header {
+    padding: 0.85rem 1.25rem;
+    background: var(--bg-code);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mock-round-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .mock-round-body { padding: 1rem 1.25rem; }
+
+  .mock-q {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mock-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+  .mock-q-text {
+    font-size: 0.855rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.4rem;
+    line-height: 1.5;
+  }
+
+  .mock-q-ans {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+
+  .mock-q-ans ul { padding-left: 1.2rem; margin-top: 0.3rem; }
+  .mock-q-ans li { margin-bottom: 0.25rem; }
+  .mock-q-ans code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem;
+    background: var(--bg-code);
+    padding: 0.12rem 0.35rem;
+    border-radius: 3px;
+    color: var(--accent-cyan);
+    border: 1px solid var(--border);
+  }
+
+  .final-score {
+    font-size: 4rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+
+  .priority-matrix-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .matrix-cell {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+  }
+
+  .matrix-cell-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .matrix-cell-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .matrix-item {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    padding: 0.3rem 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    line-height: 1.4;
+  }
+
+  .matrix-item:last-child { border-bottom: none; }
+
+  .matrix-dot {
+    min-width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 5px;
+  }
+
+  pre.code-block {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent-cyan);
+    overflow-x: auto;
+    margin: 0.5rem 0 1rem;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 900px) {
+    #sidebar { display: none; }
+    #main { max-width: 100vw; padding: 1.5rem; }
+    .grid-2, .grid-3, .priority-matrix-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <div class="name">Rohit Verma</div>
+    <div class="role">// DevOps Interview Prep</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group-label">Analysis</div>
+    <a class="nav-item active" onclick="show('s1')"><span class="num">01</span> Resume Analysis</a>
+    <a class="nav-item" onclick="show('s2')"><span class="num">02</span> Challengeable Claims</a>
+
+    <div class="nav-group-label">Questions</div>
+    <a class="nav-item" onclick="show('s3')"><span class="num">03</span> Resume-Based Q&A</a>
+    <a class="nav-item" onclick="show('s4')"><span class="num">04</span> Core Fundamentals</a>
+    <a class="nav-item" onclick="show('s5')"><span class="num">05</span> Scenario-Based</a>
+    <a class="nav-item" onclick="show('s6')"><span class="num">06</span> Production Questions</a>
+
+    <div class="nav-group-label">Gaps & Mock</div>
+    <a class="nav-item" onclick="show('s7')"><span class="num">07</span> Gaps & Risk Areas</a>
+    <a class="nav-item" onclick="show('s8')"><span class="num">08</span> Mock Interview</a>
+
+    <div class="nav-group-label">Verdict</div>
+    <a class="nav-item" onclick="show('s9')"><span class="num">09</span> Priority Matrix</a>
+    <a class="nav-item" onclick="show('s10')"><span class="num">10</span> Final Assessment</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main id="main">
+
+  <div class="page-header">
+    <h1>DevOps Interview Preparation Guide</h1>
+    <p>Full resume analysis · 100+ questions · answers · priority matrix · mock rounds</p>
+    <div class="meta-chips">
+      <span class="chip chip-cyan">Rohit Verma · DevOps Engineer</span>
+      <span class="chip chip-green">1+ yr Production · Makunai Global</span>
+      <span class="chip chip-yellow">AWS CCP Certified</span>
+      <span class="chip chip-purple">B.Sc. CS Cloud — 9.11 GPA</span>
+      <span class="chip chip-red">Be interview-ready, not just resume-ready</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ S1: RESUME ANALYSIS ═══ -->
+  <section id="s1" class="section active">
+    <div class="section-title"><span class="icon">🔍</span> Resume Analysis</div>
+    <p class="section-subtitle">Strengths, weaknesses, and areas interviewers will focus on — from a hiring manager's perspective.</p>
+
+    <div class="section-h2">Strengths</div>
+    <div class="grid-2">
+      <div class="card strength">
+        <div class="card-title">✅ Metric-Driven Bullet Points</div>
+        <div class="card-body">Your resume uses specific numbers: 99.9% uptime, 40% release cycle reduction, 60% MTTD improvement, 45% MTTR reduction, 20% cost savings. This is exactly what senior engineers want to see — it shows you understand impact measurement, not just task completion. <strong>Most candidates at your level don't do this.</strong></div>
+      </div>
+      <div class="card strength">
+        <div class="card-title">✅ Modern Cloud-Native Stack Coverage</div>
+        <div class="card-body">Kubernetes + Helm + ArgoCD + GitOps + Prometheus/Grafana/Loki is the current industry-standard SRE stack. You've hit the right combination of tools that mid-to-senior DevOps teams are using. This makes your resume immediately relevant for the target market.</div>
+      </div>
+      <div class="card strength">
+        <div class="card-title">✅ Production Scope at Early Career Stage</div>
+        <div class="card-body">Managing 7 production platforms, executing a cloud migration (Azure → DigitalOcean), and owning a full observability stack in your first role is a strong signal. This gives you real-world depth that bootcamp candidates and cloud-only engineers lack.</div>
+      </div>
+      <div class="card strength">
+        <div class="card-title">✅ Content Creation & Community Contribution</div>
+        <div class="card-body">Medium articles, GitHub projects, and the KRaft Kafka guide adopted by 10+ developers shows you can document and communicate technical work — a skill most DevOps engineers lack. Hiring managers notice this.</div>
+      </div>
+      <div class="card strength">
+        <div class="card-title">✅ CI/CD Security Integration</div>
+        <div class="card-body">Mentioning SonarQube quality gates and automated security scans shows security-mindedness in pipelines — a gap most junior DevOps resumes have. This directly addresses the "DevSecOps" signal hiring managers look for.</div>
+      </div>
+      <div class="card strength">
+        <div class="card-title">✅ Strong Academic Profile</div>
+        <div class="card-body">9.11/10 CGPA with a Cloud Computing specialization from Galgotias University is a solid academic foundation that will satisfy HR filters and show structured learning alongside your practical work.</div>
+      </div>
+    </div>
+
+    <div class="section-h2">Weaknesses</div>
+    <div class="grid-2">
+      <div class="card weakness">
+        <div class="card-title">⚠️ Single Employer, Short Timeline</div>
+        <div class="card-body">All experience is from one company (Makunai Global Technologies, Feb 2025–Present ≈ 16 months). Interviewers will question whether you've seen diverse architectures, different team cultures, and varying production constraints. The "7 platforms" claim becomes the main defense here — be ready to describe at least 3 of them in detail.</div>
+      </div>
+      <div class="card weakness">
+        <div class="card-title">⚠️ Terraform Completely Absent</div>
+        <div class="card-body">Terraform is expected for any DevOps/SRE role. It's listed nowhere on your resume — not in skills, not in projects, not in work experience. This will be noticed immediately by hiring managers and is a significant gap. Every scenario interview will expect IaC knowledge.</div>
+      </div>
+      <div class="card weakness">
+        <div class="card-title">⚠️ ArgoCD Listed But Not Demonstrated</div>
+        <div class="card-body">ArgoCD appears in your skills section but there is no specific work experience bullet or project that demonstrates how you used it. Interviewers listing this as a requirement will immediately test it and you won't have a story to point to on your resume.</div>
+      </div>
+      <div class="card weakness">
+        <div class="card-title">⚠️ Python Listed Without Context</div>
+        <div class="card-body">Python is in your skills but there is no specific project or work experience mentioning Python. This invites the question "show me Python code you've written for infrastructure" — and your resume provides no anchor. Either remove it or add a specific use case.</div>
+      </div>
+      <div class="card weakness">
+        <div class="card-title">⚠️ Kafka/Redis/gRPC — No Ownership Story</div>
+        <div class="card-body">The "Backend & Data Systems" section lists Kafka, Redis, Celery, gRPC, MongoDB, PostgreSQL. But outside the Kafka Medium article, none of these appear in your work experience. Did you operate them? Configure them? Debug them? Without a story, these are resume padding that interviewers will expose.</div>
+      </div>
+      <div class="card weakness">
+        <div class="card-title">⚠️ No AWS Production Workloads in Work Experience</div>
+        <div class="card-body">Your skills list heavy AWS services (EC2, ASG, ALB, VPC, IAM) and one work bullet mentions "multi-tier AWS architectures." But your company apparently migrated <em>to</em> DigitalOcean, not AWS. The timeline and depth of real AWS production usage are ambiguous and will be challenged.</div>
+      </div>
+    </div>
+
+    <div class="section-h2">Deep Dive Areas — What Interviewers Will Test</div>
+    <div class="card info">
+      <div class="card-body">
+        <p>Based on your resume, experienced interviewers will dig hardest into these areas:</p>
+        <ul>
+          <li><strong style="color:var(--accent-red)">Kubernetes internals</strong> — You claim 99.9% uptime across 7 platforms. They will ask how you achieved it: HPA tuning, PDB configuration, readiness/liveness probes, node affinity, resource limits, eviction policies.</li>
+          <li><strong style="color:var(--accent-red)">Observability specifics</strong> — MTTD -60% and MTTR -45% are big claims. They'll ask what your MTTD/MTTR was before, what dashboards you built, what alerts triggered, how Loki log correlation worked with Prometheus metrics.</li>
+          <li><strong style="color:var(--accent-red)">Azure → DO migration</strong> — Zero-downtime cutover is non-trivial. They'll ask about DNS cutover, data migration, rollback plan, how you validated services post-migration.</li>
+          <li><strong style="color:var(--accent-yellow)">Helm chart architecture</strong> — "Multi-environment Helm charts with blue-green/canary" is a claim that requires demonstrating values hierarchy, Helm hooks, and rollback mechanics.</li>
+          <li><strong style="color:var(--accent-yellow)">GitHub Actions pipeline design</strong> — They'll want to see the actual pipeline YAML structure: jobs, parallelism, caching, artifact handling, secrets management.</li>
+          <li><strong style="color:var(--accent-cyan)">Kafka KRaft deployment</strong> — You wrote a Medium guide. They'll expect production-level knowledge: partition strategy, replication, consumer group lag, KRaft vs ZooKeeper differences.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ S2: CHALLENGEABLE CLAIMS ═══ -->
+  <section id="s2" class="section">
+    <div class="section-title"><span class="icon">⚡</span> Challengeable Claims</div>
+    <p class="section-subtitle">Every specific metric and claim on your resume will be challenged. Here's what they'll ask and how to respond.</p>
+
+    <div class="card challenge">
+      <div class="card-title">🎯 Claim: "99.9% uptime across 7 high-traffic platforms"</div>
+      <div class="card-body">
+        <p><strong style="color:var(--accent-yellow)">Challenge:</strong> "How did you measure this? What was the baseline? What caused the 0.1% downtime?"</p>
+        <p><strong style="color:var(--accent-green)">Prepare to say:</strong> Uptime was tracked via Prometheus/Grafana availability dashboards + Blackbox Exporter for endpoint health checks. The 0.1% accounts for planned maintenance windows and one incident where [specific scenario: pod eviction during node drain, ingress controller restart, etc.]. The 7 platforms were [describe: web apps, APIs, data pipelines — be specific about 3 at minimum].</p>
+        <p><strong style="color:var(--accent-red)">Danger zone:</strong> If you can't describe the incident that caused downtime or explain how you track uptime technically, this claim collapses immediately.</p>
+      </div>
+    </div>
+
+    <div class="card challenge">
+      <div class="card-title">🎯 Claim: "Reducing release cycles by 40%"</div>
+      <div class="card-body">
+        <p><strong style="color:var(--accent-yellow)">Challenge:</strong> "What was the baseline release cycle time? What specifically changed to achieve 40%? How did you measure it?"</p>
+        <p><strong style="color:var(--accent-green)">Prepare to say:</strong> Before pipeline automation, deployments were manual: build locally, SSH to server, run docker-compose. Average cycle was roughly X hours/days. After GitHub Actions automation with parallel test execution, Docker layer caching, and automated quality gates, average cycle reduced to Y hours. Measured via pipeline run duration metrics in GitHub Actions insights.</p>
+        <p><strong style="color:var(--accent-red)">Danger zone:</strong> Vague answers like "deployments were faster" signal the number was invented. Know your exact before/after comparison.</p>
+      </div>
+    </div>
+
+    <div class="card challenge">
+      <div class="card-title">🎯 Claim: "Reducing MTTD by 60% and MTTR by 45%"</div>
+      <div class="card-body">
+        <p><strong style="color:var(--accent-yellow)">Challenge:</strong> "What was your MTTD before implementing the observability stack? How did you calculate these percentages? What specific alert rules drove this improvement?"</p>
+        <p><strong style="color:var(--accent-green)">Prepare to say:</strong> Before Prometheus+Loki, incident detection was reactive (user-reported). Average detection time was 25-40 minutes post-incident. After implementing alerting rules (CPU >80%, pod restart loops, error rate spikes via Loki log patterns), alerts fire within 2-5 minutes. MTTD dropped from ~30 min average to ~12 min. MTTR improved because Grafana dashboards with correlated logs/metrics reduced time spent finding root cause from 60-90 min to 30-45 min.</p>
+      </div>
+    </div>
+
+    <div class="card challenge">
+      <div class="card-title">🎯 Claim: "Zero-downtime cutover" (Azure → DigitalOcean)</div>
+      <div class="card-body">
+        <p><strong style="color:var(--accent-yellow)">Challenge:</strong> "Walk me through the actual migration steps. How did you achieve zero downtime for stateful services? What was your rollback plan?"</p>
+        <p><strong style="color:var(--accent-green)">Prepare to say:</strong> The migration used a parallel-run strategy. DNS TTL was lowered to 60s 48h before cutover. Services were deployed to DO environment and traffic was split (Cloudflare weighted routing or manual DNS flip). Databases were migrated using snapshot + live replication, with a validation window to confirm data consistency before decommissioning Azure. Rollback plan was simply DNS revert — Azure environment stayed live for 72h post-migration as a safety net.</p>
+      </div>
+    </div>
+
+    <div class="card challenge">
+      <div class="card-title">🎯 Claim: "20% infrastructure cost savings"</div>
+      <div class="card-body">
+        <p><strong style="color:var(--accent-yellow)">Challenge:</strong> "What was the actual dollar amount? What was the before and after? Was it just the cloud pricing difference, or did you optimize resource utilization too?"</p>
+        <p><strong style="color:var(--accent-green)">Prepare to say:</strong> Azure baseline cost was approximately $X/month. DigitalOcean equivalent infrastructure (Kubernetes cluster, managed databases, load balancers) came to roughly 80% of that — primarily due to DO's simpler pricing model and right-sizing the workloads during migration. We also removed dev/test resources that had been running on Azure. Savings tracked via both cloud billing dashboards.</p>
+      </div>
+    </div>
+
+    <div class="card challenge">
+      <div class="card-title">🎯 Claim: "Kafka KRaft guide adopted by 10+ developers"</div>
+      <div class="card-body">
+        <p><strong style="color:var(--accent-yellow)">Challenge:</strong> "Why KRaft mode specifically? What were the tradeoffs vs ZooKeeper-based Kafka? What operational issues did you run into?"</p>
+        <p><strong style="color:var(--accent-green)">Prepare to say:</strong> KRaft mode (Kafka Raft) removes ZooKeeper dependency, simplifying the cluster from a 6-pod deployment (3 Kafka + 3 ZK) to 3-pod combined controller+broker setup. This reduces operational surface area and is Kafka's recommended production path from v3.3+. The tradeoff is KRaft is relatively newer so tooling support (e.g., Kafka Manager UI, some connectors) had quirks. Main operational issues: initial metadata quorum formation and controller election logging needed specific Kafka UI dashboards to monitor.</p>
+      </div>
+    </div>
+
+    <div class="card challenge">
+      <div class="card-title">🎯 Claim: "Designed multi-tier AWS architectures" (no dates)</div>
+      <div class="card-body">
+        <p><strong style="color:var(--accent-yellow)">Challenge:</strong> "Is this from your current role or a personal project? Have you actually run production workloads on AWS, or is this from labs and the CCP certification?"</p>
+        <p><strong style="color:var(--accent-green)">Prepare to say:</strong> Be <strong>honest</strong> about the scope. If this was projects at Makunai alongside the DigitalOcean stack, explain the dual-cloud setup. If it was primarily learning projects, frame it as: "I designed and tested multi-tier AWS architectures in a lab context as part of my CCP prep and ongoing learning, and applied those principles to our production DigitalOcean infrastructure." Don't overclaim AWS production depth you don't have.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ S3: RESUME-BASED Q&A ═══ -->
+  <section id="s3" class="section">
+    <div class="section-title"><span class="icon">💬</span> Resume-Based Questions</div>
+    <p class="section-subtitle">Questions derived directly from your resume bullets — exactly what interviewers will ask after reading it.</p>
+
+    <div class="section-h2">Kubernetes & Deployments</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">Q1</span>
+        <span class="qa-q-text">You mention HPA and Pod Disruption Budgets. Walk me through how you configured HPA for one of your production services. What metrics did you scale on and why?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          For our main API service handling user requests, I configured HPA targeting CPU utilization at 70% threshold with <code>minReplicas: 2</code> and <code>maxReplicas: 10</code>. I chose CPU as the primary metric because the service was compute-bound (JSON processing, encryption). The config looked like:
+          <ul>
+            <li><code>targetCPUUtilizationPercentage: 70</code> — staying below 80% gives headroom before scale-out latency kicks in</li>
+            <li>For a stateless microservice handling variable traffic spikes, I also added custom metrics via Prometheus Adapter — specifically HTTP requests-per-second from the service's metrics endpoint, because CPU lagged 30-60s behind traffic spikes</li>
+            <li>Pod Disruption Budgets were set to <code>minAvailable: 1</code> to ensure at least one replica survived node drains and upgrades, preventing complete downtime during rolling cluster maintenance</li>
+          </ul>
+          The challenge I hit: HPA can cause thrashing if cooldown periods aren't tuned. I set <code>stabilizationWindowSeconds: 300</code> for scale-down to avoid flapping during traffic dips.
+        </div>
+        <div class="followup-label">⚡ Likely Follow-ups</div>
+        <div class="followup-text">
+          "What's the difference between HPA and VPA? Have you used VPA?" | "How does HPA interact with cluster autoscaler?" | "What happens if your custom metrics endpoint is down — does HPA fail open or closed?"
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">Q2</span>
+        <span class="qa-q-text">Explain your blue-green vs rolling deployment strategy. How did you decide which to use for which service?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          <strong>Rolling deployments</strong> were the default for stateless services where gradual traffic shift was acceptable — Kubernetes handles this natively via <code>strategy: RollingUpdate</code> with <code>maxSurge</code> and <code>maxUnavailable</code> tuning. For most microservices, this meant zero-downtime with minimal resource overhead.<br><br>
+          <strong>Blue-Green</strong> was reserved for services with breaking API changes or database schema migrations — situations where a gradual rollout would cause version mismatch errors. Implementation via Helm: maintain two Deployments (blue/green), switch the Service selector between them. The inactive environment acts as immediate rollback.<br><br>
+          Decision factors: API compatibility, stateful data, blast radius of failure, and rollback time requirements. Blue-green costs 2x compute temporarily but gives instant rollback.
+        </div>
+        <div class="followup-label">⚡ Likely Follow-ups</div>
+        <div class="followup-text">
+          "Have you done canary deployments? How does canary differ from blue-green?" | "How do you handle database migrations in blue-green — do both versions run against the same DB?" | "What's your rollback procedure in Helm?"
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">Q3</span>
+        <span class="qa-q-text">You claim 99.9% uptime for 7 platforms. Describe a production incident you handled and how your observability stack helped resolve it.</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer (use a real incident)</div>
+        <div class="qa-answer-text">
+          Structure your answer using the STAR method: Situation, Task, Action, Result.<br><br>
+          Example: "We had a scenario where one of our APIs started returning 503 errors intermittently during peak hours. Prometheus alert fired on HTTP 5xx rate exceeding 5% threshold within 2 minutes. I pulled up the Grafana dashboard — CPU and memory were normal, but I noticed pod restart count was incrementing on 2 of 4 replicas. Switched to Loki log view filtered to that service — saw OOMKilled events and Java heap space errors. Root cause was a memory leak in a new release. Resolution: rolled back via <code>helm rollback [release] [revision]</code>, confirmed pod restart loop stopped, then investigated the memory issue in staging before redeploying with <code>-Xmx</code> tuning. Total MTTR: ~18 minutes."<br><br>
+          Key thing to emphasize: how each tool played a specific role (Prometheus → detected, Grafana → correlated, Loki → root cause identified).
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h2">CI/CD & GitHub Actions</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">Q4</span>
+        <span class="qa-q-text">Walk me through your GitHub Actions CI/CD pipeline structure. What does a full pipeline YAML look like for one of your services?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          A typical pipeline for a Dockerized microservice would have these jobs:<br>
+          <ul>
+            <li><strong>lint-and-test:</strong> runs unit tests, linting, dependency audit in parallel</li>
+            <li><strong>sonarqube-scan:</strong> static analysis, quality gate check (fails if coverage &lt;70% or critical vulnerabilities found)</li>
+            <li><strong>docker-build:</strong> builds Docker image with commit SHA tag + <code>latest</code>, pushes to registry (Docker Hub / ECR / DOCR)</li>
+            <li><strong>security-scan:</strong> Trivy or Docker Scout scan on built image</li>
+            <li><strong>deploy-staging:</strong> <code>helm upgrade --install</code> to staging namespace, triggered on PR merge to <code>develop</code></li>
+            <li><strong>deploy-prod:</strong> triggered on tag push (semantic versioning), requires manual approval via GitHub Environments</li>
+          </ul>
+          Key optimizations: Docker layer caching with <code>cache-from: type=gha</code>, job dependencies with <code>needs:</code>, environment-specific secrets via GitHub Secrets + environments, and Helm diff as PR comment for change visibility.
+        </div>
+        <div class="followup-label">⚡ Likely Follow-ups</div>
+        <div class="followup-text">
+          "How do you manage secrets in GitHub Actions — are they stored in GitHub Secrets only?" | "What happens if the SonarQube quality gate fails — does the pipeline stop?" | "How do you handle rollback if a production deployment fails?"
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">Q5</span>
+        <span class="qa-q-text">What SonarQube quality gates did you configure? What thresholds matter most and why?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-high">High Prob</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          Quality gate conditions I enforced:
+          <ul>
+            <li><strong>Coverage on new code:</strong> ≥70% — prevents developers from shipping untested features</li>
+            <li><strong>Duplicated lines on new code:</strong> &lt;5% — prevents copy-paste anti-patterns</li>
+            <li><strong>Maintainability rating:</strong> A — measured in technical debt ratio</li>
+            <li><strong>Reliability rating:</strong> A (no bugs on new code)</li>
+            <li><strong>Security rating:</strong> A (no vulnerabilities) + Security Hotspot review required</li>
+          </ul>
+          The most impactful gate in practice was the security hotspot review — it flagged hardcoded credentials, insecure random number generators, and SQL injection patterns that developers missed in code review. We blocked 3 deployments in one month that would have shipped with critical security issues.
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h2">Observability</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">Q6</span>
+        <span class="qa-q-text">How did you deploy Prometheus and Grafana in Kubernetes? What Helm chart did you use and what customizations did you make?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          Deployed using the <code>kube-prometheus-stack</code> Helm chart (formerly prometheus-operator). Key customizations in <code>values.yaml</code>:
+          <ul>
+            <li><strong>Persistent storage:</strong> enabled PVCs for both Prometheus (data retention: 15 days) and Grafana to survive pod restarts</li>
+            <li><strong>Ingress:</strong> configured separate Ingress resources with TLS via cert-manager (Let's Encrypt DNS-01 challenge) for external access — important because the chart's built-in ingress had limited TLS configuration options</li>
+            <li><strong>ServiceMonitors:</strong> added custom ServiceMonitor resources to scrape application metrics from each microservice's <code>/metrics</code> endpoint</li>
+            <li><strong>AlertManager:</strong> configured Slack webhook receiver for critical alerts, PagerDuty for on-call escalation, with routing rules by severity</li>
+            <li><strong>Grafana datasources:</strong> provisioned Loki as a second datasource alongside Prometheus for unified log+metric exploration</li>
+          </ul>
+          A challenge: the chart deploys many components that weren't needed in our smaller cluster (kube-state-metrics, node-exporter — kept; pushgateway — disabled). Always review default enabled components to avoid resource waste.
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">Q7</span>
+        <span class="qa-q-text">Walk me through your Loki deployment. How did you configure log retention and structured querying?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          Deployed Loki in single-binary mode using the <code>grafana/loki-stack</code> Helm chart with Promtail as the log shipper on each node (DaemonSet). Key configurations:
+          <ul>
+            <li><strong>Retention:</strong> <code>retention_period: 720h</code> (30 days) configured in the <code>compactor</code> section — a common gotcha is that Loki's retention requires <code>compactor.retention_enabled: true</code> AND a correctly configured S3/DO Spaces backend; without it, retention doesn't run</li>
+            <li><strong>Object storage:</strong> pointed Loki to DigitalOcean Spaces (S3-compatible) for chunk and index storage — this keeps pod storage minimal</li>
+            <li><strong>LogQL queries:</strong> used label-based filtering (<code>{namespace="production",app="api-service"} |= "ERROR"</code>) and rate-based alerts (<code>rate({app="gateway"}[5m])</code> for error spike detection)</li>
+            <li><strong>Grafana integration:</strong> built log panels alongside metric panels in the same dashboard so operators could correlate a CPU spike with the exact log lines causing it</li>
+          </ul>
+        </div>
+        <div class="followup-label">⚡ Likely Follow-ups</div>
+        <div class="followup-text">
+          "What's the difference between Loki and Elasticsearch for log aggregation?" | "How does Promtail handle log rotation?" | "What are Loki's scaling limitations at high ingest rates?"
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h2">Cloud Migration</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">Q8</span>
+        <span class="qa-q-text">Tell me about the Azure to DigitalOcean migration. What was the most technically complex part and how did you handle it?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          The most complex part was stateful data migration — specifically the managed database migration with zero data loss. Approach:
+          <ul>
+            <li><strong>Pre-migration:</strong> Audited all services for Azure-specific dependencies (Azure Blob Storage, Azure Service Bus). Replaced Blob Storage → DO Spaces, Service Bus → Kafka on Kubernetes</li>
+            <li><strong>Database migration:</strong> Used pg_dump + pg_restore for PostgreSQL with a short maintenance window. For MongoDB, used mongodump with oplog replay to minimize data loss window. For any live data, ran parallel writes to both environments during a brief window</li>
+            <li><strong>DNS and traffic cutover:</strong> Lowered Cloudflare TTL to 60s 48 hours before cutover. Cut DNS at 2 AM (lowest traffic). Kept Azure environment live for 72 hours as rollback safety net</li>
+            <li><strong>Validation:</strong> Health check scripts hitting every service endpoint before and after cutover; automated smoke tests in the pipeline confirming critical user flows</li>
+          </ul>
+          The 20% cost reduction came from right-sizing: Azure had over-provisioned dev resources running 24/7 that were eliminated during migration.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ S4: CORE FUNDAMENTALS ═══ -->
+  <section id="s4" class="section">
+    <div class="section-title"><span class="icon">🏗️</span> Core Fundamentals</div>
+    <p class="section-subtitle">Key concepts for every technology on your resume. These are the "what and why" questions that screen out candidates who only know the "how."</p>
+
+    <div class="section-h2">Kubernetes Fundamentals</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">K1</span>
+        <span class="qa-q-text">What happens when you run <code>kubectl apply -f deployment.yaml</code>? Describe every step from API call to running pod.</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          <ul>
+            <li><strong>1. kubectl → API Server:</strong> kubectl serializes the YAML to JSON, sends HTTP request to kube-apiserver with your kubeconfig credentials. API server authenticates (certificate/token), authorizes (RBAC), and validates the manifest against the OpenAPI schema</li>
+            <li><strong>2. Admission Control:</strong> Mutating admission webhooks can modify the object (e.g., inject sidecar, add default resource limits). Validating admission webhooks reject if policy violated (OPA/Gatekeeper, Pod Security Admission)</li>
+            <li><strong>3. etcd persistence:</strong> The Deployment object is written to etcd as the desired state</li>
+            <li><strong>4. Deployment Controller (kube-controller-manager):</strong> watches for Deployment objects, calculates the diff between desired and current state, creates/updates the underlying ReplicaSet</li>
+            <li><strong>5. ReplicaSet Controller:</strong> ensures correct number of Pods exist, creates Pod specs</li>
+            <li><strong>6. Scheduler:</strong> watches for unscheduled Pods, evaluates nodes using filtering (Taints/Tolerations, NodeAffinity, resource availability) and scoring algorithms, assigns Pod to a Node by writing to etcd</li>
+            <li><strong>7. kubelet (on the target node):</strong> watches for Pods assigned to its node, calls container runtime (containerd/CRI) to pull image and start containers, reports status back to API server</li>
+            <li><strong>8. CNI plugin:</strong> assigns Pod IP, sets up network namespace and routes</li>
+            <li><strong>9. kube-proxy:</strong> updates iptables/IPVS rules if Services are involved</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">K2</span>
+        <span class="qa-q-text">Explain the difference between liveness, readiness, and startup probes. When would misconfiguring one cause a production outage?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          <ul>
+            <li><strong>Liveness probe:</strong> "Is the container stuck/deadlocked?" Failure → container is <em>restarted</em>. Misconfiguration risk: too aggressive thresholds on a slow-starting app will cause infinite restart loops (CrashLoopBackOff) in production</li>
+            <li><strong>Readiness probe:</strong> "Is the container ready to receive traffic?" Failure → pod is <em>removed from Service endpoints</em> (no traffic routed to it) but NOT restarted. Misconfiguration risk: if your readiness probe checks a downstream dependency that's temporarily unavailable, ALL pods fail their readiness probe and the Service routes to zero endpoints — complete outage even though the app itself is healthy</li>
+            <li><strong>Startup probe:</strong> "Has the container finished initial startup?" Disables liveness/readiness until startup succeeds. Use for slow-starting apps (JVM, large data loads) to prevent premature liveness failures</li>
+          </ul>
+          <strong>Real outage scenario:</strong> Readiness probe hitting a database health check endpoint. DB has a transient spike → all pods become unready → 100% traffic drop → users see 503s. Fix: readiness probe should check local app health only, not external dependencies.
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">K3</span>
+        <span class="qa-q-text">What is a Pod Disruption Budget and why is it critical in a production cluster during node maintenance?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          A PDB defines the minimum number or percentage of pods of an application that must remain available during voluntary disruptions (node drain, cluster upgrade, manual eviction).<br><br>
+          Without PDB: <code>kubectl drain node-1</code> during a cluster upgrade could evict ALL replicas of a service if they happen to be on that node, causing complete downtime.<br><br>
+          With PDB (<code>minAvailable: 1</code>): the drain operation will wait/block until at least 1 pod is running elsewhere before evicting the last pod on the draining node.<br><br>
+          <strong>Important:</strong> PDB only applies to <em>voluntary</em> disruptions — not node crashes (involuntary). It does NOT protect against hardware failure. Also, PDB can cause cluster upgrades to hang indefinitely if your cluster is undersized — you must have enough capacity to reschedule pods before draining.
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">K4</span>
+        <span class="qa-q-text">How does Kubernetes networking work? How does a pod on Node A communicate with a pod on Node B?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          Kubernetes networking follows three rules: every pod gets a unique cluster-wide IP, pods on the same node can communicate without NAT, pods on different nodes can communicate without NAT.<br><br>
+          Implementation (e.g., Flannel/Calico/Cilium — CNI plugins):
+          <ul>
+            <li>Each node gets a subnet (e.g., Node A: 10.244.0.0/24, Node B: 10.244.1.0/24)</li>
+            <li>Pod on Node A (10.244.0.5) → traffic hits the node's virtual ethernet bridge → routed to the VXLAN overlay tunnel (Flannel) or BGP route (Calico) → arrives at Node B's bridge → delivered to Pod B (10.244.1.8)</li>
+            <li>Services add a virtual IP (ClusterIP) that kube-proxy translates to Pod IPs via iptables/IPVS DNAT rules</li>
+          </ul>
+          In your DOKS cluster specifically, the CNI is likely Cilium (DigitalOcean's default), which uses eBPF instead of iptables for better performance.
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h2">Helm Fundamentals</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">H1</span>
+        <span class="qa-q-text">What is the difference between <code>helm upgrade --install</code> and <code>helm install</code>? How does Helm track release state?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          <code>helm install</code> creates a new release and fails if the release name already exists. <code>helm upgrade --install</code> is idempotent — it creates if not exists, upgrades if exists. This is the correct flag for CI/CD pipelines because the first deployment and all subsequent ones use the same command.<br><br>
+          <strong>State tracking:</strong> Helm stores release state as Kubernetes Secrets (by default) in the target namespace. Each release revision is stored as a separate Secret with the full rendered manifests and metadata. This is how <code>helm rollback</code> works — it retrieves the previous revision's Secret and re-applies it. <code>helm history [release]</code> lists all revisions from these Secrets.<br><br>
+          Common gotcha: if you manually edit Kubernetes resources managed by Helm, the next <code>helm upgrade</code> will overwrite your changes — this is why GitOps discipline is critical.
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">H2</span>
+        <span class="qa-q-text">How did you structure your Helm charts for multi-environment deployments (dev/staging/prod)?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          Pattern used: a single chart with environment-specific <code>values</code> files:
+          <ul>
+            <li><code>values.yaml</code> — base defaults (image repository, default resource limits, service type)</li>
+            <li><code>values-dev.yaml</code> — lower resource requests, debug logging enabled, single replica</li>
+            <li><code>values-staging.yaml</code> — production-like config, reduced replicas, feature flags enabled</li>
+            <li><code>values-prod.yaml</code> — full replicas, production resources, PDB enabled, HPA enabled, real secret references</li>
+          </ul>
+          Deploy command: <code>helm upgrade --install myapp ./chart -f values.yaml -f values-prod.yaml -n production</code><br><br>
+          For secrets: environment values files reference Kubernetes secret names (not the values themselves). Actual secrets are managed separately via Sealed Secrets or external-secrets-operator pulling from a secrets manager — never stored in Helm values files committed to Git.
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h2">Docker Fundamentals</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">D1</span>
+        <span class="qa-q-text">Explain Docker image layers. How do you optimize a Dockerfile for build cache efficiency and minimal image size?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          Each Dockerfile instruction creates a read-only layer. Docker caches layers and only rebuilds from the first changed instruction downward.<br><br>
+          <strong>Optimization principles:</strong>
+          <ul>
+            <li><strong>Order by change frequency</strong> — put rarely-changing instructions first (OS base, system deps) and frequently-changing ones last (app code COPY). This maximizes cache reuse</li>
+            <li><strong>Multi-stage builds</strong> — separate build-stage (includes compiler, dev tools) from runtime-stage (includes only the binary/artifact). Reduces final image from ~800MB to ~50MB for Go apps, for example</li>
+            <li><strong>Minimal base images</strong> — use <code>distroless</code> or <code>alpine</code> variants. Reduces attack surface AND image size</li>
+            <li><strong>Combine RUN commands</strong> — <code>RUN apt-get update && apt-get install -y pkg && rm -rf /var/lib/apt/lists/*</code> creates one layer instead of three and cleans up the package cache in the same layer</li>
+            <li><strong>.dockerignore</strong> — exclude <code>node_modules/</code>, <code>.git/</code>, test files from build context. Reduces context transfer time</li>
+          </ul>
+          In CI, use <code>--cache-from</code> with registry-based caching or GitHub Actions cache to persist layers between pipeline runs.
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h2">AWS Fundamentals</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">A1</span>
+        <span class="qa-q-text">You mention IAM with least-privilege. Walk me through how you would design IAM roles for an application running on EC2 that needs to access S3 and write to DynamoDB.</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          <strong>Correct approach — IAM Role (not user keys):</strong>
+          <ul>
+            <li>Create an IAM Role with a Trust Policy allowing <code>ec2.amazonaws.com</code> to assume it (EC2 instance profile)</li>
+            <li>Attach an inline or managed policy with ONLY the needed permissions: <code>s3:GetObject</code>, <code>s3:PutObject</code> on the specific bucket ARN (<code>arn:aws:s3:::my-bucket/*</code>), and <code>dynamodb:PutItem</code>, <code>dynamodb:GetItem</code> on the specific table ARN</li>
+            <li>Attach the role as an EC2 instance profile — the app uses the metadata endpoint (<code>169.254.169.254</code>) to get temporary credentials automatically via the AWS SDK</li>
+            <li><strong>Never</strong> use static IAM user access keys on EC2. They don't rotate, and if the instance is compromised, the keys are exposed</li>
+          </ul>
+          <strong>Least privilege checklist:</strong> No wildcards on resource ARNs, no <code>*</code> on actions, no <code>Administrator</code> policy, separate roles per application, log all API calls via CloudTrail.
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">A2</span>
+        <span class="qa-q-text">Explain the difference between a Security Group and a Network ACL in AWS VPC. When would you use each?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          <table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-top:0.5rem;">
+            <tr style="color:var(--accent-cyan)"><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)"><strong>Property</strong></td><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)"><strong>Security Group</strong></td><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)"><strong>NACL</strong></td></tr>
+            <tr><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)">Level</td><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)">Instance (ENI)</td><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)">Subnet</td></tr>
+            <tr><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)">State</td><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)">Stateful (return traffic auto-allowed)</td><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)">Stateless (must allow both directions)</td></tr>
+            <tr><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)">Default</td><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)">Deny all inbound, allow all outbound</td><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)">Allow all (default NACL)</td></tr>
+            <tr><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)">Rules</td><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)">Allow only</td><td style="padding:0.3rem 0.5rem;border:1px solid var(--border)">Allow AND Deny, numbered priority</td></tr>
+          </table>
+          <br>Use Security Groups for all normal access control (which EC2 can talk to which RDS). Use NACLs as a subnet-level firewall when you need to explicitly BLOCK a specific IP range (e.g., DDoS mitigation, blocking a compromised CIDR), since Security Groups can't deny.
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h2">Linux Fundamentals</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">L1</span>
+        <span class="qa-q-text">A production pod is experiencing high CPU on a Linux node. Walk me through your diagnosis process.</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          Step-by-step diagnosis:
+          <ul>
+            <li><strong>1. Confirm scope:</strong> <code>kubectl top nodes</code> and <code>kubectl top pods -A</code> — identify which pod/node is the culprit</li>
+            <li><strong>2. Node-level inspection:</strong> <code>ssh</code> to the node, run <code>top</code> or <code>htop</code> → sort by CPU. Identify PID of the container process</li>
+            <li><strong>3. Container process:</strong> <code>ps aux --sort=-%cpu | head -20</code> to see top CPU consumers. <code>cat /proc/[PID]/status</code> for process details</li>
+            <li><strong>4. Is it CPU throttling vs actual high usage?</strong> Check container resource limits: <code>cat /sys/fs/cgroup/cpu/cpu.stat</code> — if <code>nr_throttled</code> is high, the container is hitting its CPU limit and being throttled, not necessarily running a hot loop</li>
+            <li><strong>5. Application profiling:</strong> For JVM — <code>kubectl exec -it pod -- jstack [pid]</code> for thread dump. For Node.js — V8 profiler. For Go — pprof endpoint</li>
+            <li><strong>6. Check recent changes:</strong> <code>helm history [release]</code>, recent code deploys, traffic spike in Grafana</li>
+          </ul>
+          <strong>Common root causes at your stack level:</strong> CPU limits set too low causing throttling, inefficient queries causing CPU-heavy serialization, GC pressure, N+1 query patterns.
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h2">Prometheus & Grafana</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">P1</span>
+        <span class="qa-q-text">Explain how Prometheus scraping works. What is a ServiceMonitor and how does it differ from a scrape config?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          Prometheus uses a <strong>pull model</strong> — it periodically scrapes (HTTP GET) configured targets' <code>/metrics</code> endpoints and stores the time-series data locally.<br><br>
+          <strong>Traditional scrape config</strong> (in prometheus.yml): manually specify targets as static IPs or use service discovery configs. Static and doesn't integrate with Kubernetes dynamic service discovery natively.<br><br>
+          <strong>ServiceMonitor</strong> (Prometheus Operator CRD): a Kubernetes-native way to configure scraping. You define a ServiceMonitor resource that selects Services by label. The Prometheus Operator watches ServiceMonitor objects and automatically generates the corresponding scrape configs in Prometheus. This means you can deploy a new microservice with a <code>Service</code> and a <code>ServiceMonitor</code> and Prometheus automatically starts scraping it — no manual config changes.<br><br>
+          ServiceMonitor is the correct approach in production Kubernetes — it integrates with GitOps workflows (the ServiceMonitor lives alongside the app's Helm chart), is dynamically updated, and eliminates manual config drift.
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">P2</span>
+        <span class="qa-q-text">Write a PromQL query to calculate the 99th percentile request latency for an HTTP service over the last 5 minutes.</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-high">High Prob</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          <code>histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))</code><br><br>
+          Breakdown:
+          <ul>
+            <li><code>http_request_duration_seconds_bucket</code> — histogram metric with <code>le</code> (less-than-or-equal) labels for each bucket boundary</li>
+            <li><code>rate(...[5m])</code> — calculates per-second rate over 5 minutes to smooth out spikes</li>
+            <li><code>sum(...) by (le, service)</code> — aggregate across replicas, keeping <code>le</code> and <code>service</code> labels</li>
+            <li><code>histogram_quantile(0.99, ...)</code> — estimates the 99th percentile from the histogram buckets</li>
+          </ul>
+          Also useful: <code>rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])</code> for error rate percentage.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ S5: SCENARIO-BASED ═══ -->
+  <section id="s5" class="section">
+    <div class="section-title"><span class="icon">🔥</span> Scenario-Based Questions</div>
+    <p class="section-subtitle">Real-world production scenarios. You'll be judged on your thinking process as much as the answer.</p>
+
+    <div class="section-h2">Production Outage Scenarios</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">SC1</span>
+        <span class="qa-q-text">SCENARIO: It's 2 AM. Your Slack alert fires — "API gateway returning 503 on all routes." Users can't access any service. What do you do?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Incident Response Framework</div>
+        <div class="qa-answer-text">
+          <strong>Phase 1 — Triage (0-5 min):</strong>
+          <ul>
+            <li>Check Grafana dashboard — is this all services or specific ones? Are pods running?</li>
+            <li><code>kubectl get pods -n production</code> — look for CrashLoopBackOff, Pending, OOMKilled</li>
+            <li><code>kubectl get nodes</code> — is a node down? NotReady?</li>
+            <li>Check the ingress controller: <code>kubectl get pods -n ingress-nginx</code></li>
+          </ul>
+          <strong>Phase 2 — Isolate (5-10 min):</strong>
+          <ul>
+            <li>If ingress controller is healthy, check Ingress rules: <code>kubectl describe ingress -n production</code></li>
+            <li>Check if a recent deployment caused this: <code>helm history [release]</code>, <code>kubectl rollout history deployment/api-gateway</code></li>
+            <li>Try direct pod access bypassing ingress: <code>kubectl port-forward</code> — if pods respond, ingress is the issue; if not, the app itself is broken</li>
+          </ul>
+          <strong>Phase 3 — Remediate:</strong>
+          <ul>
+            <li>If recent deploy: <code>helm rollback [release]</code> immediately — restore service first, debug later</li>
+            <li>If node failure: cordon the node, drain it, check if cluster autoscaler provides replacement, manually reschedule critical pods</li>
+            <li>If ingress controller crash: <code>kubectl delete pod [ingress-pod]</code> to force restart</li>
+          </ul>
+          <strong>Phase 4 — Communicate:</strong> Status page update / Slack war room / stakeholder notification within 10 minutes of detection, even if not resolved.
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">SC2</span>
+        <span class="qa-q-text">SCENARIO: A new deployment is complete. 10 minutes later, error rate climbs from 0.1% to 8%. The deployment seems fine. What do you investigate?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          The "10 minutes later" is a significant clue — immediate deployment failures show up in readiness probes. Delayed errors suggest:
+          <ul>
+            <li><strong>Warm cache expiry:</strong> the new code is hitting cold cache paths not exercised in smoke tests</li>
+            <li><strong>Database connection pool exhaustion:</strong> new code version opens more connections, pool fills up after traffic builds</li>
+            <li><strong>Memory leak:</strong> GC pressure builds over time, JVM/Node heap grows, then GC pauses cause timeouts</li>
+            <li><strong>External dependency rate limits:</strong> new feature calling a third-party API hitting rate limits after brief normal period</li>
+            <li><strong>Background job interaction:</strong> a scheduled job in the new version conflicting with live traffic</li>
+          </ul>
+          Investigate: Loki logs for specific error types (<code>|= "timeout"</code>, <code>|= "connection refused"</code>), Grafana memory/connection graphs trending upward, check downstream service error rates too. Compare the error pattern — is it uniform (suggests dependency) or gradually increasing (suggests resource leak)?
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">SC3</span>
+        <span class="qa-q-text">SCENARIO: Your Kubernetes cluster is running out of disk space on nodes. Pods are being evicted. How do you respond?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-high">High Prob</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          <strong>Immediate (stop the bleeding):</strong>
+          <ul>
+            <li><code>kubectl describe node [node-name]</code> — check conditions section for <code>DiskPressure: True</code></li>
+            <li>Identify culprits: <code>du -sh /var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/*</code> — dangling image layers</li>
+            <li><code>crictl images</code> — list all images on node. Run <code>crictl rmi --prune</code> to remove unused images immediately</li>
+            <li>Check for runaway logs: <code>du -sh /var/log/containers/*</code> — a pod printing to stdout at extremely high rate fills the overlay filesystem</li>
+          </ul>
+          <strong>Root cause — common culprits:</strong>
+          <ul>
+            <li>No image GC policy (kubelet GC thresholds not configured)</li>
+            <li>No log rotation or log size limits on containers (add <code>--log-opt max-size=50m</code> in Docker, or configure container log rotation in kubelet)</li>
+            <li>Ephemeral storage limits not set on pods — a pod writing temp files can fill a node's disk</li>
+            <li>PV local volumes filling up and being on the same disk as container storage</li>
+          </ul>
+          <strong>Prevention:</strong> Prometheus alert on <code>node_filesystem_avail_bytes / node_filesystem_size_bytes &lt; 0.15</code> (15% free threshold), set kubelet image GC thresholds (<code>imageGCHighThresholdPercent: 85</code>).
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h2">Architecture Scenarios</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">SC4</span>
+        <span class="qa-q-text">SCENARIO: Your company wants to migrate a monolithic application to microservices. It currently runs as a single Docker container. How do you approach this?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-high">High Prob</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          <strong>Strangler Fig pattern — not a big bang rewrite:</strong>
+          <ul>
+            <li><strong>Phase 1 — Identify seams:</strong> Map the monolith's domain boundaries (authentication, user management, payments, notifications). Find areas with clear input/output contracts</li>
+            <li><strong>Phase 2 — Extract peripheral services first:</strong> Start with the least risky, most independent modules (e.g., email notifications). Build as separate service, route traffic via API gateway. Monolith continues running — zero risk to core</li>
+            <li><strong>Phase 3 — Database decomposition:</strong> Each microservice needs its own data store. Use the "database-per-service" pattern, migrate data incrementally using dual-write patterns</li>
+            <li><strong>Phase 4 — Infrastructure:</strong> Containerize each service with multi-stage Dockerfiles, deploy to Kubernetes with Helm, set up inter-service communication (REST or gRPC), configure Kafka for async event flows</li>
+            <li><strong>Phase 5 — Observability-first:</strong> Add distributed tracing (Jaeger/Tempo) early — debugging is 10x harder across services without it. Each service needs correlation IDs propagated through headers</li>
+          </ul>
+          Key risk: distributed systems introduce network failures, eventual consistency, and partial failure scenarios that monoliths don't have. Don't migrate until observability is in place.
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">SC5</span>
+        <span class="qa-q-text">SCENARIO: One of your 7 production platforms suddenly starts consuming 3x normal resources. How do you identify the cause and prevent it from impacting other platforms?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-high">High Prob</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          <strong>Contain the blast radius first:</strong> Kubernetes resource quotas per namespace prevent one platform from starving others. If ResourceQuota is configured, the spike is already contained. If not, this is your action item post-incident.<br><br>
+          <strong>Diagnosis:</strong>
+          <ul>
+            <li><code>kubectl top pods -n [platform-namespace] --sort-by=cpu</code> — find which pods are spiking</li>
+            <li>Check HPA status: <code>kubectl get hpa -n [ns]</code> — is it scaling aggressively due to traffic?</li>
+            <li>Grafana: was there a traffic spike, a specific endpoint hammering, or is resource use increasing without traffic increase (suggests memory/CPU leak or runaway background job)?</li>
+            <li>Loki: filter to that namespace and look for error patterns, repeated operations</li>
+          </ul>
+          <strong>Isolation levers:</strong> <code>kubectl scale deployment [name] --replicas=1</code> to reduce resource consumption immediately while investigating. Apply LimitRange to enforce per-pod maximums. If it's a noisy neighbor causing node-level pressure, consider node affinity/taints to isolate critical workloads.
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h2">Security Scenarios</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">SC6</span>
+        <span class="qa-q-text">SCENARIO: You suspect a container has been compromised. What do you do?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-high">High Prob</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          <strong>Isolate first, investigate second:</strong>
+          <ul>
+            <li><strong>Network isolation:</strong> Apply a NetworkPolicy to the pod's namespace denying all ingress/egress immediately — prevents lateral movement and data exfiltration</li>
+            <li><strong>Preserve evidence:</strong> Before killing — capture <code>kubectl exec</code> forensics: running processes (<code>ps aux</code>), network connections (<code>ss -tulnp</code>), recently modified files (<code>find / -newer /etc/passwd -mmin -60</code>), environment variables (potential secret exfiltration)</li>
+            <li><strong>Snapshot:</strong> If possible, snapshot the node disk for forensic analysis</li>
+            <li><strong>Terminate and rotate:</strong> Delete the pod (it will restart from a clean image if Deployment exists), rotate all credentials/tokens the pod had access to immediately</li>
+            <li><strong>Root cause analysis:</strong> How did the compromise happen? Check Trivy scan for known vulnerabilities in the image. Review RBAC — what Service Account was the pod using and what permissions did it have?</li>
+            <li><strong>Post-incident:</strong> Enable Pod Security Standards (<code>restricted</code> profile), add Falco for runtime threat detection, audit all other pods for similar vulnerabilities</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h2">Networking Scenarios</div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">SC7</span>
+        <span class="qa-q-text">SCENARIO: A pod can ping another pod but can't reach a Service. What's the debugging flow?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-high">High Prob</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          Pod-to-pod works but Service doesn't → the issue is in the Service abstraction layer, not the CNI.
+          <ul>
+            <li><strong>Check if Service has endpoints:</strong> <code>kubectl get endpoints [service-name]</code> — if empty, the Service selector doesn't match any pod labels. Compare <code>kubectl get svc [svc] -o yaml</code> selector vs <code>kubectl get pod --show-labels</code></li>
+            <li><strong>Check kube-proxy:</strong> <code>kubectl get pods -n kube-system | grep kube-proxy</code> — is it running? Check logs for iptables errors</li>
+            <li><strong>DNS resolution:</strong> <code>kubectl exec -it [pod] -- nslookup [service].[namespace].svc.cluster.local</code> — if DNS fails, CoreDNS is the issue</li>
+            <li><strong>iptables rules:</strong> SSH to node, <code>iptables -t nat -L | grep [service-clusterIP]</code> — verify DNAT rules exist for the Service's ClusterIP</li>
+            <li><strong>Port mismatch:</strong> Verify <code>targetPort</code> in the Service spec matches the <code>containerPort</code> the app is actually listening on</li>
+            <li><strong>NetworkPolicy:</strong> A NetworkPolicy might allow pod-to-pod but block pod-to-service. Check <code>kubectl get networkpolicies -n [ns]</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ S6: PRODUCTION QUESTIONS ═══ -->
+  <section id="s6" class="section">
+    <div class="section-title"><span class="icon">⚙️</span> Practical Production Questions</div>
+    <p class="section-subtitle">Questions asked by experienced engineers who care about real production judgment, not textbook answers.</p>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">PP1</span>
+        <span class="qa-q-text">How do you handle secrets in a GitOps workflow? Your Helm values are in Git — how do you avoid committing credentials?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          Multiple approaches, layered by team maturity:
+          <ul>
+            <li><strong>Sealed Secrets (Bitnami):</strong> Encrypt secrets with the cluster's public key using <code>kubeseal</code>. Encrypted SealedSecret objects are safe to commit to Git — only the cluster's private key can decrypt them. GitOps-native, works well with ArgoCD</li>
+            <li><strong>External Secrets Operator:</strong> Kubernetes controller that syncs secrets from external vaults (AWS Secrets Manager, HashiCorp Vault, GCP Secret Manager) into Kubernetes Secrets. The Git repo stores an <code>ExternalSecret</code> resource (safe to commit) that references secret paths, not values</li>
+            <li><strong>GitHub Actions secrets:</strong> For CI pipelines, never inject secrets via values files. Pass them as GitHub Secrets → environment variables → <code>--set key=value</code> at deploy time, not stored in files</li>
+            <li><strong>What NOT to do:</strong> Store base64-encoded secrets in Kubernetes Secret YAML files committed to Git. Base64 is not encryption — it's just encoding</li>
+          </ul>
+          In production: External Secrets Operator pulling from a secrets manager is the most enterprise-ready approach. Sealed Secrets is excellent for smaller teams without a dedicated vault.
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">PP2</span>
+        <span class="qa-q-text">What's your strategy for Kubernetes resource requests and limits? Why do you not just set limits high to avoid OOM kills?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          <strong>Requests vs Limits distinction:</strong>
+          <ul>
+            <li><strong>Requests:</strong> what the pod is <em>guaranteed</em> — used by the scheduler to decide which node can fit the pod. Sets the QoS tier</li>
+            <li><strong>Limits:</strong> the maximum the pod can use. CPU limit → throttling. Memory limit → OOMKill</li>
+          </ul>
+          <strong>Why not set limits high?</strong>
+          <ul>
+            <li>The scheduler uses requests for bin-packing decisions. If requests are 100m CPU but limits are 4 CPU, the scheduler thinks the pod needs 100m — it may pack 40 such pods on a node that actually can't handle 40 × 4 CPU bursts simultaneously. This causes cascading CPU throttling</li>
+            <li>Memory: if all pods set high memory limits but low requests, a memory spike in one pod steals memory from other pods on the same node, potentially causing OOMKills across unrelated services</li>
+          </ul>
+          <strong>Practical strategy:</strong> Set requests based on steady-state average usage (from Prometheus metrics + VPA recommendations). Set limits at 2-3x requests for memory (to handle spikes), and for CPU consider <em>not</em> setting a hard limit or setting it much higher — CPU throttling is often worse than slightly overusing CPU temporarily. Use Vertical Pod Autoscaler (VPA) in recommendation mode to continuously refine these values.
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">PP3</span>
+        <span class="qa-q-text">How do you perform a zero-downtime Kubernetes cluster version upgrade in production?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-high">High Prob</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          For a managed cluster (DOKS/EKS — your environments):
+          <ul>
+            <li><strong>Pre-upgrade:</strong> Read the Kubernetes changelog for deprecated APIs. Check all deployed Helm charts and manifests for deprecated API versions (<code>kubectl convert</code> or pluto tool). Remove all deprecated APIs before upgrading</li>
+            <li><strong>Verify PDBs:</strong> Ensure critical services have PodDisruptionBudgets set — without these, node drains can cause downtime</li>
+            <li><strong>Control plane first:</strong> Managed clusters (DOKS) upgrade the control plane automatically or via console. Control plane upgrades are transparent to workloads in managed clusters</li>
+            <li><strong>Node pool rolling upgrade:</strong> DOKS/EKS upgrades nodes by cordoning, draining one node at a time, replacing with new version. PDBs ensure minimum availability during drain. Node autoscaling must have capacity to absorb pods from draining nodes</li>
+            <li><strong>Validation:</strong> After each node upgrade, verify workloads are healthy before proceeding to next node. <code>kubectl get pods -A | grep -v Running</code></li>
+            <li><strong>Rollback plan:</strong> If a workload breaks due to API changes, you can't easily roll back the cluster version — you must fix the workload. This is why pre-upgrade API compatibility checks are non-negotiable</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">PP4</span>
+        <span class="qa-q-text">Your CI pipeline is building Docker images that are 2GB. Deployments are slow and pulling takes too long. How do you fix this?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-high">High Prob</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          Multi-pronged approach:
+          <ul>
+            <li><strong>Multi-stage builds:</strong> Separate build dependencies (compiler, test frameworks, dev tools) from runtime. For a Java app: build stage uses <code>maven:3.9-jdk17</code> (500MB), runtime stage uses <code>eclipse-temurin:17-jre-alpine</code> (80MB). Copy only the JAR</li>
+            <li><strong>Base image audit:</strong> <code>docker history image:tag</code> — identify large layers. Switch <code>ubuntu:22.04</code> (80MB) → <code>alpine:3.18</code> (5MB) where possible. Use <code>distroless</code> for production (no shell, no package manager — reduces attack surface too)</li>
+            <li><strong>Layer optimization:</strong> Sort Dockerfile instructions by change frequency (rarely-changing deps first). This maximizes cache reuse so CI only rebuilds changed layers</li>
+            <li><strong>GitHub Actions caching:</strong> Use <code>cache-from: type=gha</code> and <code>cache-to: type=gha,mode=max</code> in docker/build-push-action. Layers are cached in GitHub's cache backend</li>
+            <li><strong>Clean up in build layer:</strong> <code>RUN pip install --no-cache-dir</code>, <code>npm ci --omit=dev</code>, delete build artifacts and caches in the same RUN instruction as the install</li>
+            <li><strong>Image pull policy:</strong> Set <code>imagePullPolicy: IfNotPresent</code> in production — don't re-pull if the image exists on the node. Use Keel or image caching proxies for faster node distribution</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">PP5</span>
+        <span class="qa-q-text">Explain your approach to Kubernetes RBAC. How do you set up access for a new developer joining your team?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-high">High Prob</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          RBAC hierarchy: ClusterRoles/Roles (what), ClusterRoleBindings/RoleBindings (who gets what).<br><br>
+          <strong>Developer onboarding flow:</strong>
+          <ul>
+            <li>Create namespace-scoped Role with minimal permissions: <code>get/list/watch</code> on pods, deployments, services; <code>get</code> on secrets (read-only, not list — listing secrets exposes all secret names); <code>create</code> on pods/exec (for debugging)</li>
+            <li>NO: <code>delete</code> on pods (prevent accidental deletion), no cluster-level access, no ability to modify RBAC</li>
+            <li>Create a RoleBinding binding the developer's identity (or a Group if using SSO) to the Role in their namespace only</li>
+            <li>For read-only cluster visibility (nodes, events): bind the built-in <code>view</code> ClusterRole at namespace scope</li>
+          </ul>
+          <strong>Real-world addition:</strong> In DOKS/EKS, integrate with your identity provider (GitHub, Google, AWS IAM) so developers authenticate with their existing credentials — no manual kubeconfig management. Use <code>kubectl auth can-i --as [user]</code> to verify permissions before and after.
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">PP6</span>
+        <span class="qa-q-text">What's the difference between ArgoCD sync and a Helm upgrade? Why would you use ArgoCD over just running helm in your CI?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-must">Must Know</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          <strong>Helm in CI (push model):</strong> CI pipeline runs <code>helm upgrade</code> — it pushes changes to the cluster. Once the pipeline completes, there's no ongoing reconciliation. If someone manually changes a Kubernetes resource, CI doesn't detect or correct it (config drift).<br><br>
+          <strong>ArgoCD (pull model / GitOps):</strong> ArgoCD continuously watches the Git repo AND the live cluster state. If drift is detected (manual change, accidental delete), ArgoCD can auto-sync to restore the desired Git state. It's a continuous reconciliation loop, not a one-time push.<br><br>
+          <strong>Why ArgoCD wins for production:</strong>
+          <ul>
+            <li>Single source of truth: Git IS the cluster state. Any deviation is visible in ArgoCD's UI and corrected</li>
+            <li>Audit trail: every deployment is tied to a Git commit — you know exactly who changed what and when</li>
+            <li>Multi-cluster management: ArgoCD can deploy the same app to dev/staging/prod clusters from one control plane</li>
+            <li>Rollback = git revert: rolling back is just reverting the Git commit, not running manual helm rollback commands</li>
+            <li>Application health visibility: ArgoCD's UI shows the full resource tree (deployments → replicasets → pods) and their health at a glance</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-question" onclick="toggleQA(this)">
+        <span class="qa-q-num">PP7</span>
+        <span class="qa-q-text">You have a Kafka consumer group that's falling behind — lag is growing. How do you diagnose and fix it?</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;"><span class="ptag ptag-high">High Prob</span><span class="qa-arrow">▼</span></div>
+      </div>
+      <div class="qa-answer">
+        <div class="qa-answer-label">▶ Strong Answer</div>
+        <div class="qa-answer-text">
+          Consumer lag = messages produced - messages consumed. Growing lag means consumers aren't keeping up with producers.<br><br>
+          <strong>Diagnosis:</strong>
+          <ul>
+            <li>Check consumer group lag: <code>kafka-consumer-groups.sh --describe --group [group-name]</code> — shows lag per partition</li>
+            <li>Is lag growing uniformly across all partitions (suggests consumer is too slow overall) or on specific partitions (suggests partition imbalance or a "poison pill" message causing retry loops)?</li>
+            <li>Check consumer CPU/memory — is the consumer resource-constrained?</li>
+            <li>Check for consumer rebalances: excessive rebalancing causes consumers to pause processing. Look for <code>ConsumerGroupRebalance</code> events in logs</li>
+          </ul>
+          <strong>Fixes by root cause:</strong>
+          <ul>
+            <li><strong>Consumer too slow:</strong> Increase consumer instances (must have &lt;= partitions, since each partition can only have one consumer in a group). Or optimize consumer processing logic (batch processing, async IO)</li>
+            <li><strong>Partition imbalance:</strong> Use Kafka's partition reassignment tool to redistribute</li>
+            <li><strong>Poison pill:</strong> A single malformed message causing infinite retry. Implement a dead letter queue (DLQ) for unprocessable messages</li>
+            <li><strong>Producer spike:</strong> If it's a temporary spike, consumers will catch up. But if sustained, scale out consumers or increase partitions (note: partition count can only increase, not decrease)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ S7: GAPS ═══ -->
+  <section id="s7" class="section">
+    <div class="section-title"><span class="icon">🕳️</span> Gaps & Risk Areas</div>
+    <p class="section-subtitle">Skills interviewers will expect based on your resume that are not explicitly shown. These are your blind spots.</p>
+
+    <div class="warn-box">⚠️ These gaps won't disqualify you alone — but multiple gaps together suggest you're thinner than your resume implies. Prepare answers for all of these.</div>
+
+    <div class="grid-2">
+      <div class="card gap">
+        <div class="card-title">🔴 Terraform / IaC — Critical Gap</div>
+        <div class="card-body">
+          <p>Terraform is listed on virtually every DevOps/SRE JD. Your resume has no mention of it anywhere. Given your infrastructure work (K8s on DOKS, AWS architecture design), interviewers will assume you used Terraform and be caught off-guard when you haven't.</p>
+          <p><strong>What to say:</strong> "Infrastructure was provisioned using DigitalOcean's managed control plane and manual configuration. I'm currently upskilling in Terraform — I've completed [specific module/project]." OR build a personal Terraform project now and add it to GitHub before interviews.</p>
+          <p><strong>Minimum prep:</strong> Understand <code>terraform init/plan/apply/destroy</code>, state files, remote backends (S3 + DynamoDB lock), modules, and the difference between resource and data sources.</p>
+        </div>
+      </div>
+      <div class="card gap">
+        <div class="card-title">🔴 Secrets Management — Partially Absent</div>
+        <div class="card-body">
+          <p>You mention security scanning and RBAC but there's no mention of secrets management tooling (Vault, Sealed Secrets, External Secrets Operator, AWS Secrets Manager). For a production Kubernetes environment, how secrets are managed is a critical production concern.</p>
+          <p><strong>What to prepare:</strong> Know at least one approach deeply (Sealed Secrets is simplest for your DOKS stack). Be able to explain why base64 Kubernetes secrets in Git is insecure and what you do instead.</p>
+        </div>
+      </div>
+      <div class="card gap">
+        <div class="card-title">🟡 Distributed Tracing — Absent</div>
+        <div class="card-body">
+          <p>You have metrics (Prometheus) and logs (Loki) but no mention of traces. A complete observability stack is metrics + logs + traces. For a microservice environment, the absence of tracing (OpenTelemetry, Jaeger, Tempo) is noticeable.</p>
+          <p><strong>What to say:</strong> "Our current observability stack covers metrics and logs. Distributed tracing is on the roadmap — I'm familiar with OpenTelemetry and Jaeger conceptually and am implementing it in [context]."</p>
+        </div>
+      </div>
+      <div class="card gap">
+        <div class="card-title">🟡 Disaster Recovery / Backup Strategy</div>
+        <div class="card-body">
+          <p>You mention "backup validation" once in the migration context, but there's no mention of ongoing DR strategy — RTO/RPO targets, Velero for cluster state backup, database backup automation, or multi-region planning.</p>
+          <p><strong>What to prepare:</strong> Know what Velero does (Kubernetes resource + PV backup to object storage), understand RTO vs RPO, and explain how you'd back up and restore a DOKS cluster.</p>
+        </div>
+      </div>
+      <div class="card gap">
+        <div class="card-title">🟡 Python Usage — Unsubstantiated</div>
+        <div class="card-body">
+          <p>Python is in your skills but no specific use is shown. Interviewers will ask "show me Python you wrote for infrastructure." Common DevOps Python use cases: boto3 scripts, Kubernetes client API scripts, data parsing, webhook handlers, automated testing.</p>
+          <p><strong>Prep:</strong> Have 2-3 real examples ready. Even basic: "I wrote a Python script to parse Prometheus metrics and send a weekly report to Slack" is better than a vague claim.</p>
+        </div>
+      </div>
+      <div class="card gap">
+        <div class="card-title">🟡 Service Mesh — Not Present</div>
+        <div class="card-body">
+          <p>At 7 microservices in production, the question "did you consider a service mesh (Istio/Linkerd)?" is natural. Not having one is fine, but you need to articulate why you chose not to use one (complexity, team size, overhead vs benefit at your scale).</p>
+        </div>
+      </div>
+      <div class="card gap">
+        <div class="card-title">🟠 EKS vs DOKS vs Self-Managed — Depth Varies</div>
+        <div class="card-body">
+          <p>Your skills list EKS but your production work was on DOKS. EKS has significant differences: IAM roles for service accounts (IRSA), aws-auth ConfigMap, EKS Managed Node Groups, Fargate profiles. If an interviewer asks deep EKS questions, your DOKS experience won't fully cover it.</p>
+          <p><strong>Prep:</strong> Know IRSA (IAM Roles for Service Accounts) — this is the most commonly asked EKS-specific concept.</p>
+        </div>
+      </div>
+      <div class="card gap">
+        <div class="card-title">🟠 gRPC — Listed Without Context</div>
+        <div class="card-body">
+          <p>gRPC is in your resume's backend systems section. If asked "how did you use gRPC in production?", you need a story. gRPC in a DevOps context usually means configuring ingress controllers to handle HTTP/2, setting up TLS termination for gRPC, or debugging gRPC health checks (they're different from HTTP health checks).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ S8: MOCK INTERVIEW ═══ -->
+  <section id="s8" class="section">
+    <div class="section-title"><span class="icon">🎤</span> Mock Interview</div>
+    <p class="section-subtitle">Simulated interview rounds from HR screening to senior engineer deep-dive. Practice answering each aloud before your interviews.</p>
+
+    <!-- HR -->
+    <div class="mock-round">
+      <div class="mock-round-header">
+        <span class="mock-round-title">Round 1 — HR / Recruiter Screening</span>
+        <span class="ptag ptag-must">Must Pass</span>
+      </div>
+      <div class="mock-round-body">
+        <div class="mock-q">
+          <div class="mock-q-text">Q: Tell me about yourself and your experience as a DevOps Engineer.</div>
+          <div class="mock-q-ans">
+            <strong>Structure (90 seconds max):</strong> Current role → key impact → technologies → what you're looking for.<br>
+            "I'm a DevOps Engineer with about 16 months of production experience at Makunai Global Technologies. In my current role, I own the deployment and reliability of 7 production platforms running on Kubernetes — I built the full observability stack with Prometheus, Grafana, and Loki, which reduced our incident detection time by 60%. I also led a full cloud migration from Azure to DigitalOcean and engineered CI/CD pipelines using GitHub Actions and SonarQube. I'm looking for a role where I can go deeper into SRE practices, expand into Terraform-based IaC, and work on larger-scale Kubernetes environments."
+          </div>
+        </div>
+        <div class="mock-q">
+          <div class="mock-q-text">Q: Why are you leaving your current company?</div>
+          <div class="mock-q-ans">
+            Keep it professional and forward-looking. Never criticize your current employer.<br>
+            "I've had a great learning experience at Makunai — I went from a junior engineer to owning all production infrastructure in about a year. I'm ready to grow into a larger team, tackle more complex distributed systems, and ideally move toward a Site Reliability Engineering scope. I'm looking for an environment with more engineering peers to learn from and more infrastructure scale."
+          </div>
+        </div>
+        <div class="mock-q">
+          <div class="mock-q-text">Q: What is your expected salary / notice period?</div>
+          <div class="mock-q-ans">
+            Research market rates for your level in your target city (Noida/Gurgaon/Bangalore). For 1 year DevOps with your stack, India market range is roughly ₹6-12 LPA depending on company. Quote a range, not a single number. State your actual notice period clearly.
+          </div>
+        </div>
+        <div class="mock-q">
+          <div class="mock-q-text">Q: What are your strengths and weaknesses as a DevOps engineer?</div>
+          <div class="mock-q-ans">
+            <strong>Strength:</strong> "I'm strong in observability and production reliability — I'm the person who gets called when something breaks at 2 AM and I've built the tooling to reduce how often that happens."<br>
+            <strong>Weakness (honest + growth-oriented):</strong> "I haven't had the opportunity to work with Terraform in production yet — I've been using DigitalOcean's managed services. I'm actively working through Terraform modules and building a personal infrastructure project on AWS to close that gap."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TECH SCREEN -->
+    <div class="mock-round">
+      <div class="mock-round-header">
+        <span class="mock-round-title">Round 2 — Technical Screening (30 min)</span>
+        <span class="ptag ptag-must">Must Pass</span>
+      </div>
+      <div class="mock-round-body">
+        <div class="mock-q">
+          <div class="mock-q-text">Q: What's the difference between a Deployment and a StatefulSet in Kubernetes?</div>
+          <div class="mock-q-ans">
+            Deployment: for stateless applications. Pods are interchangeable — any pod can replace another. Pod names are random (<code>nginx-abc123</code>). No stable storage per pod.<br>
+            StatefulSet: for stateful applications (databases, Kafka, Redis). Pods have stable, ordered names (<code>kafka-0</code>, <code>kafka-1</code>). Each pod gets its own persistent volume that follows it across restarts. Scaling and rolling updates happen in order (0, 1, 2...) not randomly. Used for: databases, Kafka, ZooKeeper, Elasticsearch.
+          </div>
+        </div>
+        <div class="mock-q">
+          <div class="mock-q-text">Q: What happens when a container exceeds its memory limit in Kubernetes?</div>
+          <div class="mock-q-ans">
+            The container is OOMKilled (Out of Memory Killed) by the Linux kernel. The pod's restart count increments. If the pod keeps getting OOMKilled, it enters CrashLoopBackOff. Unlike CPU (which is throttled), memory cannot be throttled — it's either available or the process is killed. Fix: increase memory limit, optimize app memory usage, or use VPA recommendations to set appropriate limits.
+          </div>
+        </div>
+        <div class="mock-q">
+          <div class="mock-q-text">Q: What is a ConfigMap and when would you use it over an environment variable?</div>
+          <div class="mock-q-ans">
+            ConfigMap stores non-sensitive configuration data as key-value pairs or files. Use ConfigMap when: configuration is shared across multiple pods, configuration needs to be updated without rebuilding the image, or configuration is complex enough to warrant a file format (e.g., nginx.conf, app.properties). Environment variables in the pod spec are simpler for single-pod, simple config. Key difference: ConfigMap changes can be mounted as volumes and some apps can hot-reload them without pod restart — env vars require pod restart to pick up changes.
+          </div>
+        </div>
+        <div class="mock-q">
+          <div class="mock-q-text">Q: Explain what happens during a <code>kubectl drain node</code> operation.</div>
+          <div class="mock-q-ans">
+            <code>kubectl drain</code> does two things: (1) cordons the node (marks it unschedulable so no new pods land on it), (2) evicts all pods on the node. Eviction respects PodDisruptionBudgets — if evicting a pod would violate a PDB, the drain waits or fails. DaemonSet pods are not evicted by default (use <code>--ignore-daemonsets</code>). Static pods are also skipped. After drain, the node is safe for maintenance — no workloads running on it. After maintenance, <code>kubectl uncordon node</code> makes it schedulable again.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L1 -->
+    <div class="mock-round">
+      <div class="mock-round-header">
+        <span class="mock-round-title">Round 3 — L1 Technical (45-60 min)</span>
+        <span class="ptag ptag-high">High Stakes</span>
+      </div>
+      <div class="mock-round-body">
+        <div class="mock-q">
+          <div class="mock-q-text">Q: Design a CI/CD pipeline for a Node.js microservice that needs to pass security gates before deploying to production on Kubernetes.</div>
+          <div class="mock-q-ans">
+            <strong>Pipeline stages:</strong>
+            <ul>
+              <li><strong>Trigger:</strong> PR to main branch OR tag push (semver)</li>
+              <li><strong>Lint + Unit Tests:</strong> <code>eslint</code>, <code>jest</code> — fail fast</li>
+              <li><strong>SonarQube SAST:</strong> static analysis, quality gate (coverage ≥70%, no critical vulns)</li>
+              <li><strong>Docker Build:</strong> multi-stage, tagged with Git SHA + semver tag</li>
+              <li><strong>Trivy Image Scan:</strong> scan for CVEs in base image and dependencies. CRITICAL severity → fail pipeline. HIGH → warn</li>
+              <li><strong>Push to Registry:</strong> push to ECR/DOCR on success</li>
+              <li><strong>Deploy Staging:</strong> <code>helm upgrade --install</code> to staging namespace. Run smoke tests</li>
+              <li><strong>Manual Approval Gate:</strong> GitHub Environment protection rule requiring reviewer approval</li>
+              <li><strong>Deploy Production:</strong> same Helm command to prod namespace with prod values file</li>
+              <li><strong>Post-deploy validation:</strong> Prometheus check on error rate for 5 min post-deploy. Auto-rollback if error rate spikes</li>
+            </ul>
+          </div>
+        </div>
+        <div class="mock-q">
+          <div class="mock-q-text">Q: A developer says "my pod is stuck in Pending state." Walk me through your debugging steps.</div>
+          <div class="mock-q-ans">
+            <strong>Step 1:</strong> <code>kubectl describe pod [pod-name]</code> → check the Events section at the bottom. The scheduler's failure reason is always there.<br>
+            <strong>Common reasons and fixes:</strong>
+            <ul>
+              <li><code>Insufficient cpu/memory</code> → cluster doesn't have enough resources. Check <code>kubectl describe nodes</code> for allocatable vs requested. Fix: scale node pool or reduce pod requests</li>
+              <li><code>0/3 nodes are available: 3 node(s) had untolerated taint</code> → pod needs a toleration for the node's taint. Add toleration to pod spec</li>
+              <li><code>did not match pod anti-affinity rules</code> → pod anti-affinity preventing scheduling. Review affinity rules in pod spec</li>
+              <li><code>PVC not bound</code> → persistent volume not available. Check <code>kubectl get pvc</code> and <code>kubectl get pv</code></li>
+              <li>Image pull error → check imagePullSecrets, registry credentials, image name/tag typo</li>
+            </ul>
+          </div>
+        </div>
+        <div class="mock-q">
+          <div class="mock-q-text">Q: How does TLS termination work in your Kubernetes ingress setup? Where is the certificate stored?</div>
+          <div class="mock-q-ans">
+            In our setup with nginx-ingress and cert-manager:
+            <ul>
+              <li>cert-manager watches for <code>Certificate</code> or annotated Ingress resources requesting TLS</li>
+              <li>cert-manager requests a certificate from Let's Encrypt via ACME DNS-01 challenge (creates a TXT record via Cloudflare DNS API to prove domain ownership)</li>
+              <li>Let's Encrypt issues the certificate; cert-manager stores it as a Kubernetes Secret of type <code>kubernetes.io/tls</code> in the target namespace</li>
+              <li>The Ingress resource references this Secret in <code>spec.tls.secretName</code></li>
+              <li>nginx-ingress controller reads the Secret, loads the cert into nginx configuration, and terminates TLS at the ingress — all traffic between ingress and backend pods is HTTP (within the cluster's trusted network)</li>
+              <li>cert-manager auto-renews certificates 30 days before expiry</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L2 -->
+    <div class="mock-round">
+      <div class="mock-round-header">
+        <span class="mock-round-title">Round 4 — L2 / System Design (60 min)</span>
+        <span class="ptag ptag-high">High Stakes</span>
+      </div>
+      <div class="mock-round-body">
+        <div class="mock-q">
+          <div class="mock-q-text">Q: Design a production-grade Kubernetes-based infrastructure for a SaaS application that handles 10,000 requests/second at peak, with 99.9% SLA. Explain your decisions.</div>
+          <div class="mock-q-ans">
+            <strong>Key architectural decisions to cover:</strong>
+            <ul>
+              <li><strong>Multi-AZ Cluster:</strong> Node pools spread across 3 availability zones. Control plane managed (EKS/DOKS). Minimum 3 nodes per AZ for HA</li>
+              <li><strong>Ingress:</strong> nginx-ingress with HPA. Cloudflare in front for DDoS protection, WAF, and global CDN for static assets</li>
+              <li><strong>Application layer:</strong> Stateless microservices with HPA (CPU + custom RPS metrics), PDB (minAvailable: 1 per service), resource requests/limits tuned from production data</li>
+              <li><strong>Data layer:</strong> Managed PostgreSQL (multi-node, read replicas for read scaling), Redis for caching (reduces DB load by ~70% for hot paths), Kafka for async event processing</li>
+              <li><strong>Observability:</strong> Prometheus + Grafana (metrics), Loki (logs), distributed tracing, SLO/SLA dashboards tracking 99.9% uptime, p99 latency alerts</li>
+              <li><strong>Security:</strong> NetworkPolicies (default deny, explicit allow), RBAC, Pod Security Standards (restricted), image scanning in CI, Secrets via External Secrets Operator from managed secrets store</li>
+              <li><strong>CI/CD:</strong> ArgoCD for GitOps deployments, GitHub Actions for build/test/scan, blue-green for high-risk changes</li>
+              <li><strong>Backup:</strong> Velero for cluster state backup, managed DB automated backups, tested restore procedures</li>
+            </ul>
+          </div>
+        </div>
+        <div class="mock-q">
+          <div class="mock-q-text">Q: You are asked to reduce infrastructure costs by 30% without reducing availability. What do you do?</div>
+          <div class="mock-q-ans">
+            Systematic cost optimization approach:
+            <ul>
+              <li><strong>Right-size first:</strong> Use VPA recommendations or Prometheus data to identify over-provisioned pods. In most clusters, requests are set conservatively — actual usage is often 40-60% of requested</li>
+              <li><strong>Spot/Preemptible nodes:</strong> Use spot instances (AWS Spot, DOKS reserved droplets) for non-critical workloads (batch jobs, dev/staging environments). 60-90% cost reduction for those workloads. Keep stateful/critical workloads on on-demand nodes</li>
+              <li><strong>Cluster autoscaler tuning:</strong> Aggressive scale-down policies for non-peak hours. <code>scale-down-utilization-threshold: 0.5</code> — consolidate pods onto fewer nodes during off-hours</li>
+              <li><strong>Environment scheduling:</strong> Dev/staging clusters run 8 AM - 8 PM only (cron-based scale to 0). No reason to pay for dev infra running at 3 AM</li>
+              <li><strong>Storage audit:</strong> Unused PVCs, oversized volumes, old snapshots. Often 10-15% savings from storage alone</li>
+              <li><strong>Data transfer costs:</strong> Ensure internal service communication stays within the same AZ/region to avoid cross-AZ data transfer charges</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SENIOR -->
+    <div class="mock-round">
+      <div class="mock-round-header">
+        <span class="mock-round-title">Round 5 — Senior Engineer / Director Deep-Dive</span>
+        <span class="ptag ptag-adv">Advanced</span>
+      </div>
+      <div class="mock-round-body">
+        <div class="mock-q">
+          <div class="mock-q-text">Q: With 1 year of experience, how do you justify managing 7 production platforms? What would a more senior engineer have done differently in your role?</div>
+          <div class="mock-q-ans">
+            Be honest and self-aware — this is a maturity question, not just a technical one.<br><br>
+            "I had the opportunity to take ownership early because we were a small team. I learned by doing, which gave me breadth quickly. A senior engineer would have likely implemented more guardrails earlier — GitOps from day one rather than retrofitting ArgoCD later, Terraform for infrastructure instead of manual provisioning, and more formal runbooks and change management processes. I've learned to appreciate process and documentation more as I've seen what happens when things break without them. That's part of what I'm looking for in a next role — the structure and peer review that a more mature team provides."
+          </div>
+        </div>
+        <div class="mock-q">
+          <div class="mock-q-text">Q: What's the hardest production problem you've ever debugged? Walk me through your thought process.</div>
+          <div class="mock-q-ans">
+            Pick your most complex real incident. Structure: what was the symptom → initial hypotheses → what you tried → what you eliminated → what the actual root cause was → how long it took → what you changed to prevent recurrence.<br><br>
+            The interviewer is evaluating: systematic thinking, tool proficiency, ability to stay calm under pressure, and post-incident follow-through. A candidate who can describe a debugging session that took 3 hours, with all the wrong turns included, is far more impressive than one who claims everything was straightforward.
+          </div>
+        </div>
+        <div class="mock-q">
+          <div class="mock-q-text">Q: How would you build an SLO/SLA monitoring system for the platforms you manage?</div>
+          <div class="mock-q-ans">
+            <strong>SLO (Service Level Objective) implementation:</strong>
+            <ul>
+              <li>Define SLIs (Service Level Indicators) first: request success rate, latency percentiles (p50, p95, p99), availability (uptime %)</li>
+              <li>Set SLOs per service: e.g., "99.5% of requests return 2xx within 500ms over a 30-day rolling window"</li>
+              <li>Error budget: if SLO is 99.5%, error budget is 0.5% — that's ~3.6 hours of downtime per month. Track error budget burn rate</li>
+              <li>Prometheus + recording rules to calculate SLI: <code>sum(rate(http_requests_total{code=~"2.."}[5m])) / sum(rate(http_requests_total[5m]))</code></li>
+              <li>Grafana SLO dashboard with burn rate alerts: alert when error budget is burning at 14x the normal rate (will exhaust budget in 1 hour) and 6x rate (will exhaust in 6 hours)</li>
+              <li>Post-incident: every incident that consumed error budget gets a post-mortem. Error budget depletion gates feature deployments — if budget is exhausted, reliability work takes priority over new features</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ S9: PRIORITY MATRIX ═══ -->
+  <section id="s9" class="section">
+    <div class="section-title"><span class="icon">📊</span> Priority Matrix</div>
+    <p class="section-subtitle">Every topic categorized by interview probability. Study in order: Must Know → High Probability → Nice to Know → Advanced.</p>
+
+    <div class="priority-matrix-grid">
+      <div class="matrix-cell">
+        <div class="matrix-cell-header">
+          <span class="ptag ptag-must">Must Know</span>
+          <span class="matrix-cell-title" style="color:var(--accent-red)">Study These First</span>
+        </div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>Kubernetes pod lifecycle & scheduling</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>HPA configuration & metrics</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>PodDisruptionBudget usage</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>Liveness / Readiness / Startup probes</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>Helm upgrade --install & release state</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>Multi-env Helm values structure</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>GitHub Actions pipeline structure</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>Prometheus ServiceMonitor vs scrape config</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>Loki LogQL queries</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>Blue-green vs rolling vs canary</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>Defending your metric claims (40%, 60%, 45%)</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>Azure → DO migration walkthrough</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>RBAC Roles vs ClusterRoles</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>Kubernetes resource requests vs limits</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>ArgoCD GitOps vs Helm push model</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>Secrets management (NOT in Git)</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>TLS cert management with cert-manager</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>Docker multi-stage build optimization</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>kubectl drain / cordon behavior</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-red)"></div>Production incident response flow</div>
+      </div>
+
+      <div class="matrix-cell">
+        <div class="matrix-cell-header">
+          <span class="ptag ptag-high">High Prob</span>
+          <span class="matrix-cell-title" style="color:var(--accent-orange)">Study Before Interviews</span>
+        </div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>PromQL histogram_quantile for p99 latency</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>SonarQube quality gate conditions</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>Kubernetes networking (CNI, kube-proxy)</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>AWS Security Group vs NACL</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>IAM roles for EC2 instance profiles</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>Kafka consumer lag diagnosis</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>KRaft vs ZooKeeper Kafka</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>Node disk pressure / image GC</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>Cluster version upgrade process</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>Docker image size optimization</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>Stateful vs Deployment workloads</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>Pod stuck in Pending — debug flow</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>Ingress controller TLS termination</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>ResourceQuota per namespace</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>Linux CPU throttle vs high usage diff</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>Cost optimization strategies</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>Service vs Deployment selector mismatch</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-orange)"></div>OOMKill vs CPU throttling</div>
+      </div>
+
+      <div class="matrix-cell">
+        <div class="matrix-cell-header">
+          <span class="ptag ptag-nice">Nice to Know</span>
+          <span class="matrix-cell-title" style="color:var(--accent-cyan)">If Time Permits</span>
+        </div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>Velero for K8s backup/restore</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>Terraform basics (plan/apply/state)</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>Sealed Secrets / External Secrets</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>OpenTelemetry / distributed tracing</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>AWS EKS IRSA (IAM Roles for SAs)</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>Kubernetes admission webhooks</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>VPA (Vertical Pod Autoscaler)</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>Kafka partition strategy</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>SLO / SLA / error budget concepts</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>Redis eviction policies</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>gRPC in Kubernetes ingress</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>Python for infrastructure automation</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>NetworkPolicy default-deny patterns</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>Celery worker scaling patterns</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>Cloudflare DNS/WAF configuration</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-cyan)"></div>Spot instance handling in K8s</div>
+      </div>
+
+      <div class="matrix-cell">
+        <div class="matrix-cell-header">
+          <span class="ptag ptag-adv">Advanced</span>
+          <span class="matrix-cell-title" style="color:var(--accent-purple)">Senior Role Prep</span>
+        </div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>eBPF-based networking (Cilium)</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>Service mesh (Istio/Linkerd) tradeoffs</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>Kubernetes API server custom resources (CRDs)</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>OPA/Gatekeeper policy enforcement</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>Chaos engineering principles</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>Kubernetes operator pattern</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>Multi-cluster GitOps with ArgoCD</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>etcd backup and restore</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>Kubernetes scheduler extenders</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>Falco runtime security</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>Karpenter vs Cluster Autoscaler</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>WASM workloads in K8s</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>Multi-tenancy isolation patterns</div>
+        <div class="matrix-item"><div class="matrix-dot" style="background:var(--accent-purple)"></div>Kubernetes cost allocation with Kubecost</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ S10: FINAL ASSESSMENT ═══ -->
+  <section id="s10" class="section">
+    <div class="section-title"><span class="icon">🏁</span> Final Assessment</div>
+    <p class="section-subtitle">Honest evaluation of your resume and readiness from an interviewer's perspective.</p>
+
+    <div style="display:flex;align-items:flex-start;gap:2rem;margin-bottom:2rem;">
+      <div>
+        <div style="font-size:0.7rem;font-family:'JetBrains Mono',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.35rem;">Overall Resume Score</div>
+        <div class="final-score">7.1<span style="font-size:1.5rem;color:var(--text-muted)">/10</span></div>
+        <div style="font-size:0.78rem;color:var(--accent-green);margin-top:0.5rem;font-family:'JetBrains Mono',monospace;">Strong for 1-year experience level</div>
+      </div>
+      <div style="flex:1;">
+        <div class="info-box">
+          This is a genuinely strong resume for someone at the 1-year experience mark. The metric-driven bullets, cloud-native stack, and production scope put it ahead of most entry-level DevOps resumes. However, the lack of Terraform, ambiguous AWS depth, and several uncorroborated skill claims will be tested hard at every interview. The score would jump to 8.5/10 with Terraform added and ArgoCD substantiated in a work bullet.
+        </div>
+      </div>
+    </div>
+
+    <div class="section-h2">Category Scores</div>
+    <div style="margin-bottom:1.5rem;">
+      <div class="score-row">
+        <span class="score-label">Resume Writing Quality</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:85%;background:linear-gradient(90deg,var(--accent-green),var(--accent-cyan))"></div></div>
+        <span class="score-val" style="color:var(--accent-green)">8.5</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Kubernetes Depth</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:75%;background:linear-gradient(90deg,var(--accent-cyan),var(--accent-purple))"></div></div>
+        <span class="score-val" style="color:var(--accent-cyan)">7.5</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">CI/CD Coverage</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:72%;background:linear-gradient(90deg,var(--accent-cyan),var(--accent-purple))"></div></div>
+        <span class="score-val" style="color:var(--accent-cyan)">7.2</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Observability</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:80%;background:linear-gradient(90deg,var(--accent-green),var(--accent-cyan))"></div></div>
+        <span class="score-val" style="color:var(--accent-green)">8.0</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">AWS Depth</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:55%;background:linear-gradient(90deg,var(--accent-yellow),var(--accent-orange))"></div></div>
+        <span class="score-val" style="color:var(--accent-yellow)">5.5</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">IaC / Terraform</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:10%;background:var(--accent-red)"></div></div>
+        <span class="score-val" style="color:var(--accent-red)">1.0</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Security Practices</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:65%;background:linear-gradient(90deg,var(--accent-yellow),var(--accent-cyan))"></div></div>
+        <span class="score-val" style="color:var(--accent-yellow)">6.5</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Metric Claim Defensibility</span>
+        <div class="score-bar-wrap"><div class="score-bar-fill" style="width:60%;background:linear-gradient(90deg,var(--accent-yellow),var(--accent-orange))"></div></div>
+        <span class="score-val" style="color:var(--accent-yellow)">6.0</span>
+      </div>
+    </div>
+
+    <div class="section-h2">Top 7 Actions Before Your Next Interview</div>
+
+    <div class="card challenge" style="counter-reset: action;">
+      <div class="card-title">🔴 #1 — Build a Terraform Project (Critical)</div>
+      <div class="card-body">
+        This is your biggest gap. Spend 1 weekend building a Terraform project that provisions a VPC, EC2 instance, and S3 bucket on AWS. Push it to GitHub. Then you can honestly say: "I don't have Terraform in production yet, but I've built [specific project] and understand state management, remote backends, and module structure." This changes the conversation from "gap" to "learning in progress."
+      </div>
+    </div>
+
+    <div class="card challenge">
+      <div class="card-title">🔴 #2 — Prepare Concrete Numbers for Every Metric</div>
+      <div class="card-body">
+        For each metric (99.9% uptime, 40% release reduction, 60% MTTD, 45% MTTR, 20% cost), write down: what was the exact baseline, how you measured it, and the specific technical change that drove the improvement. Know these cold. An interviewer can detect a fabricated number within two follow-up questions.
+      </div>
+    </div>
+
+    <div class="card challenge">
+      <div class="card-title">🟡 #3 — Add an ArgoCD Work Bullet</div>
+      <div class="card-body">
+        ArgoCD is in your skills section. If you've used it even minimally, add a work experience bullet: "Implemented GitOps deployment workflows using ArgoCD for automated sync and drift detection, replacing manual Helm deployments." Interviewers will ask about it — you need a story in your experience section, not just skills.
+      </div>
+    </div>
+
+    <div class="card challenge">
+      <div class="card-title">🟡 #4 — Prepare a Python Automation Example</div>
+      <div class="card-body">
+        Write a simple Python script for infrastructure use (boto3 to list EC2 instances + send a Slack alert, or Kubernetes client API to restart CrashLoopBackOff pods). This gives you a concrete answer to "show me your Python work" and elevates the claim from noise to signal.
+      </div>
+    </div>
+
+    <div class="card challenge">
+      <div class="card-title">🟡 #5 — Document the Azure → DO Migration in Detail</div>
+      <div class="card-body">
+        Write a Medium article or internal doc about the migration. Going through the process of documenting it will solidify your understanding and reveal gaps in your own memory. The act of writing forces precision. And if you publish it, you can reference it in interviews.
+      </div>
+    </div>
+
+    <div class="card challenge">
+      <div class="card-title">🟠 #6 — Clarify or Remove Ambiguous Backend Skills</div>
+      <div class="card-body">
+        Remove gRPC from your resume if you can't describe a specific use case in a DevOps context. Same for Celery — if you just observed it in the stack but didn't configure or troubleshoot it, remove it. Every listed skill is an invitation for a question you might not be ready for. Fewer strong skills is better than more weak ones.
+      </div>
+    </div>
+
+    <div class="card challenge">
+      <div class="card-title">🟠 #7 — Prepare Three Real Incident Stories</div>
+      <div class="card-body">
+        In your head right now, write down three real production incidents you solved. For each: what the symptom was, what your first hypothesis was (even if wrong), what tools you used, what the root cause turned out to be, and what you changed after. These stories are the most valuable interview currency you have — they can't be faked and they immediately demonstrate production experience.
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="success-box">
+      <strong>Bottom Line:</strong> Your resume is genuinely competitive for mid-level DevOps roles (₹8-14 LPA range). The combination of production Kubernetes, full observability stack, and a cloud migration sets you apart from the majority of candidates at your experience level. The risks are concentrated: Terraform absence, metric defensibility, and ArgoCD corroboration. Address those three and your interview conversion rate will be significantly higher. The technical depth is there — make sure your preparation matches what your resume promises.
+    </div>
+  </section>
+
+</main>
+
+<script>
+  function show(sectionId) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(sectionId).classList.add('active');
+    event.currentTarget.classList.add('active');
+    document.getElementById('main').scrollTo(0, 0);
+  }
+
+  function toggleQA(el) {
+    const block = el.closest('.qa-block');
+    block.classList.toggle('open');
+  }
+
+  // Animate score bars on load
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.score-bar-fill').forEach(bar => {
+      const targetWidth = bar.style.width;
+      bar.style.width = '0';
+      setTimeout(() => { bar.style.width = targetWidth; }, 300);
+    });
+  });
+</script>
+</body>
+</html>
