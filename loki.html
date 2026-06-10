@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grafana Loki - Deep Dive SRE & Architectural Operations Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    :root {
+      --color-background-primary: #0b0f19;
+      --color-background-secondary: #161d30;
+      --color-border-tertiary: #233152;
+      --color-text-primary: #f1f5f9;
+      --color-text-secondary: #cbd5e1;
+      --color-text-tertiary: #64748b;
+      
+      --color-background-danger: rgba(220, 38, 38, 0.15);
+      --color-text-danger: #fca5a5;
+      --color-background-warning: rgba(217, 119, 6, 0.15);
+      --color-text-warning: #fde047;
+      --color-background-success: rgba(5, 150, 105, 0.15);
+      --color-text-success: #86efac;
+      --color-background-info: rgba(37, 99, 235, 0.15);
+      --color-text-info: #7dd3fc;
+      
+      --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'Fira Code', 'Courier New', monospace;
+      --border-radius-md: 8px;
+      --border-radius-lg: 12px;
+      --border-radius-xl: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--color-background-primary);
+      color: var(--color-text-primary);
+      line-height: 1.6;
+    }
+
+    /* Layout Wrapper */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 300px;
+      background-color: #080b13;
+      border-right: 1px solid var(--color-border-tertiary);
+      padding: 24px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar h2 {
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #e07e26;
+      margin-bottom: 20px;
+    }
+
+    .toc-list {
+      list-style: none;
+    }
+
+    .toc-item {
+      margin-bottom: 8px;
+    }
+
+    .toc-link {
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: block;
+      padding: 6px 10px;
+      border-radius: var(--border-radius-md);
+    }
+
+    .toc-link:hover {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--color-text-primary);
+      transform: translateX(4px);
+    }
+
+    .toc-link.active {
+      background: rgba(224, 126, 38, 0.1);
+      color: #fbd38d;
+      font-weight: 600;
+    }
+
+    /* Main Content Area */
+    .content-area {
+      flex-grow: 1;
+      padding: 40px;
+      max-width: 980px;
+      overflow-y: auto;
+    }
+
+    /* Header Styling */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #e07e26, #ef9f27);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--color-text-tertiary);
+      font-weight: 500;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(224, 126, 38, 0.1);
+      border: 1px solid rgba(224, 126, 38, 0.2);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fbd38d;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #e07e26;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #e07e26;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(224, 126, 38, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(224, 126, 38, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(224, 126, 38, 0); }
+    }
+
+    /* Tabs Styling */
+    .tbr {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+      margin-bottom: 24px;
+      padding-bottom: 4px;
+    }
+
+    .tb {
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 18px;
+      border: none;
+      background: transparent;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      border-radius: var(--border-radius-md);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-sans);
+    }
+
+    .tb:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--color-text-primary);
+    }
+
+    .tb.on {
+      background: rgba(224, 126, 38, 0.12);
+      color: #fbd38d;
+      box-shadow: inset 0 0 0 1px rgba(224, 126, 38, 0.25);
+    }
+
+    .tc {
+      display: none;
+    }
+
+    .tc.on {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* SVG Base & Lane Styles */
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: default;
+    }
+
+    /* Component Colors & Hover Glows */
+    g text {
+      transition: fill 0.2s ease;
+      pointer-events: none;
+    }
+
+    g rect {
+      transition: fill-opacity 0.25s ease, stroke 0.25s ease, stroke-width 0.25s ease, filter 0.25s ease;
+    }
+
+    .c-gray rect { fill: #64748b; stroke: #475569; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-gray:hover rect { fill-opacity: 0.25; stroke: #94a3b8; filter: drop-shadow(0 0 8px rgba(148, 163, 184, 0.35)); stroke-width: 2px; }
+    .c-gray text.t { fill: #f8fafc; font-weight: 600; }
+    .c-gray text.ts { fill: #94a3b8; }
+
+    .c-teal rect { fill: #14b8a6; stroke: #0f766e; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-teal:hover rect { fill-opacity: 0.25; stroke: #2dd4bf; filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.35)); stroke-width: 2px; }
+    .c-teal text.t { fill: #f8fafc; font-weight: 600; }
+    .c-teal text.ts { fill: #2dd4bf; }
+
+    .c-blue rect { fill: #3b82f6; stroke: #1d4ed8; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-blue:hover rect { fill-opacity: 0.25; stroke: #60a5fa; filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.35)); stroke-width: 2px; }
+    .c-blue text.t { fill: #f8fafc; font-weight: 600; }
+    .c-blue text.ts { fill: #60a5fa; }
+
+    .c-amber rect { fill: #f59e0b; stroke: #b45309; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-amber:hover rect { fill-opacity: 0.25; stroke: #fbbf24; filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.35)); stroke-width: 2px; }
+    .c-amber text.t { fill: #f8fafc; font-weight: 600; }
+    .c-amber text.ts { fill: #fbbf24; }
+
+    .c-coral rect { fill: #ef4444; stroke: #b91c1c; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-coral:hover rect { fill-opacity: 0.25; stroke: #f87171; filter: drop-shadow(0 0 8px rgba(248, 113, 113, 0.35)); stroke-width: 2px; }
+    .c-coral text.t { fill: #f8fafc; font-weight: 600; }
+    .c-coral text.ts { fill: #f87171; }
+
+    .c-purple rect { fill: #a855f7; stroke: #7e22ce; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-purple:hover rect { fill-opacity: 0.25; stroke: #c084fc; filter: drop-shadow(0 0 8px rgba(192, 132, 252, 0.35)); stroke-width: 2px; }
+    .c-purple text.t { fill: #f8fafc; font-weight: 600; }
+    .c-purple text.ts { fill: #c084fc; }
+
+    .c-green rect { fill: #22c55e; stroke: #15803d; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-green:hover rect { fill-opacity: 0.25; stroke: #4ade80; filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.35)); stroke-width: 2px; }
+    .c-green text.t { fill: #f8fafc; font-weight: 600; }
+    .c-green text.ts { fill: #4ade80; }
+
+    /* Flow Pathway Animations */
+    .path-group {
+      transition: opacity 0.25s ease, stroke-width 0.25s ease;
+    }
+
+    .flow-write {
+      stroke: var(--color-text-tertiary);
+      stroke-dasharray: 6, 4;
+      animation: flow-forward 1.2s linear infinite;
+    }
+
+    .flow-retention {
+      stroke: #EF9F27;
+      stroke-dasharray: 6, 4;
+      animation: flow-forward 2s linear infinite;
+    }
+
+    .flow-deletion {
+      stroke: #E24B4A;
+      stroke-dasharray: 4, 3;
+      animation: flow-forward 1.5s linear infinite;
+    }
+
+    .flow-replay {
+      stroke: var(--color-text-tertiary);
+      stroke-dasharray: 4, 4;
+      animation: flow-forward 1.8s linear infinite;
+    }
+
+    .flow-read {
+      stroke: #378ADD;
+      stroke-dasharray: 6, 4;
+      animation: flow-forward 1s linear infinite;
+    }
+
+    .flow-read-dashed {
+      stroke: #378ADD;
+      stroke-dasharray: 4, 4;
+      animation: flow-forward 1s linear infinite;
+    }
+
+    .flow-metrics {
+      stroke: #639922;
+      stroke-dasharray: 2, 4;
+      animation: flow-forward 2.5s linear infinite;
+    }
+
+    @keyframes flow-forward {
+      from {
+        stroke-dashoffset: 20;
+      }
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    /* Highlight class triggered by Legend Hovers */
+    svg.highlight-write .path-group:not(.path-group-write),
+    svg.highlight-read .path-group:not(.path-group-read),
+    svg.highlight-retention .path-group:not(.path-group-retention),
+    svg.highlight-deletion .path-group:not(.path-group-deletion),
+    svg.highlight-metrics .path-group:not(.path-group-metrics) {
+      opacity: 0.15;
+    }
+
+    svg.highlight-write .path-group.path-group-write,
+    svg.highlight-read .path-group.path-group-read,
+    svg.highlight-retention .path-group.path-group-retention,
+    svg.highlight-deletion .path-group.path-group-deletion,
+    svg.highlight-metrics .path-group.path-group-metrics {
+      stroke-width: 2.5px;
+    }
+
+    /* Details Panel */
+    .dp {
+      background: linear-gradient(135deg, rgba(22, 29, 48, 0.4) 0%, rgba(11, 15, 25, 0.8) 100%);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 24px 28px;
+      margin-top: 24px;
+      min-height: 120px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .dp-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.01em;
+    }
+
+    .dp-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+
+    .dp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 24px;
+    }
+
+    .dp-block .lbl {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--color-text-tertiary);
+      margin-bottom: 4px;
+    }
+
+    .dp-block .txt {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Legend */
+    .leg {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--color-border-tertiary);
+    }
+
+    .li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .li:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--color-border-tertiary);
+      color: var(--color-text-primary);
+    }
+
+    /* Blog Prose styling */
+    h1, h2, h3, h4 {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-top: 36px;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      font-size: 24px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+      padding-bottom: 8px;
+      margin-top: 48px;
+    }
+
+    h3 {
+      font-size: 18px;
+      margin-top: 28px;
+    }
+
+    p {
+      color: var(--color-text-secondary);
+      margin-bottom: 16px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    ul, ol {
+      margin-bottom: 20px;
+      padding-left: 24px;
+      color: var(--color-text-secondary);
+      font-size: 15px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    /* Technical Callouts & Code Blocks */
+    .code-block {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      background: #090d16;
+      border: 1px solid #1c263d;
+      border-radius: var(--border-radius-md);
+      padding: 14px 18px;
+      margin: 20px 0;
+      color: #38bdf8;
+      display: block;
+      white-space: pre;
+      overflow-x: auto;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      background: #0d1321;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #ec9f05;
+    }
+
+    .warning-box {
+      background: rgba(220, 38, 38, 0.06);
+      border-left: 4px solid #ef4444;
+      padding: 16px 20px;
+      border-radius: 4px;
+      margin: 24px 0;
+    }
+
+    .warning-box strong {
+      color: #fca5a5;
+    }
+
+    .warning-box p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--color-text-secondary);
+    }
+
+    .best-practice {
+      background: rgba(5, 150, 105, 0.06);
+      border-left: 4px solid #10b981;
+      padding: 16px 20px;
+      border-radius: 4px;
+      margin: 24px 0;
+    }
+
+    .best-practice strong {
+      color: #a7f3d0;
+    }
+
+    .best-practice p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--color-text-secondary);
+    }
+
+    .info-box {
+      background: rgba(37, 99, 235, 0.06);
+      border-left: 4px solid #3b82f6;
+      padding: 16px 20px;
+      border-radius: 4px;
+      margin: 24px 0;
+    }
+
+    .info-box strong {
+      color: #bfdbfe;
+    }
+
+    .info-box p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--color-text-secondary);
+    }
+
+    /* Compare Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      font-size: 14px;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+    }
+
+    th {
+      background-color: var(--color-background-secondary);
+      color: var(--color-text-primary);
+      font-weight: 600;
+    }
+
+    td {
+      color: var(--color-text-secondary);
+    }
+
+    tr:hover td {
+      background-color: rgba(255, 255, 255, 0.01);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar TOC -->
+    <div class="sidebar">
+      <h2>Table of Contents</h2>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#ch1" class="toc-link">1. Loki Fundamentals</a></li>
+        <li class="toc-item"><a href="#ch2" class="toc-link">2. Complete Loki Architecture</a></li>
+        <li class="toc-item"><a href="#ch3" class="toc-link">3. Data Model & Streams</a></li>
+        <li class="toc-item"><a href="#ch4" class="toc-link">4. Log Entry Pipeline Stages</a></li>
+        <li class="toc-item"><a href="#ch5" class="toc-link">5. Log Shippers & Agents</a></li>
+        <li class="toc-item"><a href="#ch6" class="toc-link">6. Service Discovery In Promtail</a></li>
+        <li class="toc-item"><a href="#ch7" class="toc-link">7. Ingestion & Push Internals</a></li>
+        <li class="toc-item"><a href="#ch8" class="toc-link">8. Storage & Chunk Engine</a></li>
+        <li class="toc-item"><a href="#ch9" class="toc-link">9. Write-Ahead Log (WAL)</a></li>
+        <li class="toc-item"><a href="#ch10" class="toc-link">10. Index & BoltDB Shipper</a></li>
+        <li class="toc-item"><a href="#ch11" class="toc-link">11. LogQL Deep Dive</a></li>
+        <li class="toc-item"><a href="#ch12" class="toc-link">12. Ruler & Alertmanager</a></li>
+        <li class="toc-item"><a href="#ch13" class="toc-link">13. Recording Rules in Loki</a></li>
+        <li class="toc-item"><a href="#ch14" class="toc-link">14. Multi-Tenancy Engine</a></li>
+        <li class="toc-item"><a href="#ch15" class="toc-link">15. Query Frontend & Splitting</a></li>
+        <li class="toc-item"><a href="#ch16" class="toc-link">16. Kubernetes Logging</a></li>
+        <li class="toc-item"><a href="#ch17" class="toc-link">17. High Cardinality in Loki</a></li>
+        <li class="toc-item"><a href="#ch18" class="toc-link">18. Scaling Loki Layouts</a></li>
+        <li class="toc-item"><a href="#ch19" class="toc-link">19. SRE Troubleshooting Guide</a></li>
+        <li class="toc-item"><a href="#ch20" class="toc-link">20. Production Best Practices</a></li>
+        <li class="toc-item"><a href="#ch21" class="toc-link">21. Loki vs Alternatives</a></li>
+        <li class="toc-item"><a href="#ch22" class="toc-link">22. Real-World Deployments</a></li>
+        <li class="toc-item"><a href="#ch23" class="toc-link">23. Interview Prep & Outages</a></li>
+        <li class="toc-item"><a href="#ch24" class="toc-link">24. Architectural Glossary</a></li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-area">
+      <!-- Top Header Area -->
+      <div class="header">
+        <div class="logo-area">
+          <svg class="logo" viewBox="0 0 50 50" width="38" height="38" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M25 5 L42 15 L42 35 L25 45 L8 35 L8 15 Z" stroke="#e07e26" stroke-width="2" fill="rgba(224, 126, 38, 0.05)"/>
+            <path d="M25 12 L35 18 L35 32 L25 38 L15 32 L15 18 Z" stroke="#3b82f6" stroke-width="1.5" fill="rgba(59, 130, 246, 0.05)"/>
+            <circle cx="25" cy="25" r="4" fill="#a855f7" filter="drop-shadow(0 0 4px #a855f7)"/>
+          </svg>
+          <div>
+            <h1>Grafana Loki</h1>
+            <p class="subtitle">Complete SRE & Architectural Reference Handbook</p>
+          </div>
+        </div>
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          <span class="status-text">HA Engine Online</span>
+        </div>
+      </div>
+
+      <!-- Interactive Diagram Area -->
+      <div id="interactive-diagram" style="margin-bottom: 40px;">
+        <h2>Interactive Architecture Blueprint</h2>
+        <p>Hover over the legend to isolate specific data pathways. Click on individual components to load detailed technical specifications, operational tips, and critical thresholds.</p>
+        
+        <svg id="loki-svg" viewBox="0 0 680 530" xmlns="http://www.w3.org/2000/svg" style="font-family:var(--font-sans)">
+          <defs>
+            <marker id="aw" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M0,0.5 L7,4 L0,7.5 z" fill="var(--color-text-tertiary)"/>
+            </marker>
+            <marker id="ab" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M0,0.5 L7,4 L0,7.5 z" fill="#378ADD"/>
+            </marker>
+            <marker id="ao" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M0,0.5 L7,4 L0,7.5 z" fill="#EF9F27"/>
+            </marker>
+            <marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M0,0.5 L7,4 L0,7.5 z" fill="#E24B4A"/>
+            </marker>
+            <marker id="ag" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M0,0.5 L7,4 L0,7.5 z" fill="#639922"/>
+            </marker>
+          </defs>
+
+          <!-- Lane backgrounds -->
+          <rect x="0" y="8" width="470" height="50" rx="6" fill="var(--color-background-secondary)" opacity="0.6"/>
+          <rect x="0" y="82" width="470" height="52" rx="6" fill="var(--color-background-secondary)" opacity="0.4"/>
+          <rect x="0" y="158" width="470" height="140" rx="6" fill="var(--color-background-secondary)" opacity="0.3"/>
+          <rect x="0" y="318" width="470" height="58" rx="6" fill="var(--color-background-secondary)" opacity="0.4"/>
+          <rect x="0" y="396" width="470" height="50" rx="6" fill="var(--color-background-secondary)" opacity="0.3"/>
+          
+          <!-- PV dashed border -->
+          <rect x="4" y="316" width="462" height="62" rx="6" fill="none" stroke="#EF9F27" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.4"/>
+          <text x="468" y="350" font-size="9" fill="#EF9F27" font-weight="600" text-anchor="end" opacity="0.8">40 Gi PV</text>
+
+          <!-- Lane labels -->
+          <text x="10" y="6" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">APPLICATION LAYER</text>
+          <text x="10" y="80" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">COLLECTION  ·  DaemonSet</text>
+          <text x="10" y="156" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">INGESTION LAYER</text>
+          <text x="10" y="314" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">STORAGE LAYER  ·  /data/loki/</text>
+          <text x="10" y="392" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">RETENTION LAYER</text>
+
+          <!-- Right Panel Labels -->
+          <text x="494" y="6" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">QUERY PATH</text>
+          <text x="494" y="382" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">OBSERVABILITY</text>
+
+          <!-- Write Path: Pods → Promtail -->
+          <line x1="103" y1="58" x2="140" y2="82" stroke="var(--color-text-tertiary)" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+          <line x1="240" y1="58" x2="200" y2="82" stroke="var(--color-text-tertiary)" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+          <line x1="290" y1="58" x2="310" y2="82" stroke="var(--color-text-tertiary)" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+          <line x1="397" y1="58" x2="360" y2="82" stroke="var(--color-text-tertiary)" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+          
+          <line x1="103" y1="58" x2="140" y2="82" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#aw)"/>
+          <line x1="240" y1="58" x2="200" y2="82" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#aw)"/>
+          <line x1="290" y1="58" x2="310" y2="82" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#aw)"/>
+          <line x1="397" y1="58" x2="360" y2="82" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#aw)"/>
+
+          <!-- Write Path: Promtail → Distributor -->
+          <path d="M185 134 C200 150 220 158 228 168" fill="none" stroke="var(--color-text-tertiary)" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+          <path d="M335 134 C310 150 278 158 268 168" fill="none" stroke="var(--color-text-tertiary)" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+          
+          <path d="M185 134 C200 150 220 158 228 168" fill="none" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#aw)"/>
+          <path d="M335 134 C310 150 278 158 268 168" fill="none" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#aw)"/>
+
+          <!-- Write Path: Distributor → Ingester -->
+          <line x1="248" y1="204" x2="248" y2="244" stroke="var(--color-text-tertiary)" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+          <line x1="248" y1="204" x2="248" y2="244" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#aw)"/>
+
+          <!-- Write Path: Ingester → WAL / Chunks / BoltDB -->
+          <line x1="188" y1="282" x2="95" y2="322" stroke="var(--color-text-tertiary)" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+          <line x1="248" y1="282" x2="248" y2="322" stroke="var(--color-text-tertiary)" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+          <line x1="308" y1="282" x2="378" y2="322" stroke="var(--color-text-tertiary)" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+          
+          <line x1="188" y1="282" x2="95" y2="322" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#aw)"/>
+          <line x1="248" y1="282" x2="248" y2="322" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#aw)"/>
+          <line x1="308" y1="282" x2="378" y2="322" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#aw)"/>
+
+          <!-- WAL Replay (dashed line, back to ingester) -->
+          <path d="M80 322 Q55 295 192 282" fill="none" stroke="var(--color-text-tertiary)" stroke-width="1" opacity="0.15" class="path-group path-group-write"/>
+          <path d="M80 322 Q55 295 192 282" fill="none" stroke-width="1" class="flow-replay path-group path-group-write" marker-end="url(#aw)"/>
+          <text x="32" y="296" font-size="8.5" fill="var(--color-text-tertiary)">replay on</text>
+          <text x="32" y="307" font-size="8.5" fill="var(--color-text-tertiary)">restart</text>
+
+          <!-- Retention Flow: BoltDB + Chunks → Compactor -->
+          <path d="M370 376 Q300 392 228 400" fill="none" stroke="#EF9F27" stroke-width="1.5" opacity="0.15" class="path-group path-group-retention"/>
+          <path d="M232 376 Q210 390 208 400" fill="none" stroke="#EF9F27" stroke-width="1.5" opacity="0.15" class="path-group path-group-retention"/>
+          
+          <path d="M370 376 Q300 392 228 400" fill="none" stroke-width="1.5" class="flow-retention path-group path-group-retention" marker-end="url(#ao)"/>
+          <path d="M232 376 Q210 390 208 400" fill="none" stroke-width="1.5" class="flow-retention path-group path-group-retention" marker-end="url(#ao)"/>
+
+          <!-- Retention Flow: Compactor → Sweeper -->
+          <line x1="270" y1="424" x2="304" y2="424" stroke="#EF9F27" stroke-width="1.5" opacity="0.15" class="path-group path-group-retention"/>
+          <line x1="270" y1="424" x2="304" y2="424" stroke-width="1.5" class="flow-retention path-group path-group-retention" marker-end="url(#ao)"/>
+
+          <!-- Deletion Flow: Sweeper → Chunks -->
+          <path d="M350 400 Q355 380 306 372" fill="none" stroke="#E24B4A" stroke-width="1.5" opacity="0.15" class="path-group path-group-deletion"/>
+          <path d="M350 400 Q355 380 306 372" fill="none" stroke-width="1.5" class="flow-deletion path-group path-group-deletion" marker-end="url(#ar)"/>
+          <text x="358" y="385" font-size="9" fill="#E24B4A" font-weight="600">deletes</text>
+
+          <!-- Read Path: Grafana → Querier -->
+          <line x1="580" y1="56" x2="580" y2="88" stroke="#378ADD" stroke-width="1.5" opacity="0.15" class="path-group path-group-read"/>
+          <line x1="580" y1="56" x2="580" y2="88" stroke-width="1.5" class="flow-read path-group path-group-read" marker-end="url(#ab)"/>
+
+          <!-- Read Path: Querier → BoltDB / Chunks / Ingester -->
+          <path d="M540 116 C510 200 468 290 408 332" fill="none" stroke="#378ADD" stroke-width="1.5" opacity="0.15" class="path-group path-group-read"/>
+          <path d="M552 126 C530 210 310 290 262 332" fill="none" stroke="#378ADD" stroke-width="1.5" opacity="0.15" class="path-group path-group-read"/>
+          <path d="M540 124 C500 180 310 230 308 256" fill="none" stroke="#378ADD" stroke-width="1.5" opacity="0.15" class="path-group path-group-read"/>
+          
+          <path d="M540 116 C510 200 468 290 408 332" fill="none" stroke-width="1.5" class="flow-read-dashed path-group path-group-read" marker-end="url(#ab)"/>
+          <path d="M552 126 C530 210 310 290 262 332" fill="none" stroke-width="1.5" class="flow-read-dashed path-group path-group-read" marker-end="url(#ab)"/>
+          <path d="M540 124 C500 180 310 230 308 256" fill="none" stroke-width="1.2" class="flow-read-dashed path-group path-group-read" marker-end="url(#ab)"/>
+          <text x="488" y="190" font-size="8.5" fill="#378ADD" font-weight="600">recent logs</text>
+
+          <!-- Observability/Metrics: Prometheus Scrapes -->
+          <path d="M526 396 C500 330 310 290 308 280" fill="none" stroke="#639922" stroke-width="1" opacity="0.15" class="path-group path-group-metrics"/>
+          <path d="M518 396 C490 290 320 215 308 196" fill="none" stroke="#639922" stroke-width="1" opacity="0.15" class="path-group path-group-metrics"/>
+          
+          <path d="M526 396 C500 330 310 290 308 280" fill="none" stroke-width="1.2" class="flow-metrics path-group path-group-metrics" marker-end="url(#ag)"/>
+          <path d="M518 396 C490 290 320 215 308 196" fill="none" stroke-width="1.2" class="flow-metrics path-group path-group-metrics" marker-end="url(#ag)"/>
+
+
+          <!-- ══ COMPONENT BOXES ══ -->
+
+          <!-- Pods -->
+          <g class="c-gray" onclick="sd('pod')" style="cursor:pointer">
+            <rect x="44" y="12" width="118" height="34" rx="6"/>
+            <text class="t" x="103" y="28" text-anchor="middle" font-size="11">Pod · app 1</text>
+            <text class="ts" x="103" y="41" text-anchor="middle" font-size="9">stdout / stderr</text>
+          </g>
+          <g class="c-gray" onclick="sd('pod')" style="cursor:pointer">
+            <rect x="185" y="12" width="118" height="34" rx="6"/>
+            <text class="t" x="244" y="28" text-anchor="middle" font-size="11">Pod · app 2</text>
+            <text class="ts" x="244" y="41" text-anchor="middle" font-size="9">stdout / stderr</text>
+          </g>
+          <g class="c-gray" onclick="sd('pod')" style="cursor:pointer">
+            <rect x="330" y="12" width="118" height="34" rx="6"/>
+            <text class="t" x="389" y="28" text-anchor="middle" font-size="11">Pod · app 3</text>
+            <text class="ts" x="389" y="41" text-anchor="middle" font-size="9">stdout / stderr</text>
+          </g>
+
+          <!-- Promtails -->
+          <g class="c-teal" onclick="sd('promtail')" style="cursor:pointer">
+            <rect x="86" y="86" width="160" height="36" rx="6"/>
+            <text class="t" x="166" y="102" text-anchor="middle" font-size="11">Promtail</text>
+            <text class="ts" x="166" y="116" text-anchor="middle" font-size="9">DaemonSet · Node 1</text>
+          </g>
+          <g class="c-teal" onclick="sd('promtail')" style="cursor:pointer">
+            <rect x="268" y="86" width="160" height="36" rx="6"/>
+            <text class="t" x="348" y="102" text-anchor="middle" font-size="11">Promtail</text>
+            <text class="ts" x="348" y="116" text-anchor="middle" font-size="9">DaemonSet · Node 2</text>
+          </g>
+
+          <!-- Distributor -->
+          <g class="c-blue" onclick="sd('distributor')" style="cursor:pointer">
+            <rect x="148" y="168" width="200" height="36" rx="6"/>
+            <text class="t" x="248" y="184" text-anchor="middle" font-size="11">Distributor</text>
+            <text class="ts" x="248" y="198" text-anchor="middle" font-size="9">validate · rate-limit · route</text>
+          </g>
+
+          <!-- Ingester -->
+          <g class="c-blue" onclick="sd('ingester')" style="cursor:pointer">
+            <rect x="148" y="244" width="200" height="36" rx="6"/>
+            <text class="t" x="248" y="260" text-anchor="middle" font-size="11">Ingester</text>
+            <text class="ts" x="248" y="274" text-anchor="middle" font-size="9">buffer in memory · flush chunks</text>
+          </g>
+
+          <!-- WAL -->
+          <g class="c-amber" onclick="sd('wal')" style="cursor:pointer">
+            <rect x="22" y="322" width="116" height="36" rx="6"/>
+            <text class="t" x="80" y="338" text-anchor="middle" font-size="11">WAL</text>
+            <text class="ts" x="80" y="352" text-anchor="middle" font-size="9">/data/loki/wal  887 MB</text>
+          </g>
+
+          <!-- Chunks -->
+          <g class="c-amber" onclick="sd('chunks')" style="cursor:pointer">
+            <rect x="162" y="322" width="174" height="36" rx="6"/>
+            <text class="t" x="249" y="338" text-anchor="middle" font-size="11">Chunks  32.5 GB</text>
+            <text class="ts" x="249" y="352" text-anchor="middle" font-size="9">/data/loki/chunks  43,874 files</text>
+          </g>
+
+          <!-- BoltDB -->
+          <g class="c-amber" onclick="sd('boltdb')" style="cursor:pointer">
+            <rect x="352" y="322" width="110" height="36" rx="6"/>
+            <text class="t" x="407" y="338" text-anchor="middle" font-size="11">BoltDB Index</text>
+            <text class="ts" x="407" y="352" text-anchor="middle" font-size="9">label → chunk map</text>
+          </g>
+
+          <!-- Compactor -->
+          <g class="c-coral" onclick="sd('compactor')" style="cursor:pointer">
+            <rect x="108" y="404" width="162" height="36" rx="6"/>
+            <text class="t" x="189" y="420" text-anchor="middle" font-size="11">Compactor</text>
+            <text class="ts" x="189" y="434" text-anchor="middle" font-size="9">compact index · mark expired</text>
+          </g>
+
+          <!-- Sweeper -->
+          <g class="c-coral" onclick="sd('sweeper')" style="cursor:pointer">
+            <rect x="304" y="404" width="140" height="36" rx="6"/>
+            <text class="t" x="374" y="420" text-anchor="middle" font-size="11">Sweeper</text>
+            <text class="ts" x="374" y="434" text-anchor="middle" font-size="9">delete after 2h delay</text>
+          </g>
+
+          <!-- Grafana -->
+          <g class="c-purple" onclick="sd('grafana')" style="cursor:pointer">
+            <rect x="508" y="12" width="154" height="36" rx="6"/>
+            <text class="t" x="585" y="28" text-anchor="middle" font-size="11">Grafana</text>
+            <text class="ts" x="585" y="42" text-anchor="middle" font-size="9">LogQL queries · dashboards</text>
+          </g>
+
+          <!-- Querier -->
+          <g class="c-purple" onclick="sd('querier')" style="cursor:pointer">
+            <rect x="508" y="88" width="154" height="36" rx="6"/>
+            <text class="t" x="585" y="104" text-anchor="middle" font-size="11">Querier</text>
+            <text class="ts" x="585" y="118" text-anchor="middle" font-size="9">index lookup · chunk scan</text>
+          </g>
+
+          <!-- Prometheus -->
+          <g class="c-green" onclick="sd('prometheus')" style="cursor:pointer">
+            <rect x="494" y="390" width="168" height="36" rx="6"/>
+            <text class="t" x="578" y="406" text-anchor="middle" font-size="11">Prometheus</text>
+            <text class="ts" x="578" y="420" text-anchor="middle" font-size="9">scrapes /metrics every 15s</text>
+          </g>
+
+          <!-- Click hint -->
+          <text x="340" y="525" font-size="10" fill="var(--color-text-tertiary)" text-anchor="middle" font-weight="500">Click any component for technical specifications</text>
+        </svg>
+
+        <!-- Legend with Hover Interactions -->
+        <div class="leg">
+          <div class="li" onmouseenter="highlightPath('write')" onmouseleave="clearHighlight()">
+            <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="var(--color-text-tertiary)" stroke-width="1.5" marker-end="url(#aw)"/></svg>write path
+          </div>
+          <div class="li" onmouseenter="highlightPath('read')" onmouseleave="clearHighlight()">
+            <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#378ADD" stroke-width="1.5" stroke-dasharray="4,2"/></svg>read path
+          </div>
+          <div class="li" onmouseenter="highlightPath('retention')" onmouseleave="clearHighlight()">
+            <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#EF9F27" stroke-width="1.5"/></svg>retention flow
+          </div>
+          <div class="li" onmouseenter="highlightPath('deletion')" onmouseleave="clearHighlight()">
+            <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#E24B4A" stroke-width="1.5" stroke-dasharray="4,2"/></svg>deletion
+          </div>
+          <div class="li" onmouseenter="highlightPath('metrics')" onmouseleave="clearHighlight()">
+            <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#639922" stroke-width="1.2" stroke-dasharray="2,4"/></svg>metrics scrape
+          </div>
+        </div>
+
+        <!-- Click Details Panel -->
+        <div id="dp" class="dp">
+          <div class="dp-hint">
+            <i class="ti ti-click"></i>
+            <span>Click any system component on the blueprint above to see connections, production roles, and diagnostic tips.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter Content -->
+      <div class="guide-sections">
+        
+        <section id="ch1">
+          <h2>1. Loki Fundamentals</h2>
+          <p>Grafana Loki is a horizontally-scalable, highly-available, multi-tenant log aggregation system inspired by Prometheus. It is designed to be highly cost-effective and easy to operate, as it does not index the full text of the logs. Instead, it indexes only the metadata (labels) associated with a log stream—mirroring Prometheus's label model.</p>
+          <p>Traditional log search engines like Elasticsearch and OpenSearch index the full text of log messages. While powerful, this index is often larger than the log data itself, requiring expensive RAM, massive SSD arrays, and high operational overhead. Loki's design philosophy trades off full-text search speed to achieve drastically lower storage costs and minimal operational complexity.</p>
+          <div class="info-box">
+            <strong>Key Concept: Pull vs Push</strong>
+            <p>Unlike Prometheus, which pulls metrics from targets, Loki receives pushed logs from log shippers (like Promtail, Fluent Bit, or Vector) via an HTTP API. However, Loki uses a pull-based querying model where Querier components pull log chunks from object storage to evaluate LogQL queries.</p>
+          </div>
+        </section>
+
+        <section id="ch2">
+          <h2>2. Complete Loki Architecture</h2>
+          <p>Grafana Loki can run as a single binary (monolithic mode) or split into independent microservices (distributed mode) to allow fine-grained scaling. Here is how each component works:</p>
+          <ul>
+            <li><strong>Distributor</strong>: A stateless service that acts as the entry point for log ingestion. It validates incoming log streams, rate-limits requests, and routes logs to Ingesters using a consistent hash ring.</li>
+            <li><strong>Ingester</strong>: A stateful service that buffers incoming log entries in memory. It appends logs to active chunks, writes to a Write-Ahead Log (WAL) on disk for durability, and flushes compressed chunks (using gzip or zstd) to object storage every 2 hours (or when target chunk limits are hit).</li>
+            <li><strong>Querier</strong>: A stateless service that executes LogQL queries. It queries Ingesters for recent in-memory log entries, and queries object storage for historical log chunks.</li>
+            <li><strong>Query Frontend</strong>: A stateless service that sits in front of the Queriers. It splits large queries into smaller intervals, parallelizes query execution across multiple Queriers, and caches query results.</li>
+            <li><strong>Compactor</strong>: A stateless service that runs background compaction loops. It merges multiple small index files into single optimized files and applies data retention policies (permanently deleting expired chunks from object storage).</li>
+            <li><strong>Index Gateway</strong>: A stateful service that serves index lookups for Queriers, caching index files locally to prevent database locks and latency.</li>
+            <li><strong>Ruler</strong>: Evaluates alerting and recording rules against log streams, forwarding active triggers to Alertmanager.</li>
+          </ul>
+        </section>
+
+        <section id="ch3">
+          <h2>3. Data Model & Streams</h2>
+          <p>Loki organizes logs into **Streams**. A stream is a sequence of log lines sharing the exact same label set. For example, logs from Pod A in the `production` namespace belong to a different stream than logs from Pod B in the same namespace, or even Pod A in the `staging` namespace.</p>
+          <p>Labels are key-value metadata pairs (e.g. `app="api"`, `env="production"`). In Loki, labels are the only indexed fields. This means that filtering logs by labels is extremely fast, while filtering by text content (e.g. `|= "error"`) requires Queriers to decompress and scan log lines. Cardinality is the number of unique label combinations. High cardinality (like including `user_id` or `request_ip` in labels) explodes streams, causing Ingesters to exhaust memory buffering too many active streams.</p>
+        </section>
+
+        <section id="ch4">
+          <h2>4. Log Entry Pipeline Stages</h2>
+          <p>Before log clients ship log lines to Loki, logs pass through a sequence of processing steps called **Pipeline Stages**. These stages parse log lines, extract metadata, and attach labels:</p>
+          <ul>
+            <li><strong>CRI & Docker Stages</strong>: Standard parsers that extract timestamps and clean log messages from raw container runtime JSON wraps.</li>
+            <li><strong>JSON & Regex Stages</strong>: Parse structured log lines (JSON) or use regex to extract key-value fields.</li>
+            <li><strong>Label Stage</strong>: Promotes extracted fields (like `level` or `service`) to Loki labels, creating separate indexable streams.</li>
+            <li><strong>Multiline Stage</strong>: Merges consecutive lines (like Java stack traces) starting with specific characters (like whitespace) into a single log entry.</li>
+          </ul>
+        </section>
+
+        <section id="ch5">
+          <h2>5. Log Shippers & Agents</h2>
+          <p>Loki relies on external log agents to tail log files and push them to its HTTP API:
+          <ul>
+            <li><strong>Promtail</strong>: The default agent, built by Grafana. It integrates deeply with Kubernetes, querying the API server to automatically discover pods, attach metadata labels, and tail logs.</li>
+            <li><strong>Fluent Bit & Fluentd</strong>: High-performance, mature log shippers. Ideal for multi-destination pipelines.</li>
+            <li><strong>Vector</strong>: Written in Rust, Vector is a blazingly fast log shipper with a powerful VRL (Vector Remapping Language) engine for parsing and filtering log data.</li>
+          </ul>
+        </p>
+        </section>
+
+        <section id="ch6">
+          <h2>6. Service Discovery In Promtail</h2>
+          <p>Like Prometheus, Promtail uses Service Discovery to dynamically discover scrape targets in dynamic environments:
+          <ul>
+            <li><strong>Kubernetes Discovery</strong>: Queries the Kubernetes API server for pods and namespaces. Promtail uses pod labels and annotations to decide which logs to tail.</li>
+            <li><strong>File Discovery</strong>: Scans local directories using glob patterns (e.g. `/var/log/*.log`).</li>
+            <li><strong>Consul & DNS Discovery</strong>: Discovers services registered in Consul or via SRV DNS queries.</li>
+          </ul>
+        </p>
+        </section>
+
+        <section id="ch7">
+          <h2>7. Ingestion & Push Internals</h2>
+          <p>Logs are pushed to Loki via HTTP POST requests to `/loki/api/v1/push`. The payload format is a Snappy-compressed Protobuf message containing streams, labels, and an array of log lines with nanosecond-resolution timestamps.</p>
+          <div class="warning-box">
+            <strong>Critical limits</strong>
+            <p>Ingesters apply limits to protect themselves:
+            <br><code>max_chunk_age</code>: Default 2h. Limits how long a chunk can stay in memory before being flushed.
+            <br><code>chunk_target_size</code>: Target size of compressed chunks (typically 1.5 MB). If a chunk exceeds this, it is rolled over and flushed early.
+            </p>
+          </div>
+        </section>
+
+        <section id="ch8">
+          <h2>8. Storage & Chunk Engine</h2>
+          <p>Loki splits storage into two distinct components:
+          <ul>
+            <li><strong>Chunks</strong>: Compressed log entries (compressed in blocks using gzip, lz4, or zstd). Stored in inexpensive object storage (AWS S3, Google Cloud Storage, Azure Blob, or MinIO).</li>
+            <li><strong>Index</strong>: The directory map that connects labels and stream fingerprints to target chunk file paths. Today, Grafana recommends using **Single Store TSDB**, which writes index files directly into the same object storage bucket as the chunks, eliminating the need for separate databases (like DynamoDB or Cassandra).</li>
+          </ul>
+        </p>
+        </section>
+
+        <section id="ch9">
+          <h2>9. Write-Ahead Log (WAL)</h2>
+          <p>The Ingester buffers log streams in memory. If the Ingester pod crashes or is evicted, buffered logs would be lost. To prevent data loss, Loki writes incoming logs to the **Write-Ahead Log (WAL)** on persistent disk before sending an HTTP 200 response to the client.</p>
+          <p>On startup or crash recovery, the Ingester scans the WAL directory, replays all log segments, and reconstructs the in-memory chunks. Once a chunk is successfully flushed to object storage, the corresponding WAL segments are deleted.</p>
+        </section>
+
+        <section id="ch10">
+          <h2>10. Index & BoltDB Shipper</h2>
+          <p>Before TSDB Single Store, Loki utilized BoltDB Shipper to ship local BoltDB index files to object storage. Under this model, Ingesters write index entries to local BoltDB files. The BoltDB Shipper then periodically uploads these files to the object storage bucket.</p>
+          <p>Queriers download and cache these index files locally to resolve queries. While functional, TSDB index is more modern, offering better compaction, lower read latency, and direct multi-tenant scoping.</p>
+        </section>
+
+        <section id="ch11">
+          <h2>11. LogQL Deep Dive</h2>
+          <p>LogQL is Grafana Loki's query language, heavily inspired by PromQL. It supports two types of queries:
+          <br><strong>Log Queries</strong>: Retrieve log lines.
+          <br><strong>Metric Queries</strong>: Calculate metrics from logs (e.g., error rates).
+          </p>
+          <h3>LogQL Query Anatomy:</h3>
+          <code class="code-block">{namespace="prod", app="api"} |= "error" | json | status = 500</code>
+          <p>This query:
+          <br>1. Selects the log stream matching the labels `{namespace="prod", app="api"}`.
+          <br>2. Filters lines containing the string `"error"`.
+          <br>3. Parses the log line as JSON.
+          <br>4. Filters JSON properties where `status` equals 500.
+          </p>
+          <h3>Common LogQL Functions:</h3>
+          <ul>
+            <li><code>rate()</code>: Calculates the number of log lines per second over a time range.</li>
+            <li><code>count_over_time()</code>: Counts the total number of log lines in the range.</li>
+            <li><code>bytes_rate()</code>: Calculates the volume of log data processed per second.</li>
+          </ul>
+        </section>
+
+        <section id="ch12">
+          <h2>12. Ruler & Alertmanager</h2>
+          <p>The **Ruler** runs alerting and recording rules defined in LogQL. It queries Loki internally at regular intervals. If a LogQL metric query (e.g. `rate({app="api"}[5m]) > 10`) triggers an alert threshold, the Ruler formats the alert and forwards it to Prometheus Alertmanager, which handles routing, silencing, and Slack/email dispatches.</p>
+        </section>
+
+        <section id="ch13">
+          <h2>13. Recording Rules in Loki</h2>
+          <p>Recording rules pre-evaluate expensive LogQL metric queries (like counting error rates over large namespaces) and save the results as Prometheus-compatible metrics. This is highly recommended to speed up dashboard loads, since Grafana can query pre-calculated metrics from Prometheus rather than executing raw LogQL scans over terabytes of logs on every dashboard refresh.</p>
+        </section>
+
+        <section id="ch14">
+          <h2>14. Multi-Tenancy Engine</h2>
+          <p>Loki is built from the ground up as a multi-tenant system. In a multi-tenant setup, Loki requires the HTTP header `X-Scope-OrgID` on all push and query requests. The Distributor uses this ID to partition the consistent hash ring, and Ingesters partition chunks and indexes in object storage under the corresponding tenant namespace, ensuring absolute data isolation.</p>
+        </section>
+
+        <section id="ch15">
+          <h2>15. Query Frontend & Splitting</h2>
+          <p>Large LogQL queries scanning weeks of history can exhaust Querier memory. The **Query Frontend** acts as a query coordinator:
+          <ul>
+            <li><strong>Query Splitting</strong>: Splits a large range query (e.g. 30 days) into smaller daily or hourly queries, executing them in parallel.</li>
+            <li><strong>Query Caching</strong>: Caches results inside Redis or Memcached. If a user queries the same dashboard panel, the Query Frontend retrieves results from cache and queries Loki only for the most recent log gap.</li>
+          </ul>
+        </p>
+        </section>
+
+        <section id="ch16">
+          <h2>16. Kubernetes Logging</h2>
+          <p>In a Kubernetes cluster, container engines write logs to the host filesystem at `/var/log/pods/`. Promtail runs as a DaemonSet, mount-binding this directory. It queries the Kubernetes API to translate file paths (which contain pod UUIDs) into clean metadata labels (pod name, namespace, container name) and tails the logs, shipping them to Loki.</p>
+        </section>
+
+        <section id="ch17">
+          <h2>17. High Cardinality in Loki</h2>
+          <p>Loki does not index log text; it only indexes labels. Adding high-cardinality values—like user IDs, session tokens, request paths, or container IPs—as labels is a **critical mistake** in Loki.
+          <p>Every unique label combination creates a separate stream. If cardinality explodes, the Ingester has to allocate thousands of small memory buffers, leading to memory exhaustion (OOM kills) and slow index lookups. Use LogQL parser stages (JSON or Regex) to filter by high-cardinality fields at query time rather than promoting them to labels.</p>
+        </section>
+
+        <section id="ch18">
+          <h2>18. Scaling Loki Layouts</h2>
+          <p>Loki supports three deployment layouts:
+          <br>1. <strong>Single Binary Mode</strong>: All components run in one process. Good for development and small setups (< 100 GB/day).
+          <br>2. <strong>Simple Scalable Deployment (SSD)</strong>: Splits Loki into read and write paths. Allows scaling ingestion independently of query loads.
+          <br>3. <strong>Microservices Mode</strong>: Every component (Distributor, Ingester, Querier, Frontend, Compactor) runs as a separate deployment, allowing granular scaling.
+          </p>
+        </section>
+
+        <section id="ch19">
+          <h2>19. SRE Troubleshooting Guide</h2>
+          <div class="warning-box">
+            <strong>Diagnostic Scenarios</strong>
+            <p><strong>1. Ingester Out of Memory (OOM)</strong>:
+            <br><em>Cause</em>: High cardinality labels or ingestion rate spikes.
+            <br><em>Fix</em>: Verify labels using `tsdb analyze` equivalents in Loki. Relabel and drop dynamic labels in Promtail.
+            <br><strong>2. 429 Ingestion Rate Limit Errors</strong>:
+            <br><em>Cause</em>: Target pushes logs faster than `ingestion_rate_mb` allows.
+            <br><em>Fix</em>: Raise `ingestion_rate_mb` (default 4MB/s per stream) and `ingestion_burst_size_mb` in Loki config.
+            </p>
+          </div>
+        </section>
+
+        <section id="ch20">
+          <h2>20. Production Best Practices</h2>
+          <div class="best-practice">
+            <strong>Golden Rules for Loki SREs</strong>
+            <p>1. <strong>Do Not Index Log Fields</strong>: Only use labels for service boundaries (app, env, component, namespace).
+            <br>2. <strong>Enable WAL</strong>: Always run Ingesters with persistent volumes and WAL enabled to survive restarts.
+            <br>3. <strong>Use Object Storage</strong>: Never run local filesystem storage in production; use S3, GCS, or Azure Blob.
+            </p>
+          </div>
+        </section>
+
+        <section id="ch21">
+          <h2>21. Loki vs Alternatives</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Grafana Loki</th>
+                <th>Elasticsearch / OpenSearch</th>
+                <th>Splunk</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Index size</td>
+                <td>Minimal (Metadata only)</td>
+                <td>Massive (Full-text index)</td>
+                <td>Large</td>
+              </tr>
+              <tr>
+                <td>Storage Cost</td>
+                <td>Extremely Low (Object Storage)</td>
+                <td>High (SSD arrays)</td>
+                <td>Very High</td>
+              </tr>
+              <tr>
+                <td>Query Model</td>
+                <td>LogQL (PromQL-like)</td>
+                <td>Query DSL / Lucene</td>
+                <td>SPL</td>
+              </tr>
+              <tr>
+                <td>Resource Bound</td>
+                <td>Query-bound (parallel scans)</td>
+                <td>RAM & Write-bound</td>
+                <td>Storage-bound</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="ch22">
+          <h2>22. Real-World Deployments</h2>
+          <p>In enterprise Kubernetes environments, Loki is commonly deployed using the Helm chart in Simple Scalable Mode. The write path (Ingesters, Distributors) handles continuous high-volume log streams, while the read path (Queriers, Query Frontends) scales up dynamically using Horizontal Pod Autoscalers (HPAs) during active incident investigations or dashboard updates.</p>
+        </section>
+
+        <section id="ch23">
+          <h2>23. Interview Prep & Outages</h2>
+          <p><strong>Scenario: The Loki disk is filling up, but retention is set to 7 days. Why?</strong>
+          <br><em>Answer</em>: The Compactor marks chunks for deletion, but the Sweeper deletes them after `retention_delete_delay` (default 2h). If ingestion rate is extremely high, the write throughput may exceed the compaction rate. Check compactor logs for "applying retention" errors and ensure the compactor working directory is on a Persistent Volume.
+          </p>
+        </section>
+
+        <section id="ch24">
+          <h2>24. Architectural Glossary</h2>
+          <ul>
+            <li><strong>WAL (Write-Ahead Log)</strong>: Persistent disk log where uncompressed in-memory log entries are stored for crash durability.</li>
+            <li><strong>Chunks</strong>: Compressed gzip/zstd files containing actual log text entries, shipped to object storage.</li>
+            <li><strong>Memberlist</strong>: Gossip protocol used by Loki components to discover each other and maintain the hash ring.</li>
+            <li><strong>Hash Ring</strong>: Consistent hashing system used to distribute streams evenly among Ingester pods.</li>
+          </ul>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab Switching (stub for dashboard compatibility)
+    function swTab(id, btn) {
+      // Stub to prevent errors in legacy blueprints
+    }
+
+    // ScrollSpy & Active Link logic
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('.toc-link');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
+        if (pageYOffset >= sectionTop - 120) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) {
+          link.classList.add('active');
+        }
+      });
+    });
+
+    // Component Metadata for Interactive Blueprint
+    const D = {
+      pod: {
+        name: 'Pod (Application Targets)',
+        color: '#64748b',
+        items: [
+          { l: 'Role', t: 'Applications running in Kubernetes that output log entries to stdout and stderr.' },
+          { l: 'Collection', t: 'Logs are captured by the container runtime and written as files to `/var/log/pods/` on the node.' },
+          { l: 'Labels', t: 'Pods do not label their own logs; labels are attached dynamically by Promtail during discovery.' }
+        ]
+      },
+      promtail: {
+        name: 'Promtail (Log Agent)',
+        color: '#14b8a6',
+        items: [
+          { l: 'DaemonSet', t: 'Runs as a DaemonSet on every node to tail log files from `/var/log/pods/`.' },
+          { l: 'Pipeline', t: 'Processes raw logs through stages (CRI, JSON, Regex, Multiline) and extracts labels.' },
+          { l: 'Ingestion HTTP push', t: 'Pushes Snappy-compressed Protobuf payloads to the Distributor on Loki port 3100.' }
+        ]
+      },
+      distributor: {
+        name: 'Distributor (Stateless)',
+        color: '#3b82f6',
+        items: [
+          { l: 'Routing', t: 'Validates pushes, applies rate limits, and routes streams to Ingesters using a consistent hash ring.' },
+          { l: 'High Availability', t: 'Stateless. Scales horizontally behind an external Load Balancer.' }
+        ]
+      },
+      ingester: {
+        name: 'Ingester (Stateful)',
+        color: '#3b82f6',
+        items: [
+          { l: 'Memory buffer', t: 'Stores incoming log streams in memory chunks, writing to WAL for crash resilience.' },
+          { l: 'Flush Triggers', t: 'Flushes compressed chunks to object storage every 2 hours or when target sizes are reached.' }
+        ]
+      },
+      wal: {
+        name: 'Write-Ahead Log (WAL)',
+        color: '#f59e0b',
+        items: [
+          { l: 'Durability', t: 'Logs written to disk before HTTP success response is sent. Prevents memory loss on crash.' },
+          { l: 'Replay', t: 'On restart, the Ingester replays the WAL to reconstruct in-memory buffers.' }
+        ]
+      },
+      chunks: {
+        name: 'Chunks (Compressed Logs)',
+        color: '#f59e0b',
+        items: [
+          { l: 'Storage', t: 'Log entries compressed (gzip/zstd) into immutable blocks and stored in AWS S3 or GCS.' },
+          { l: 'Retention target', t: 'Compactor deletes chunks permanently once retention limits are exceeded.' }
+        ]
+      },
+      boltdb: {
+        name: 'BoltDB / TSDB Index',
+        color: '#f59e0b',
+        items: [
+          { l: 'Index lookup', t: 'Stores label-to-chunk file mapping to resolve query endpoints rapidly.' },
+          { l: 'TSDB mode', t: 'Saves index files in object storage, removing external database dependencies.' }
+        ]
+      },
+      compactor: {
+        name: 'Compactor (Stateless)',
+        color: '#ef4444',
+        items: [
+          { l: 'Compaction', t: 'Merges index files and applies data retention to drop expired log chunks.' },
+          { l: 'Single instance limit', t: 'Only one Compactor must run per cluster to prevent index corruption.' }
+        ]
+      },
+      sweeper: {
+        name: 'Sweeper',
+        color: '#ef4444',
+        items: [
+          { l: 'Deletion engine', t: 'Performs physical chunk deletion in object storage after compactor markers expire.' }
+        ]
+      },
+      grafana: {
+        name: 'Grafana Web UI',
+        color: '#a855f7',
+        items: [
+          { l: 'Visualization', t: 'Sends LogQL range queries to Loki Query Frontend and renders log lines.' },
+          { l: 'Live Tail', t: 'Establishes WebSockets directly to Ingesters to stream real-time log arrivals.' }
+        ]
+      },
+      querier: {
+        name: 'Querier (Stateless)',
+        color: '#a855f7',
+        items: [
+          { l: 'Execution', t: 'Processes LogQL queries by pulling raw chunks from object storage and memory entries from Ingesters.' }
+        ]
+      },
+      prometheus: {
+        name: 'Prometheus Server',
+        color: '#22c55e',
+        items: [
+          { l: 'Metrics Scraping', t: 'Scrapes `/metrics` endpoints on Ingesters, Distributors, and Promtail to monitor cluster health.' }
+        ]
+      }
+    };
+
+    function sd(id) {
+      const d = D[id];
+      if (!d) return;
+      
+      let h = `
+        <div class="dp-title" style="color: ${d.color}">
+          <div class="dp-dot" style="background-color: ${d.color}; box-shadow: 0 0 12px ${d.color}"></div>
+          <span>${d.name} Blueprint Spec</span>
+        </div>
+        <div class="dp-grid">
+      `;
+      
+      d.items.forEach(i => {
+        h += `
+          <div class="dp-block">
+            <div class="lbl">${i.l}</div>
+            <div class="txt">${i.t}</div>
+          </div>
+        `;
+      });
+      
+      h += '</div>';
+      
+      const dpEl = document.getElementById('dp');
+      dpEl.innerHTML = h;
+      dpEl.style.borderColor = d.color;
+      dpEl.style.boxShadow = `0 8px 30px -4px ${d.color}25`;
+    }
+
+    function highlightPath(type) {
+      const svg = document.getElementById('loki-svg');
+      svg.classList.add('highlight-' + type);
+    }
+
+    function clearHighlight() {
+      const svg = document.getElementById('loki-svg');
+      svg.classList.remove('highlight-write', 'highlight-read', 'highlight-retention', 'highlight-deletion', 'highlight-metrics');
+    }
+  </script>
+</body>
+</html>

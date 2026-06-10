@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Observability Stack — Prometheus · Loki · Grafana</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    :root {
+      --bg-primary:   #0b0f19;
+      --bg-secondary: #161d30;
+      --bg-sidebar:   #080b13;
+      --border:       #233152;
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --text-muted:   #64748b;
+
+      /* Prometheus orange */
+      --prom-primary: #e07e26;
+      --prom-light:   #fbd38d;
+      --prom-glow:    rgba(224,126,38,0.18);
+
+      /* Loki yellow-orange */
+      --loki-primary: #ef9f27;
+      --loki-light:   #fde68a;
+      --loki-glow:    rgba(239,159,39,0.18);
+
+      /* Grafana purple-pink */
+      --graf-primary: #a855f7;
+      --graf-secondary: #ec4899;
+      --graf-glow:    rgba(168,85,247,0.18);
+
+      --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'Fira Code', 'Courier New', monospace;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    /* ─── LAYOUT ─────────────────────────────────────── */
+    .app-container { display: flex; min-height: 100vh; }
+
+    /* ─── SIDEBAR ─────────────────────────────────────── */
+    .sidebar {
+      width: 280px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      padding: 28px 20px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--prom-primary), var(--graf-primary));
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .brand-label { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary); line-height: 1.3; }
+    .brand-sub { font-size: 10px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .toc-section { display: flex; flex-direction: column; gap: 4px; }
+    .toc-heading {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 0 10px;
+      margin-bottom: 6px;
+    }
+    .toc-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: var(--radius-md);
+      transition: all 0.18s ease;
+    }
+    .toc-link i { font-size: 15px; opacity: 0.7; flex-shrink: 0; }
+    .toc-link:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); transform: translateX(3px); }
+    .toc-link:hover i { opacity: 1; }
+    .toc-link.active { background: rgba(255,255,255,0.06); color: var(--text-primary); font-weight: 600; }
+
+    /* Tool nav links */
+    .tool-link-prom { color: var(--prom-light); }
+    .tool-link-prom:hover, .tool-link-prom.active { background: var(--prom-glow) !important; color: var(--prom-light) !important; box-shadow: inset 2px 0 0 var(--prom-primary); }
+    .tool-link-loki { color: var(--loki-light); }
+    .tool-link-loki:hover, .tool-link-loki.active { background: var(--loki-glow) !important; color: var(--loki-light) !important; box-shadow: inset 2px 0 0 var(--loki-primary); }
+    .tool-link-graf { color: #d8b4fe; }
+    .tool-link-graf:hover, .tool-link-graf.active { background: var(--graf-glow) !important; color: #d8b4fe !important; box-shadow: inset 2px 0 0 var(--graf-primary); }
+
+    /* ─── MAIN CONTENT ─────────────────────────────────── */
+    .content-area {
+      flex-grow: 1;
+      padding: 48px 52px;
+      overflow-y: auto;
+      max-width: 1060px;
+    }
+    .content-area::-webkit-scrollbar { width: 6px; }
+    .content-area::-webkit-scrollbar-track { background: transparent; }
+    .content-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ─── PAGE HEADER / HERO ──────────────────────────── */
+    .page-header {
+      margin-bottom: 56px;
+    }
+
+    .header-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 20px;
+    }
+    .header-eyebrow .dot {
+      width: 6px; height: 6px;
+      background: linear-gradient(135deg, var(--prom-primary), var(--graf-primary));
+      border-radius: 50%;
+      animation: pulse 2.5s infinite;
+    }
+    @keyframes pulse {
+      0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(224,126,38,0.6); }
+      70%  { transform: scale(1);    box-shadow: 0 0 0 6px rgba(224,126,38,0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(224,126,38,0); }
+    }
+
+    .hero-title {
+      font-size: 46px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .hero-title .line1 { display: block; color: var(--text-primary); }
+    .hero-title .line2 {
+      display: block;
+      background: linear-gradient(90deg, var(--prom-primary) 0%, var(--loki-primary) 40%, var(--graf-primary) 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-desc {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 680px;
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+
+    .hero-badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .badge-prom { background: var(--prom-glow); border: 1px solid rgba(224,126,38,0.3); color: var(--prom-light); }
+    .badge-loki { background: var(--loki-glow); border: 1px solid rgba(239,159,39,0.3); color: var(--loki-light); }
+    .badge-graf { background: var(--graf-glow); border: 1px solid rgba(168,85,247,0.3); color: #d8b4fe; }
+    .badge-oss  { background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc; }
+
+    /* ─── SECTION GENERIC ──────────────────────────────── */
+    .section { margin-bottom: 64px; }
+    .section-header { margin-bottom: 28px; }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+    .section-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+      line-height: 1.7;
+      max-width: 700px;
+    }
+
+    /* ─── WHY OBSERVABILITY ─────────────────────────────── */
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .why-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .why-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+    .why-card-icon {
+      width: 40px; height: 40px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 14px;
+    }
+    .why-card h3 { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+    .why-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+    /* ─── THREE PILLARS ─────────────────────────────────── */
+    .pillars-flow {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+    }
+    .pillar {
+      flex: 1;
+      padding: 28px 24px;
+      position: relative;
+    }
+    .pillar + .pillar { border-left: 1px solid var(--border); }
+    .pillar-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 12px;
+    }
+    .pillar-icon { font-size: 28px; margin-bottom: 12px; display: block; }
+    .pillar h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .pillar p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px; }
+    .pillar-tool {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-md);
+    }
+    .pillar-features { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .pillar-features li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .pillar-features li::before {
+      content: '';
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .pillar-metrics { background: linear-gradient(180deg, rgba(224,126,38,0.05) 0%, transparent 100%); }
+    .pillar-metrics .pillar-badge { background: var(--prom-glow); color: var(--prom-light); border: 1px solid rgba(224,126,38,0.25); }
+    .pillar-metrics h3 { color: var(--prom-light); }
+    .pillar-metrics .pillar-tool { background: var(--prom-glow); color: var(--prom-light); }
+    .pillar-metrics .pillar-features li::before { background: var(--prom-primary); }
+
+    .pillar-logs { background: linear-gradient(180deg, rgba(239,159,39,0.05) 0%, transparent 100%); }
+    .pillar-logs .pillar-badge { background: var(--loki-glow); color: var(--loki-light); border: 1px solid rgba(239,159,39,0.25); }
+    .pillar-logs h3 { color: var(--loki-light); }
+    .pillar-logs .pillar-tool { background: var(--loki-glow); color: var(--loki-light); }
+    .pillar-logs .pillar-features li::before { background: var(--loki-primary); }
+
+    .pillar-viz { background: linear-gradient(180deg, rgba(168,85,247,0.05) 0%, transparent 100%); }
+    .pillar-viz .pillar-badge { background: var(--graf-glow); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.25); }
+    .pillar-viz h3 { color: #d8b4fe; }
+    .pillar-viz .pillar-tool { background: var(--graf-glow); color: #d8b4fe; }
+    .pillar-viz .pillar-features li::before { background: var(--graf-primary); }
+
+    /* ─── TOOL CARDS ───────────────────────────────────── */
+    .tool-cards { display: flex; flex-direction: column; gap: 20px; }
+
+    .tool-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .tool-card:hover { transform: translateY(-2px); }
+
+    .tool-card-inner {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+    }
+
+    .tool-card-left {
+      padding: 32px 28px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .tool-card-logo {
+      width: 52px; height: 52px;
+      border-radius: var(--radius-lg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+    }
+    .tool-card-name { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+    .tool-card-tagline { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+    .tool-card-meta { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .meta-item i { font-size: 14px; }
+    .meta-item span { color: var(--text-secondary); }
+
+    .tool-card-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      margin-top: auto;
+      transition: opacity 0.2s, transform 0.2s;
+      width: fit-content;
+    }
+    .tool-card-link:hover { opacity: 0.85; transform: translateX(2px); }
+
+    .tool-card-right {
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .feature-row { display: flex; gap: 20px; }
+    .feature-block { flex: 1; }
+    .feature-block h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 10px; }
+    .feature-list { display: flex; flex-direction: column; gap: 7px; }
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+    .feature-item i { font-size: 15px; margin-top: 1px; flex-shrink: 0; }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .stat-box {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+    }
+    .stat-box .stat-val { font-size: 18px; font-weight: 700; font-family: var(--font-mono); line-height: 1; margin-bottom: 4px; }
+    .stat-box .stat-lbl { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+
+    /* Prometheus card colors */
+    .card-prom { border-top: 2px solid var(--prom-primary); }
+    .card-prom:hover { border-color: var(--prom-primary); }
+    .card-prom .tool-card-logo { background: var(--prom-glow); }
+    .card-prom .tool-card-name { color: var(--prom-light); }
+    .card-prom .tool-card-link { background: var(--prom-primary); color: #fff; }
+    .card-prom .feature-item i { color: var(--prom-primary); }
+    .card-prom .stat-val { color: var(--prom-light); }
+
+    /* Loki card colors */
+    .card-loki { border-top: 2px solid var(--loki-primary); }
+    .card-loki:hover { border-color: var(--loki-primary); }
+    .card-loki .tool-card-logo { background: var(--loki-glow); }
+    .card-loki .tool-card-name { color: var(--loki-light); }
+    .card-loki .tool-card-link { background: var(--loki-primary); color: #fff; }
+    .card-loki .feature-item i { color: var(--loki-primary); }
+    .card-loki .stat-val { color: var(--loki-light); }
+
+    /* Grafana card colors */
+    .card-graf { border-top: 2px solid var(--graf-primary); }
+    .card-graf:hover { border-color: var(--graf-primary); }
+    .card-graf .tool-card-logo { background: var(--graf-glow); }
+    .card-graf .tool-card-name { background: linear-gradient(to right, var(--graf-primary), var(--graf-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .card-graf .tool-card-link { background: linear-gradient(90deg, var(--graf-primary), var(--graf-secondary)); color: #fff; }
+    .card-graf .feature-item i { color: var(--graf-primary); }
+    .card-graf .stat-val { color: #d8b4fe; }
+
+    /* ─── WHY THIS STACK ──────────────────────────────── */
+    .why-stack-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .stack-reason {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      transition: border-color 0.2s;
+    }
+    .stack-reason:hover { border-color: rgba(255,255,255,0.15); }
+    .stack-reason-num {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .stack-reason h3 { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+    .stack-reason p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+    .stack-reason.highlight-prom { border-left: 3px solid var(--prom-primary); }
+    .stack-reason.highlight-loki { border-left: 3px solid var(--loki-primary); }
+    .stack-reason.highlight-graf { border-left: 3px solid var(--graf-primary); }
+    .stack-reason.highlight-all  { border-left: 3px solid #6366f1; }
+
+    /* ─── ARCHITECTURE DIAGRAM ─────────────────────────── */
+    .arch-diagram {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 36px 32px;
+    }
+
+    .arch-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .arch-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .arch-box {
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      white-space: nowrap;
+      min-width: 120px;
+    }
+    .arch-node-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .arch-arrow {
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+    .arch-arrow-down {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 24px;
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+    .arch-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+    }
+    .arch-connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .arch-box-prom { background: var(--prom-glow); border: 1px solid rgba(224,126,38,0.35); color: var(--prom-light); }
+    .arch-box-loki  { background: var(--loki-glow);  border: 1px solid rgba(239,159,39,0.35);  color: var(--loki-light); }
+    .arch-box-graf  { background: var(--graf-glow);  border: 1px solid rgba(168,85,247,0.35);  color: #d8b4fe; }
+    .arch-box-app   { background: rgba(99,102,241,0.1);  border: 1px solid rgba(99,102,241,0.25); color: #a5b4fc; }
+    .arch-box-infra { background: rgba(20,184,166,0.1); border: 1px solid rgba(20,184,166,0.25); color: #5eead4; }
+    .arch-box-alert { background: rgba(220,38,38,0.1);  border: 1px solid rgba(220,38,38,0.25);  color: #fca5a5; }
+    .arch-box-store { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-secondary); }
+
+    .arch-legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .legend-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+
+    /* ─── COMPARISON TABLE ──────────────────────────────── */
+    .compare-table-wrap {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+    }
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .compare-table thead tr {
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table th {
+      padding: 14px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      text-align: left;
+    }
+    .compare-table th:not(:first-child) { text-align: center; }
+    .compare-table th.th-prom { color: var(--prom-light); }
+    .compare-table th.th-loki { color: var(--loki-light); }
+    .compare-table th.th-graf { color: #d8b4fe; }
+
+    .compare-table tbody tr { border-bottom: 1px solid rgba(35,49,82,0.5); transition: background 0.15s; }
+    .compare-table tbody tr:last-child { border-bottom: none; }
+    .compare-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+    .compare-table td { padding: 13px 16px; color: var(--text-secondary); vertical-align: middle; }
+    .compare-table td:first-child { font-weight: 600; color: var(--text-primary); }
+    .compare-table td:not(:first-child) { text-align: center; }
+
+    .check-yes { color: #86efac; font-size: 16px; }
+    .check-no  { color: var(--text-muted); font-size: 16px; }
+    .check-part { color: #fde047; font-size: 16px; }
+    .val-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* ─── QUICK START ───────────────────────────────────── */
+    .quickstart-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .qs-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .qs-card:hover { transform: translateY(-2px); }
+    .qs-step {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .qs-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .qs-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px; }
+    .code-block {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+    .code-block .cmd { color: #86efac; }
+    .code-block .comment { color: var(--text-muted); }
+    .code-block .flag { color: var(--prom-light); }
+
+    /* ─── DIVIDER ───────────────────────────────────────── */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      margin: 60px 0;
+    }
+
+    /* ─── FOOTER ────────────────────────────────────────── */
+    .footer {
+      padding: 32px 0 0;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .footer-left { max-width: 380px; }
+    .footer-logo {
+      font-size: 15px;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--prom-primary), var(--loki-primary), var(--graf-primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .footer-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-link-group { display: flex; flex-direction: column; gap: 8px; }
+    .footer-link-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+    .footer-link {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .footer-link:hover { color: var(--text-primary); }
+
+    /* ─── RESPONSIVE ────────────────────────────────────── */
+    @media (max-width: 1100px) {
+      .tool-card-inner { grid-template-columns: 1fr; }
+      .tool-card-left { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+    @media (max-width: 860px) {
+      .sidebar { display: none; }
+      .content-area { padding: 32px 24px; }
+      .hero-title { font-size: 34px; }
+      .why-grid, .quickstart-grid { grid-template-columns: 1fr; }
+      .pillars-flow { flex-direction: column; }
+      .pillar + .pillar { border-left: none; border-top: 1px solid var(--border); }
+      .why-stack-grid { grid-template-columns: 1fr; }
+      .feature-row { flex-direction: column; }
+      .stat-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- ─── SIDEBAR ─────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <div class="brand-label">Observability</div>
+        <div class="brand-sub">SRE Reference Stack</div>
+      </div>
+    </div>
+
+    <div class="toc-section">
+      <div class="toc-heading">Home</div>
+      <a class="toc-link active" href="#overview"><i class="ti ti-layout-dashboard"></i> Overview</a>
+      <a class="toc-link" href="#why-observability"><i class="ti ti-eye"></i> Why Observability</a>
+      <a class="toc-link" href="#three-pillars"><i class="ti ti-stack-2"></i> Three Pillars</a>
+      <a class="toc-link" href="#tools"><i class="ti ti-tools"></i> Tool Deep Dives</a>
+      <a class="toc-link" href="#why-stack"><i class="ti ti-star"></i> Why This Stack</a>
+      <a class="toc-link" href="#architecture"><i class="ti ti-topology-star"></i> Architecture</a>
+      <a class="toc-link" href="#comparison"><i class="ti ti-table"></i> Comparison</a>
+      <a class="toc-link" href="#quickstart"><i class="ti ti-rocket"></i> Quick Start</a>
+    </div>
+
+    <div class="toc-section">
+      <div class="toc-heading">Deep Dive Guides</div>
+      <a class="toc-link tool-link-prom" href="prometheus.html">
+        <i class="ti ti-chart-line"></i> Prometheus Guide
+      </a>
+      <a class="toc-link tool-link-loki" href="loki.html">
+        <i class="ti ti-file-text"></i> Loki Guide
+      </a>
+      <a class="toc-link tool-link-graf" href="grafana.html">
+        <i class="ti ti-device-desktop-analytics"></i> Grafana Guide
+      </a>
+    </div>
+
+    <div class="toc-section">
+      <div class="toc-heading">External Docs</div>
+      <a class="toc-link" href="https://prometheus.io/docs/" target="_blank"><i class="ti ti-external-link"></i> Prometheus Docs</a>
+      <a class="toc-link" href="https://grafana.com/docs/loki/" target="_blank"><i class="ti ti-external-link"></i> Loki Docs</a>
+      <a class="toc-link" href="https://grafana.com/docs/grafana/" target="_blank"><i class="ti ti-external-link"></i> Grafana Docs</a>
+    </div>
+  </aside>
+
+  <!-- ─── CONTENT ──────────────────────────────────── -->
+  <main class="content-area">
+
+    <!-- HERO -->
+    <section class="page-header" id="overview">
+      <div class="header-eyebrow">
+        <div class="dot"></div>
+        SRE Reference · Observability Stack
+      </div>
+      <h1 class="hero-title">
+        <span class="line1">Full-Stack</span>
+        <span class="line2">Observability Platform</span>
+      </h1>
+      <p class="hero-desc">
+        A production-grade, cloud-native observability stack built on three battle-tested open-source tools — Prometheus for metrics, Loki for logs, and Grafana for visualization. Together they give you unified, real-time insight into every layer of your infrastructure.
+      </p>
+      <div class="hero-badges">
+        <span class="badge badge-prom"><i class="ti ti-chart-line" style="font-size:13px"></i> Prometheus 2.x</span>
+        <span class="badge badge-loki"><i class="ti ti-file-text" style="font-size:13px"></i> Loki 3.x</span>
+        <span class="badge badge-graf"><i class="ti ti-device-desktop-analytics" style="font-size:13px"></i> Grafana 11.x</span>
+        <span class="badge badge-oss"><i class="ti ti-brand-open-source" style="font-size:13px"></i> 100% Open Source</span>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- WHY OBSERVABILITY -->
+    <section class="section" id="why-observability">
+      <div class="section-header">
+        <div class="section-label">Foundation</div>
+        <h2 class="section-title">Why Observability Matters</h2>
+        <p class="section-desc">
+          Modern distributed systems are too complex to debug by intuition alone. Observability turns your infrastructure from a black box into a transparent, queryable system — enabling faster incident response, proactive capacity planning, and confident deployments.
+        </p>
+      </div>
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-card-icon" style="background:rgba(239,68,68,0.1)"><i class="ti ti-alert-triangle" style="color:#fca5a5;font-size:20px"></i></div>
+          <h3>Faster Incident Response</h3>
+          <p>Real-time metrics and correlated logs cut Mean Time To Resolution (MTTR) from hours to minutes. Pinpoint the exact service, pod, or query causing degradation — before users notice.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-card-icon" style="background:rgba(20,184,166,0.1)"><i class="ti ti-chart-bar" style="color:#5eead4;font-size:20px"></i></div>
+          <h3>Proactive Capacity Planning</h3>
+          <p>Track resource utilization trends over weeks and months. Predict when CPU, memory, or storage will become bottlenecks — and scale before you hit limits, not after.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-card-icon" style="background:rgba(99,102,241,0.1)"><i class="ti ti-shield-check" style="color:#a5b4fc;font-size:20px"></i></div>
+          <h3>Confident Deployments</h3>
+          <p>Live dashboards let you validate every release in seconds. Compare error rates, latency, and saturation before and after deploys — with rollback decisions backed by hard data.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-card-icon" style="background:rgba(168,85,247,0.1)"><i class="ti ti-bug" style="color:#d8b4fe;font-size:20px"></i></div>
+          <h3>Root Cause Analysis</h3>
+          <p>Jump from a high-latency metric spike directly to the relevant pod logs — no more context-switching between tools. The PLG stack correlates signals across pillars automatically.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-card-icon" style="background:rgba(5,150,105,0.1)"><i class="ti ti-users" style="color:#86efac;font-size:20px"></i></div>
+          <h3>SLO / SLA Accountability</h3>
+          <p>Prometheus recording rules and Grafana dashboards make Service Level Objectives first-class citizens. Measure error budgets, track SLI burn rates, and report SLA compliance automatically.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-card-icon" style="background:rgba(217,119,6,0.1)"><i class="ti ti-coin" style="color:#fde047;font-size:20px"></i></div>
+          <h3>Cost Visibility</h3>
+          <p>Identify over-provisioned nodes, idle services, and wasteful queries. Observability data drives infrastructure cost optimization by making actual usage visible and actionable.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- THREE PILLARS -->
+    <section class="section" id="three-pillars">
+      <div class="section-header">
+        <div class="section-label">Observability Signals</div>
+        <h2 class="section-title">The Three Pillars</h2>
+        <p class="section-desc">
+          Comprehensive observability requires three distinct signal types — each complementing the others. Metrics tell you <em>when</em> something is wrong. Logs tell you <em>what</em> happened. Visualization connects both into <em>why</em>.
+        </p>
+      </div>
+      <div class="pillars-flow">
+        <div class="pillar pillar-metrics">
+          <span class="pillar-badge">Pillar 01</span>
+          <span class="pillar-icon">📊</span>
+          <h3>Metrics</h3>
+          <p>Time-series numeric measurements that describe system behavior over time. Lightweight, highly efficient, and ideal for alerting and trend detection at scale.</p>
+          <div class="pillar-tool"><i class="ti ti-chart-line" style="font-size:13px"></i> Prometheus</div>
+          <ul class="pillar-features">
+            <li>Request rates &amp; error counts</li>
+            <li>CPU, memory, disk utilization</li>
+            <li>Custom business metrics via exporters</li>
+            <li>Multi-dimensional label-based querying (PromQL)</li>
+            <li>Recording rules for pre-aggregation</li>
+          </ul>
+        </div>
+        <div class="pillar pillar-logs">
+          <span class="pillar-badge">Pillar 02</span>
+          <span class="pillar-icon">📋</span>
+          <h3>Logs</h3>
+          <p>Timestamped, human-readable events emitted by every component of your system. Essential for debugging, auditing, and understanding the exact sequence of events during an incident.</p>
+          <div class="pillar-tool"><i class="ti ti-file-text" style="font-size:13px"></i> Grafana Loki</div>
+          <ul class="pillar-features">
+            <li>Structured &amp; unstructured log ingestion</li>
+            <li>Label-indexed storage (no full-text index)</li>
+            <li>LogQL for powerful log querying</li>
+            <li>Kubernetes pod &amp; namespace log scraping</li>
+            <li>Log-to-metric extraction (metric_queries)</li>
+          </ul>
+        </div>
+        <div class="pillar pillar-viz">
+          <span class="pillar-badge">Pillar 03</span>
+          <span class="pillar-icon">📡</span>
+          <h3>Visualization</h3>
+          <p>Unified dashboards that correlate metrics and logs into a single coherent view. Transform raw telemetry data into actionable insight for SREs, developers, and stakeholders alike.</p>
+          <div class="pillar-tool"><i class="ti ti-device-desktop-analytics" style="font-size:13px"></i> Grafana</div>
+          <ul class="pillar-features">
+            <li>50+ panel types (time series, heatmaps, gauges)</li>
+            <li>Multi-datasource correlation in one dashboard</li>
+            <li>Alerting with routing &amp; silencing</li>
+            <li>Annotation overlays for deploy events</li>
+            <li>Dashboard-as-code (Jsonnet / Grafonnet)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- TOOL DEEP DIVES -->
+    <section class="section" id="tools">
+      <div class="section-header">
+        <div class="section-label">Tool Reference</div>
+        <h2 class="section-title">Tool Deep Dives</h2>
+        <p class="section-desc">Each tool has a comprehensive SRE operations guide covering architecture, configuration, production patterns, troubleshooting, and interview prep.</p>
+      </div>
+      <div class="tool-cards">
+
+        <!-- PROMETHEUS -->
+        <div class="tool-card card-prom">
+          <div class="tool-card-inner">
+            <div class="tool-card-left">
+              <div class="tool-card-logo"><i class="ti ti-chart-line" style="color:var(--prom-primary)"></i></div>
+              <div>
+                <div class="tool-card-name">Prometheus</div>
+                <div class="tool-card-tagline">Pull-based metrics engine with a powerful time-series database and the PromQL query language. The industry standard for Kubernetes observability.</div>
+              </div>
+              <div class="tool-card-meta">
+                <div class="meta-item"><i class="ti ti-tag"></i><span>v2.50+ · TSDB</span></div>
+                <div class="meta-item"><i class="ti ti-code"></i><span>Query: PromQL</span></div>
+                <div class="meta-item"><i class="ti ti-box"></i><span>Signal: Metrics</span></div>
+                <div class="meta-item"><i class="ti ti-brand-github"></i><span>CNCF Graduated</span></div>
+              </div>
+              <a class="tool-card-link" href="prometheus.html">
+                <i class="ti ti-book-2"></i> Read Full Guide <i class="ti ti-arrow-right" style="font-size:13px"></i>
+              </a>
+            </div>
+            <div class="tool-card-right">
+              <div class="feature-row">
+                <div class="feature-block">
+                  <h4>Core Strengths</h4>
+                  <div class="feature-list">
+                    <div class="feature-item"><i class="ti ti-check"></i>Pull-model scraping — no agent needed on targets</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Multi-dimensional data model with key-value labels</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Flexible PromQL for slicing, aggregating, alerting</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Kubernetes service discovery built-in</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>700+ community exporters for any system</div>
+                  </div>
+                </div>
+                <div class="feature-block">
+                  <h4>Operational Topics</h4>
+                  <div class="feature-list">
+                    <div class="feature-item"><i class="ti ti-check"></i>Retention tuning &amp; TSDB compaction</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>AlertManager routing trees &amp; silencing</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Remote write to Thanos / Cortex for HA</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Recording rules for expensive queries</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Federation for multi-cluster aggregation</div>
+                  </div>
+                </div>
+              </div>
+              <div class="stat-row">
+                <div class="stat-box">
+                  <div class="stat-val">~1M</div>
+                  <div class="stat-lbl">samples/sec ingestion</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-val">1–2 B</div>
+                  <div class="stat-lbl">bytes per million series</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-val">15s</div>
+                  <div class="stat-lbl">default scrape interval</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOKI -->
+        <div class="tool-card card-loki">
+          <div class="tool-card-inner">
+            <div class="tool-card-left">
+              <div class="tool-card-logo"><i class="ti ti-file-text" style="color:var(--loki-primary)"></i></div>
+              <div>
+                <div class="tool-card-name">Grafana Loki</div>
+                <div class="tool-card-tagline">Like Prometheus, but for logs. Loki indexes only log labels — not content — keeping storage costs low while maintaining fast query performance via LogQL.</div>
+              </div>
+              <div class="tool-card-meta">
+                <div class="meta-item"><i class="ti ti-tag"></i><span>v3.x · Label-indexed</span></div>
+                <div class="meta-item"><i class="ti ti-code"></i><span>Query: LogQL</span></div>
+                <div class="meta-item"><i class="ti ti-box"></i><span>Signal: Logs</span></div>
+                <div class="meta-item"><i class="ti ti-cloud"></i><span>Object Storage Backend</span></div>
+              </div>
+              <a class="tool-card-link" href="loki.html">
+                <i class="ti ti-book-2"></i> Read Full Guide <i class="ti ti-arrow-right" style="font-size:13px"></i>
+              </a>
+            </div>
+            <div class="tool-card-right">
+              <div class="feature-row">
+                <div class="feature-block">
+                  <h4>Core Strengths</h4>
+                  <div class="feature-list">
+                    <div class="feature-item"><i class="ti ti-check"></i>Label-only indexing — dramatically lower cost than ELK</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Native Kubernetes log aggregation via Promtail</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Object storage backend (S3, GCS, MinIO)</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>LogQL: filter, parse, extract metrics from logs</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Grafana-native datasource integration</div>
+                  </div>
+                </div>
+                <div class="feature-block">
+                  <h4>Operational Topics</h4>
+                  <div class="feature-list">
+                    <div class="feature-item"><i class="ti ti-check"></i>Schema configuration &amp; TSDB index migration</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Retention policies per stream via ruler</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Microservices vs. monolithic deployment</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Chunk &amp; index caching strategies</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>High-cardinality label anti-patterns</div>
+                  </div>
+                </div>
+              </div>
+              <div class="stat-row">
+                <div class="stat-box">
+                  <div class="stat-val">10x</div>
+                  <div class="stat-lbl">cheaper than ELK per GB</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-val">~100</div>
+                  <div class="stat-lbl">max recommended labels</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-val">S3</div>
+                  <div class="stat-lbl">primary storage backend</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GRAFANA -->
+        <div class="tool-card card-graf">
+          <div class="tool-card-inner">
+            <div class="tool-card-left">
+              <div class="tool-card-logo"><i class="ti ti-device-desktop-analytics" style="color:var(--graf-primary)"></i></div>
+              <div>
+                <div class="tool-card-name">Grafana</div>
+                <div class="tool-card-tagline">The open platform for observability visualization. Connect every data source — metrics, logs, traces, databases — and build dashboards that drive real-time decisions.</div>
+              </div>
+              <div class="tool-card-meta">
+                <div class="meta-item"><i class="ti ti-tag"></i><span>v11.x · OSS / Cloud</span></div>
+                <div class="meta-item"><i class="ti ti-code"></i><span>Dashboards: Jsonnet</span></div>
+                <div class="meta-item"><i class="ti ti-box"></i><span>Signal: All Types</span></div>
+                <div class="meta-item"><i class="ti ti-plug"></i><span>100+ Data Sources</span></div>
+              </div>
+              <a class="tool-card-link" href="grafana.html">
+                <i class="ti ti-book-2"></i> Read Full Guide <i class="ti ti-arrow-right" style="font-size:13px"></i>
+              </a>
+            </div>
+            <div class="tool-card-right">
+              <div class="feature-row">
+                <div class="feature-block">
+                  <h4>Core Strengths</h4>
+                  <div class="feature-list">
+                    <div class="feature-item"><i class="ti ti-check"></i>Unified view across Prometheus + Loki + any DB</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>50+ panel types for any visualization need</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Built-in alerting engine with multi-channel routing</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Template variables for dynamic, reusable dashboards</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Dashboard-as-code with Grafonnet (Jsonnet)</div>
+                  </div>
+                </div>
+                <div class="feature-block">
+                  <h4>Operational Topics</h4>
+                  <div class="feature-list">
+                    <div class="feature-item"><i class="ti ti-check"></i>RBAC, teams, and folder-based permissions</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Provisioning datasources via config files</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Explore mode for ad-hoc log &amp; metric queries</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>Annotation API for deploy event overlays</div>
+                    <div class="feature-item"><i class="ti ti-check"></i>High-availability Grafana with external DB</div>
+                  </div>
+                </div>
+              </div>
+              <div class="stat-row">
+                <div class="stat-box">
+                  <div class="stat-val">100+</div>
+                  <div class="stat-lbl">datasource plugins</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-val">50+</div>
+                  <div class="stat-lbl">panel visualizations</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-val">3000+</div>
+                  <div class="stat-lbl">community dashboards</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- WHY THIS STACK -->
+    <section class="section" id="why-stack">
+      <div class="section-header">
+        <div class="section-label">Stack Evaluation</div>
+        <h2 class="section-title">Why This Stack is Best-in-Class</h2>
+        <p class="section-desc">The PLG stack (Prometheus + Loki + Grafana) has become the default observability solution for cloud-native, Kubernetes-based infrastructure. Here's why teams choose it over alternatives.</p>
+      </div>
+      <div class="why-stack-grid">
+        <div class="stack-reason highlight-oss">
+          <div class="stack-reason-num">01 / OPEN SOURCE</div>
+          <h3>Zero Licensing Costs</h3>
+          <p>All three tools are Apache 2.0 licensed. No per-seat fees, no data ingestion taxes, no vendor lock-in. You own your data and your infrastructure. Run on-prem, on any cloud, or in a hybrid setup with full control.</p>
+        </div>
+        <div class="stack-reason highlight-prom">
+          <div class="stack-reason-num">02 / KUBERNETES NATIVE</div>
+          <h3>Built for Kubernetes</h3>
+          <p>Prometheus has native Kubernetes service discovery — it auto-detects pods, services, and nodes as they scale. Loki's Promtail agent runs as a DaemonSet and automatically ingests all pod logs with Kubernetes labels attached.</p>
+        </div>
+        <div class="stack-reason highlight-loki">
+          <div class="stack-reason-num">03 / COST EFFICIENCY</div>
+          <h3>Dramatically Lower Storage Costs</h3>
+          <p>Loki's label-only index model makes it 10–100× cheaper per GB than Elasticsearch. Prometheus's TSDB achieves exceptional compression of time-series data. Together, the stack ingests terabytes daily at a fraction of enterprise tool costs.</p>
+        </div>
+        <div class="stack-reason highlight-graf">
+          <div class="stack-reason-num">04 / UNIFIED EXPERIENCE</div>
+          <h3>Single Pane of Glass</h3>
+          <p>Grafana natively speaks both Prometheus (PromQL) and Loki (LogQL). One tool, one dashboard, one alerting pipeline. Correlate a CPU spike on a Prometheus panel directly with the error logs in a Loki panel — no context switching.</p>
+        </div>
+        <div class="stack-reason highlight-all">
+          <div class="stack-reason-num">05 / ECOSYSTEM</div>
+          <h3>Massive Ecosystem & Community</h3>
+          <p>700+ Prometheus exporters cover every system imaginable. Thousands of pre-built Grafana dashboards on grafana.com. CNCF graduated status for Prometheus. Active communities on GitHub, Slack, and StackOverflow.</p>
+        </div>
+        <div class="stack-reason highlight-prom">
+          <div class="stack-reason-num">06 / SCALABILITY</div>
+          <h3>Scales from Homelab to Hyperscale</h3>
+          <p>Run a single Prometheus instance on a 2-vCPU VM for a small cluster, or deploy Thanos / Grafana Mimir for globally distributed, highly available metrics at petabyte scale. Loki similarly scales from single binary to full microservices mode.</p>
+        </div>
+        <div class="stack-reason highlight-loki">
+          <div class="stack-reason-num">07 / ALERTING</div>
+          <h3>End-to-End Alerting Pipeline</h3>
+          <p>Prometheus AlertManager handles deduplication, grouping, silencing, and multi-channel routing (PagerDuty, Slack, OpsGenie, email). Grafana adds a visual alerting UI with on-call scheduling via Grafana OnCall.</p>
+        </div>
+        <div class="stack-reason highlight-graf">
+          <div class="stack-reason-num">08 / STANDARDS</div>
+          <h3>Industry Standard & CNCF Backed</h3>
+          <p>Prometheus is the de-facto metrics standard for Kubernetes — mandated by many organizations' security and compliance frameworks. The OpenMetrics standard is built on Prometheus exposition format. Choosing this stack means hiring from a large talent pool.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ARCHITECTURE DIAGRAM -->
+    <section class="section" id="architecture">
+      <div class="section-header">
+        <div class="section-label">Reference Architecture</div>
+        <h2 class="section-title">How It All Fits Together</h2>
+        <p class="section-desc">The PLG stack follows a clear data pipeline: applications and infrastructure emit telemetry → agents collect and forward → storage backends persist → Grafana queries and visualizes everything in real time.</p>
+      </div>
+      <div class="arch-diagram">
+
+        <!-- Row 1: Applications / Infrastructure -->
+        <div style="text-align:center;margin-bottom:6px">
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Telemetry Sources</span>
+        </div>
+        <div class="arch-row" style="gap:10px;margin-bottom:8px">
+          <div class="arch-node">
+            <div class="arch-box arch-box-app">📦 App Pods</div>
+            <div class="arch-node-label">/metrics endpoint</div>
+          </div>
+          <div class="arch-node">
+            <div class="arch-box arch-box-app">🔧 Node Exporter</div>
+            <div class="arch-node-label">Host metrics</div>
+          </div>
+          <div class="arch-node">
+            <div class="arch-box arch-box-app">☸️ kube-state-metrics</div>
+            <div class="arch-node-label">K8s object metrics</div>
+          </div>
+          <div class="arch-node">
+            <div class="arch-box arch-box-infra">📋 Stdout/Stderr</div>
+            <div class="arch-node-label">Container logs</div>
+          </div>
+        </div>
+
+        <!-- Arrow down -->
+        <div style="display:flex;justify-content:center;gap:100px;margin-bottom:6px">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div style="width:1px;height:20px;background:var(--border)"></div>
+            <i class="ti ti-chevron-down" style="color:var(--text-muted);font-size:14px;margin-top:-2px"></i>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div style="width:1px;height:20px;background:var(--border)"></div>
+            <i class="ti ti-chevron-down" style="color:var(--text-muted);font-size:14px;margin-top:-2px"></i>
+          </div>
+        </div>
+
+        <!-- Row 2: Collection layer -->
+        <div style="text-align:center;margin-bottom:6px">
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Collection Layer</span>
+        </div>
+        <div class="arch-row" style="gap:48px;margin-bottom:8px">
+          <div class="arch-node">
+            <div class="arch-box arch-box-prom" style="min-width:180px">🔥 Prometheus</div>
+            <div class="arch-node-label">Scrapes &amp; stores metrics</div>
+          </div>
+          <div class="arch-node">
+            <div class="arch-box arch-box-loki" style="min-width:180px">📦 Promtail / Agent</div>
+            <div class="arch-node-label">Tails &amp; ships logs</div>
+          </div>
+        </div>
+
+        <!-- Arrow down -->
+        <div style="display:flex;justify-content:center;gap:48px;margin-bottom:6px">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div style="width:1px;height:20px;background:var(--border)"></div>
+            <i class="ti ti-chevron-down" style="color:var(--text-muted);font-size:14px;margin-top:-2px"></i>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div style="width:1px;height:20px;background:var(--border)"></div>
+            <i class="ti ti-chevron-down" style="color:var(--text-muted);font-size:14px;margin-top:-2px"></i>
+          </div>
+        </div>
+
+        <!-- Row 3: Storage -->
+        <div style="text-align:center;margin-bottom:6px">
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Storage</span>
+        </div>
+        <div class="arch-row" style="gap:48px;margin-bottom:8px">
+          <div class="arch-node">
+            <div class="arch-box arch-box-store" style="min-width:180px">🗄️ TSDB (Local / Remote)</div>
+            <div class="arch-node-label">Metrics time-series</div>
+          </div>
+          <div class="arch-node">
+            <div class="arch-box arch-box-store" style="min-width:180px">☁️ Object Store (S3/GCS)</div>
+            <div class="arch-node-label">Log chunks &amp; index</div>
+          </div>
+        </div>
+
+        <!-- Arrow + AlertManager branch -->
+        <div style="display:flex;justify-content:center;align-items:flex-start;gap:0;margin-bottom:6px">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div style="width:1px;height:20px;background:var(--border)"></div>
+            <i class="ti ti-chevron-down" style="color:var(--text-muted);font-size:14px;margin-top:-2px"></i>
+          </div>
+          <div style="width:60px;height:20px;border-left:1px solid var(--border);border-bottom:1px solid var(--border);margin-left:140px;margin-top:0"></div>
+        </div>
+
+        <!-- Row 4: Alerting + Query -->
+        <div style="text-align:center;margin-bottom:6px">
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Alerting &amp; Query</span>
+        </div>
+        <div class="arch-row" style="gap:16px;margin-bottom:8px">
+          <div class="arch-node">
+            <div class="arch-box arch-box-prom" style="min-width:160px">🔥 PromQL Queries</div>
+            <div class="arch-node-label">Metric evaluation</div>
+          </div>
+          <div class="arch-node">
+            <div class="arch-box arch-box-loki" style="min-width:160px">📋 LogQL Queries</div>
+            <div class="arch-node-label">Log search &amp; stream</div>
+          </div>
+          <div class="arch-node">
+            <div class="arch-box arch-box-alert" style="min-width:160px">🚨 AlertManager</div>
+            <div class="arch-node-label">Route alerts</div>
+          </div>
+        </div>
+
+        <!-- Arrow down -->
+        <div style="display:flex;justify-content:center;margin-bottom:6px">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div style="width:1px;height:20px;background:var(--border)"></div>
+            <i class="ti ti-chevron-down" style="color:var(--text-muted);font-size:14px;margin-top:-2px"></i>
+          </div>
+        </div>
+
+        <!-- Row 5: Grafana -->
+        <div style="text-align:center;margin-bottom:6px">
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Visualization</span>
+        </div>
+        <div class="arch-row" style="margin-bottom:0">
+          <div class="arch-node">
+            <div class="arch-box arch-box-graf" style="min-width:360px;padding:14px 28px;font-size:14px">
+              <i class="ti ti-device-desktop-analytics"></i> &nbsp;Grafana — Unified Dashboards &amp; Alerting
+            </div>
+            <div class="arch-node-label">PromQL + LogQL · Alerts · Annotations · Explore</div>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="arch-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--prom-primary)"></div> Prometheus / Metrics</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--loki-primary)"></div> Loki / Logs</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--graf-primary)"></div> Grafana / Visualization</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#6366f1"></div> Application Sources</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> Alerting</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--text-muted)"></div> Storage</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- COMPARISON TABLE -->
+    <section class="section" id="comparison">
+      <div class="section-header">
+        <div class="section-label">Feature Matrix</div>
+        <h2 class="section-title">Side-by-Side Comparison</h2>
+        <p class="section-desc">How Prometheus, Loki, and Grafana compare across key operational dimensions.</p>
+      </div>
+      <div class="compare-table-wrap">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th class="th-prom">🔥 Prometheus</th>
+              <th class="th-loki">📦 Loki</th>
+              <th class="th-graf">📊 Grafana</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Primary Signal</td>
+              <td><span class="val-tag" style="background:var(--prom-glow);color:var(--prom-light)">Metrics</span></td>
+              <td><span class="val-tag" style="background:var(--loki-glow);color:var(--loki-light)">Logs</span></td>
+              <td><span class="val-tag" style="background:var(--graf-glow);color:#d8b4fe">All Signals</span></td>
+            </tr>
+            <tr>
+              <td>Query Language</td>
+              <td>PromQL</td>
+              <td>LogQL</td>
+              <td>Depends on datasource</td>
+            </tr>
+            <tr>
+              <td>Storage Model</td>
+              <td>TSDB (local / remote write)</td>
+              <td>Chunks + label index (object store)</td>
+              <td>External (no own storage)</td>
+            </tr>
+            <tr>
+              <td>Kubernetes Native</td>
+              <td><i class="ti ti-circle-check check-yes"></i></td>
+              <td><i class="ti ti-circle-check check-yes"></i></td>
+              <td><i class="ti ti-circle-check check-yes"></i></td>
+            </tr>
+            <tr>
+              <td>Alerting</td>
+              <td><i class="ti ti-circle-check check-yes"></i> AlertManager</td>
+              <td><i class="ti ti-circle-check check-part"></i> Via Grafana</td>
+              <td><i class="ti ti-circle-check check-yes"></i> Built-in engine</td>
+            </tr>
+            <tr>
+              <td>Horizontal Scalability</td>
+              <td><i class="ti ti-circle-check check-part"></i> Via Thanos / Mimir</td>
+              <td><i class="ti ti-circle-check check-yes"></i> Microservices mode</td>
+              <td><i class="ti ti-circle-check check-yes"></i> External DB + LB</td>
+            </tr>
+            <tr>
+              <td>Long-term Retention</td>
+              <td><i class="ti ti-circle-check check-part"></i> Via Thanos / Cortex</td>
+              <td><i class="ti ti-circle-check check-yes"></i> Object store native</td>
+              <td>N/A (visualization layer)</td>
+            </tr>
+            <tr>
+              <td>Dashboard / Visualization</td>
+              <td><i class="ti ti-circle-x check-no"></i></td>
+              <td><i class="ti ti-circle-x check-no"></i></td>
+              <td><i class="ti ti-circle-check check-yes"></i> 50+ panel types</td>
+            </tr>
+            <tr>
+              <td>Data Source Plugins</td>
+              <td><i class="ti ti-circle-x check-no"></i></td>
+              <td><i class="ti ti-circle-x check-no"></i></td>
+              <td><i class="ti ti-circle-check check-yes"></i> 100+ plugins</td>
+            </tr>
+            <tr>
+              <td>Log Indexing</td>
+              <td><i class="ti ti-circle-x check-no"></i></td>
+              <td><i class="ti ti-circle-check check-yes"></i> Labels only</td>
+              <td><i class="ti ti-circle-x check-no"></i></td>
+            </tr>
+            <tr>
+              <td>Deployment Complexity</td>
+              <td>Low–Medium</td>
+              <td>Medium</td>
+              <td>Low</td>
+            </tr>
+            <tr>
+              <td>Helm Chart Available</td>
+              <td><i class="ti ti-circle-check check-yes"></i></td>
+              <td><i class="ti ti-circle-check check-yes"></i></td>
+              <td><i class="ti ti-circle-check check-yes"></i></td>
+            </tr>
+            <tr>
+              <td>CNCF Status</td>
+              <td>Graduated ✓</td>
+              <td>Sandbox / Incubating</td>
+              <td>N/A (Grafana Labs)</td>
+            </tr>
+            <tr>
+              <td>License</td>
+              <td>Apache 2.0</td>
+              <td>AGPL 3.0</td>
+              <td>AGPL 3.0</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- QUICK START -->
+    <section class="section" id="quickstart">
+      <div class="section-header">
+        <div class="section-label">Getting Started</div>
+        <h2 class="section-title">Quick Start — Kubernetes / Helm</h2>
+        <p class="section-desc">Deploy the full PLG stack on Kubernetes in under 15 minutes using the official Helm charts from the Prometheus community and Grafana organization.</p>
+      </div>
+      <div class="quickstart-grid">
+        <div class="qs-card" style="border-top:2px solid var(--prom-primary)">
+          <div class="qs-step">STEP 01 — METRICS</div>
+          <h3 style="color:var(--prom-light)">Deploy Prometheus</h3>
+          <p>Install the kube-prometheus-stack Helm chart which includes Prometheus, AlertManager, and a set of pre-built Kubernetes dashboards for Grafana.</p>
+          <div class="code-block">
+            <span class="comment"># Add helm repo</span><br>
+            <span class="cmd">helm repo add</span> prometheus-community \<br>
+            &nbsp;&nbsp;https://prometheus-community<br>
+            &nbsp;&nbsp;.github.io/helm-charts<br><br>
+            <span class="cmd">helm install</span> kube-prom \<br>
+            &nbsp;&nbsp;prometheus-community/<br>
+            &nbsp;&nbsp;<span class="flag">kube-prometheus-stack</span> \<br>
+            &nbsp;&nbsp;<span class="flag">-n monitoring</span>
+          </div>
+        </div>
+        <div class="qs-card" style="border-top:2px solid var(--loki-primary)">
+          <div class="qs-step">STEP 02 — LOGS</div>
+          <h3 style="color:var(--loki-light)">Deploy Loki Stack</h3>
+          <p>Install Loki with Promtail as a DaemonSet. Promtail auto-discovers pods and ships logs with Kubernetes labels to the Loki backend.</p>
+          <div class="code-block">
+            <span class="comment"># Add Grafana helm repo</span><br>
+            <span class="cmd">helm repo add</span> grafana \<br>
+            &nbsp;&nbsp;https://grafana.github.io<br>
+            &nbsp;&nbsp;/helm-charts<br><br>
+            <span class="cmd">helm install</span> loki \<br>
+            &nbsp;&nbsp;grafana/<span class="flag">loki-stack</span> \<br>
+            &nbsp;&nbsp;<span class="flag">-n monitoring</span> \<br>
+            &nbsp;&nbsp;<span class="flag">--set</span> promtail.enabled=true
+          </div>
+        </div>
+        <div class="qs-card" style="border-top:2px solid var(--graf-primary)">
+          <div class="qs-step">STEP 03 — DASHBOARDS</div>
+          <h3 style="color:#d8b4fe">Configure Grafana</h3>
+          <p>Grafana is already included in kube-prometheus-stack. Add Loki as a datasource and import community dashboards to get instant visibility.</p>
+          <div class="code-block">
+            <span class="comment"># Port-forward Grafana UI</span><br>
+            <span class="cmd">kubectl port-forward</span> \<br>
+            &nbsp;&nbsp;svc/kube-prom-grafana \<br>
+            &nbsp;&nbsp;<span class="flag">3000:80</span> -n monitoring<br><br>
+            <span class="comment"># Default credentials</span><br>
+            user: <span class="flag">admin</span><br>
+            pass: <span class="flag">prom-operator</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <div class="section-divider"></div>
+    <footer class="footer">
+      <div class="footer-left">
+        <div class="footer-logo">Observability Stack · SRE Reference</div>
+        <div class="footer-desc">A comprehensive knowledge base covering Prometheus, Grafana Loki, and Grafana — from fundamentals to production patterns. Built for SREs, DevOps engineers, and platform teams.</div>
+      </div>
+      <div class="footer-links">
+        <div class="footer-link-group">
+          <div class="footer-link-title">Deep Dives</div>
+          <a class="footer-link" href="prometheus.html">Prometheus Guide</a>
+          <a class="footer-link" href="loki.html">Loki Guide</a>
+          <a class="footer-link" href="grafana.html">Grafana Guide</a>
+        </div>
+        <div class="footer-link-group">
+          <div class="footer-link-title">Official Docs</div>
+          <a class="footer-link" href="https://prometheus.io/docs/" target="_blank">Prometheus ↗</a>
+          <a class="footer-link" href="https://grafana.com/docs/loki/" target="_blank">Loki ↗</a>
+          <a class="footer-link" href="https://grafana.com/docs/grafana/" target="_blank">Grafana ↗</a>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // Sidebar active link tracking
+  const links = document.querySelectorAll('.toc-link[href^="#"]');
+  const sections = [];
+  links.forEach(l => {
+    const id = l.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) sections.push({ el, link: l });
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = sections.find(s => s.el === entry.target);
+        if (match) match.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+
+  sections.forEach(s => observer.observe(s.el));
+</script>
+</body>
+</html>

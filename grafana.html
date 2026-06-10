@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grafana Platform - SRE Deep Dive & Operations Reference Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    /* Injected layout-wide CSS */
+    :root {
+      --color-background-primary: #0b0f19;
+      --color-background-secondary: #161d30;
+      --color-border-tertiary: #233152;
+      --color-text-primary: #f1f5f9;
+      --color-text-secondary: #cbd5e1;
+      --color-text-tertiary: #64748b;
+      
+      --color-background-danger: rgba(220, 38, 38, 0.15);
+      --color-text-danger: #fca5a5;
+      --color-background-warning: rgba(217, 119, 6, 0.15);
+      --color-text-warning: #fde047;
+      --color-background-success: rgba(5, 150, 105, 0.15);
+      --color-text-success: #86efac;
+      --color-background-info: rgba(37, 99, 235, 0.15);
+      --color-text-info: #7dd3fc;
+      
+      --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'Fira Code', 'Courier New', monospace;
+      --border-radius-md: 8px;
+      --border-radius-lg: 12px;
+      --border-radius-xl: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-sans); background-color: var(--color-background-primary); color: var(--color-text-primary); line-height: 1.6; }
+    
+    .app-container { display: flex; min-height: 100vh; }
+    .sidebar { width: 300px; background-color: #080b13; border-right: 1px solid var(--color-border-tertiary); padding: 24px; position: sticky; top: 0; height: 100vh; overflow-y: auto; flex-shrink: 0; }
+    .sidebar h2 { font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #a855f7; margin-bottom: 20px; }
+    .toc-list { list-style: none; }
+    .toc-item { margin-bottom: 8px; }
+    .toc-link { color: var(--color-text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: all 0.2s ease; display: block; padding: 6px 10px; border-radius: var(--border-radius-md); }
+    .toc-link:hover { background: rgba(255, 255, 255, 0.03); color: var(--color-text-primary); transform: translateX(4px); }
+    .toc-link.active { background: rgba(255, 255, 255, 0.05); color: #ec4899; font-weight: 600; box-shadow: inset 2px 0 0 #a855f7; }
+
+    .content-area { flex-grow: 1; padding: 40px; max-width: 980px; overflow-y: auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--color-border-tertiary); }
+    .logo-area { display: flex; align-items: center; gap: 16px; }
+    .header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; background: linear-gradient(to right, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .subtitle { font-size: 13px; color: var(--color-text-tertiary); font-weight: 500; }
+    .status-indicator { display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--color-border-tertiary); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; color: #ec4899; text-transform: uppercase; letter-spacing: 0.05em; }
+    .status-dot { width: 6px; height: 6px; background-color: #a855f7; border-radius: 50%; box-shadow: 0 0 8px #a855f7; animation: pulse 2s infinite; }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(224, 126, 38, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(224, 126, 38, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(224, 126, 38, 0); }
+    }
+
+    /* Injected CSS block from source blueprint */
+    
+    :root {
+      --color-background-primary: #0b0f19;
+      --color-background-secondary: #161d30;
+      --color-border-tertiary: #233152;
+      --color-text-primary: #f1f5f9;
+      --color-text-secondary: #cbd5e1;
+      --color-text-tertiary: #64748b;
+      
+      --color-background-danger: rgba(220, 38, 38, 0.15);
+      --color-text-danger: #fca5a5;
+      --color-background-warning: rgba(217, 119, 6, 0.15);
+      --color-text-warning: #fde047;
+      --color-background-success: rgba(5, 150, 105, 0.15);
+      --color-text-success: #86efac;
+      --color-background-info: rgba(37, 99, 235, 0.15);
+      --color-text-info: #7dd3fc;
+      
+      --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'Fira Code', 'Courier New', monospace;
+      --border-radius-md: 8px;
+      --border-radius-lg: 12px;
+      --border-radius-xl: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--color-background-primary);
+      color: var(--color-text-primary);
+      padding: 32px 40px;
+      max-width: 1280px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    /* Header Styling */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--color-text-tertiary);
+      font-weight: 500;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #d8b4fe;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #a855f7;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #a855f7;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(168, 85, 247, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); }
+    }
+
+    /* Tabs Styling */
+    .tbr {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+      margin-bottom: 24px;
+      padding-bottom: 4px;
+    }
+
+    .tb {
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 18px;
+      border: none;
+      background: transparent;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      border-radius: var(--border-radius-md);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-sans);
+    }
+
+    .tb:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--color-text-primary);
+    }
+
+    .tb.on {
+      background: rgba(168, 85, 247, 0.12);
+      color: #d8b4fe;
+      box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.25);
+    }
+
+    .tc {
+      display: none;
+    }
+
+    .tc.on {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* SVG Base & Lane Styles */
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: default;
+    }
+
+    /* Component Colors & Hover Glows */
+    g text {
+      transition: fill 0.2s ease;
+      pointer-events: none;
+    }
+
+    g rect {
+      transition: fill-opacity 0.25s ease, stroke 0.25s ease, stroke-width 0.25s ease, filter 0.25s ease;
+    }
+
+    .c-gray rect { fill: #64748b; stroke: #475569; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-gray:hover rect { fill-opacity: 0.25; stroke: #94a3b8; filter: drop-shadow(0 0 8px rgba(148, 163, 184, 0.35)); stroke-width: 2px; }
+    .c-gray text.t { fill: #f8fafc; font-weight: 600; }
+    .c-gray text.ts { fill: #94a3b8; }
+
+    .c-teal rect { fill: #14b8a6; stroke: #0f766e; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-teal:hover rect { fill-opacity: 0.25; stroke: #2dd4bf; filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.35)); stroke-width: 2px; }
+    .c-teal text.t { fill: #f8fafc; font-weight: 600; }
+    .c-teal text.ts { fill: #2dd4bf; }
+
+    .c-blue rect { fill: #3b82f6; stroke: #1d4ed8; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-blue:hover rect { fill-opacity: 0.25; stroke: #60a5fa; filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.35)); stroke-width: 2px; }
+    .c-blue text.t { fill: #f8fafc; font-weight: 600; }
+    .c-blue text.ts { fill: #60a5fa; }
+
+    .c-amber rect { fill: #f59e0b; stroke: #b45309; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-amber:hover rect { fill-opacity: 0.25; stroke: #fbbf24; filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.35)); stroke-width: 2px; }
+    .c-amber text.t { fill: #f8fafc; font-weight: 600; }
+    .c-amber text.ts { fill: #fbbf24; }
+
+    .c-coral rect { fill: #ef4444; stroke: #b91c1c; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-coral:hover rect { fill-opacity: 0.25; stroke: #f87171; filter: drop-shadow(0 0 8px rgba(248, 113, 113, 0.35)); stroke-width: 2px; }
+    .c-coral text.t { fill: #f8fafc; font-weight: 600; }
+    .c-coral text.ts { fill: #f87171; }
+
+    .c-purple rect { fill: #a855f7; stroke: #7e22ce; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-purple:hover rect { fill-opacity: 0.25; stroke: #c084fc; filter: drop-shadow(0 0 8px rgba(192, 132, 252, 0.35)); stroke-width: 2px; }
+    .c-purple text.t { fill: #f8fafc; font-weight: 600; }
+    .c-purple text.ts { fill: #c084fc; }
+
+    .c-green rect { fill: #22c55e; stroke: #15803d; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-green:hover rect { fill-opacity: 0.25; stroke: #4ade80; filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.35)); stroke-width: 2px; }
+    .c-green text.t { fill: #f8fafc; font-weight: 600; }
+    .c-green text.ts { fill: #4ade80; }
+
+    /* Flow Pathway Animations */
+    .path-group {
+      transition: opacity 0.25s ease, stroke-width 0.25s ease;
+    }
+
+    .flow-auth {
+      stroke: #14b8a6;
+      stroke-dasharray: 6, 4;
+      animation: flow-forward 1.2s linear infinite;
+    }
+
+    .flow-query {
+      stroke: #a855f7;
+      stroke-dasharray: 6, 4;
+      animation: flow-forward 1s linear infinite;
+    }
+
+    .flow-alert {
+      stroke: #ef4444;
+      stroke-dasharray: 5, 3;
+      animation: flow-forward 1.2s linear infinite;
+    }
+
+    .flow-write {
+      stroke: #3b82f6;
+      stroke-dasharray: 4, 3;
+      animation: flow-forward 0.8s linear infinite;
+    }
+
+    .flow-render {
+      stroke: #f59e0b;
+      stroke-dasharray: 6, 4;
+      animation: flow-forward 1.8s linear infinite;
+    }
+
+    @keyframes flow-forward {
+      from {
+        stroke-dashoffset: 20;
+      }
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    /* Highlight class triggered by Legend Hovers */
+    svg.highlight-auth .path-group:not(.path-group-auth),
+    svg.highlight-query .path-group:not(.path-group-query),
+    svg.highlight-alert .path-group:not(.path-group-alert),
+    svg.highlight-write .path-group:not(.path-group-write),
+    svg.highlight-render .path-group:not(.path-group-render) {
+      opacity: 0.15;
+    }
+
+    svg.highlight-auth .path-group.path-group-auth,
+    svg.highlight-query .path-group.path-group-query,
+    svg.highlight-alert .path-group.path-group-alert,
+    svg.highlight-write .path-group.path-group-write,
+    svg.highlight-render .path-group.path-group-render {
+      stroke-width: 2.5px;
+    }
+
+    /* Details Panel */
+    .dp {
+      background: linear-gradient(135deg, rgba(22, 29, 48, 0.4) 0%, rgba(11, 15, 25, 0.8) 100%);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 24px 28px;
+      margin-top: 24px;
+      min-height: 120px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .dp-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.01em;
+    }
+
+    .dp-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+
+    .dp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 24px;
+    }
+
+    .dp-block .lbl {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--color-text-tertiary);
+      margin-bottom: 4px;
+    }
+
+    .dp-block .txt {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    .dp-hint {
+      font-size: 13px;
+      color: var(--color-text-tertiary);
+      text-align: center;
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dp-hint i {
+      font-size: 20px;
+      color: #a855f7;
+      animation: pulseHint 2s infinite;
+    }
+
+    @keyframes pulseHint {
+      0%, 100% { opacity: 0.6; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-4px); }
+    }
+
+    /* Legend */
+    .leg {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--color-border-tertiary);
+    }
+
+    .li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .li:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--color-border-tertiary);
+      color: var(--color-text-primary);
+    }
+
+    /* Operational and Troubleshooting Cards */
+    .sec-h {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--color-text-tertiary);
+      margin: 24px 0 12px;
+    }
+
+    .cg {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: linear-gradient(135deg, var(--color-background-secondary) 0%, rgba(22, 29, 48, 0.4) 100%);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 20px 22px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: #a855f7;
+      box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3), 0 4px 8px -2px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-h {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-b {
+      font-size: 12.5px;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    .bdg {
+      font-size: 9px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .bc { background: var(--color-background-danger); color: var(--color-text-danger); border: 1px solid rgba(220, 38, 38, 0.3); }
+    .bw { background: var(--color-background-warning); color: var(--color-text-warning); border: 1px solid rgba(217, 119, 6, 0.3); }
+    .bg { background: var(--color-background-success); color: var(--color-text-success); border: 1px solid rgba(5, 150, 105, 0.3); }
+    .bi { background: var(--color-background-info); color: var(--color-text-info); border: 1px solid rgba(37, 99, 235, 0.3); }
+
+    .cmd {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: #070a12;
+      border: 1px solid #1c263d;
+      border-radius: var(--border-radius-md);
+      padding: 10px 14px;
+      margin-top: 10px;
+      color: #38bdf8;
+      display: block;
+      white-space: pre-wrap;
+      word-break: break-all;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .fb {
+      font-size: 10px;
+      padding: 3px 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 6px;
+      color: var(--color-text-secondary);
+      font-weight: 500;
+    }
+
+    .fa {
+      font-size: 12px;
+      color: var(--color-text-tertiary);
+      font-weight: bold;
+    }
+  
+
+    /* Standard content classes overrides */
+    h1, h2, h3, h4 { font-family: var(--font-sans); font-weight: 700; color: var(--color-text-primary); margin-top: 36px; margin-bottom: 16px; letter-spacing: -0.02em; }
+    h2 { font-size: 22px; border-bottom: 1px solid var(--color-border-tertiary); padding-bottom: 8px; margin-top: 48px; scroll-margin-top: 40px; }
+    h3 { font-size: 16px; margin-top: 28px; }
+    p { color: var(--color-text-secondary); margin-bottom: 16px; font-size: 14.5px; line-height: 1.7; }
+    ul { margin-bottom: 20px; padding-left: 24px; color: var(--color-text-secondary); font-size: 14.5px; }
+    li { margin-bottom: 8px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; text-align: left; }
+    th, td { padding: 12px 16px; border-bottom: 1px solid var(--color-border-tertiary); }
+    th { background-color: var(--color-background-secondary); color: var(--color-text-primary); font-weight: 600; }
+    td { color: var(--color-text-secondary); }
+    tr:hover td { background-color: rgba(255, 255, 255, 0.01); }
+
+    .code-block { font-family: var(--font-mono); font-size: 13px; background: #070a12; padding: 14px; border-radius: 6px; color: #38bdf8; margin: 20px 0; overflow-x: auto; white-space: pre; }
+    .warning-box { background: rgba(220, 38, 38, 0.06); border-left: 4px solid #ef4444; padding: 16px 20px; border-radius: 4px; margin: 24px 0; }
+    .warning-box strong { color: #fca5a5; }
+    .warning-box p { margin: 0; font-size: 14px; color: var(--color-text-secondary); }
+    .best-practice { background: rgba(5, 150, 105, 0.06); border-left: 4px solid #10b981; padding: 16px 20px; border-radius: 4px; margin: 24px 0; }
+    .best-practice strong { color: #a7f3d0; }
+    .best-practice p { margin: 0; font-size: 14px; color: var(--color-text-secondary); }
+    .info-box { background: rgba(37, 99, 235, 0.06); border-left: 4px solid #3b82f6; padding: 16px 20px; border-radius: 4px; margin: 24px 0; }
+    .info-box strong { color: #bfdbfe; }
+    .info-box p { margin: 0; font-size: 14px; color: var(--color-text-secondary); }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="sidebar">
+      <h2>Chapters</h2>
+      <ul class="toc-list">
+
+        <li class="toc-item"><a href="#ch1" class="toc-link">1. Grafana Fundamentals & Visual Observability</a></li>
+        <li class="toc-item"><a href="#ch2" class="toc-link">2. Complete Component Architecture & Blueprint</a></li>
+        <li class="toc-item"><a href="#ch3" class="toc-link">3. Unified Data Source Integration</a></li>
+        <li class="toc-item"><a href="#ch4" class="toc-link">4. Panel Types & Visualization Best Practices</a></li>
+        <li class="toc-item"><a href="#ch5" class="toc-link">5. Query Lifecycle, Backend-Sourced vs Client-Sourced Queries</a></li>
+        <li class="toc-item"><a href="#ch6" class="toc-link">6. Dashboard JSON Model & Version Control</a></li>
+        <li class="toc-item"><a href="#ch7" class="toc-link">7. Dashboard Variables, Dynamic Rows & Multi-Cluster Filtering</a></li>
+        <li class="toc-item"><a href="#ch8" class="toc-link">8. Metadata DB & SQLite Migrations</a></li>
+        <li class="toc-item"><a href="#ch9" class="toc-link">9. Shared Caching, Sessions, & Redis Cluster Integration</a></li>
+        <li class="toc-item"><a href="#ch10" class="toc-link">10. High Availability & Clustering</a></li>
+        <li class="toc-item"><a href="#ch11" class="toc-link">11. Authentication & Single Sign-On</a></li>
+        <li class="toc-item"><a href="#ch12" class="toc-link">12. Authorization, RBAC, & Multi-Org Access Policies</a></li>
+        <li class="toc-item"><a href="#ch13" class="toc-link">13. Alerting Engine</a></li>
+        <li class="toc-item"><a href="#ch14" class="toc-link">14. Contact Points & Custom Notification Templates</a></li>
+        <li class="toc-item"><a href="#ch15" class="toc-link">15. Grafana Plugins Architecture</a></li>
+        <li class="toc-item"><a href="#ch16" class="toc-link">16. Enterprise Features</a></li>
+        <li class="toc-item"><a href="#ch17" class="toc-link">17. High Cardinality Queries, Query Cache & Limit Policies</a></li>
+        <li class="toc-item"><a href="#ch18" class="toc-link">18. Grafana Provisioning</a></li>
+        <li class="toc-item"><a href="#ch19" class="toc-link">19. SRE Troubleshooting & Diagnostics</a></li>
+        <li class="toc-item"><a href="#ch20" class="toc-link">20. Performance Tuning & Resource Sizing</a></li>
+        <li class="toc-item"><a href="#ch21" class="toc-link">21. Grafana vs Competitors</a></li>
+        <li class="toc-item"><a href="#ch22" class="toc-link">22. Real-World Startup & Enterprise Architectures</a></li>
+        <li class="toc-item"><a href="#ch23" class="toc-link">23. SRE Interview Prep & 75 Core Q&A Bank</a></li>
+        <li class="toc-item"><a href="#ch24" class="toc-link">24. Comprehensive Glossary Reference</a></li>
+      </ul>
+    </div>
+    
+    <div class="content-area">
+      <div class="header">
+        <div class="logo-area">
+          <svg viewBox="0 0 50 50" width="38" height="38" fill="none">
+            <path d="M25 5 L42 15 L42 35 L25 45 L8 35 L8 15 Z" stroke="#a855f7" stroke-width="2"/>
+            <circle cx="25" cy="25" r="4" fill="#a855f7"/>
+          </svg>
+          <div>
+            <h1>Grafana Platform</h1>
+            <p class="subtitle">SRE Deep Dive & Operations Reference Guide</p>
+          </div>
+        </div>
+        <div class="status-indicator">
+          <div class="status-dot"></div>
+          <span>SRE Production Approved</span>
+        </div>
+      </div>
+      
+      <div class="guide-sections">
+    
+        <section id="ch1">
+          <h2>Chapter 1: Grafana Fundamentals & Visual Observability</h2>
+          <p>Grafana is an open-source visualization tool designed to display metrics, logs, and traces. Unlike other dashboards that copy data into local storage, Grafana acts as a stateless query proxy. When you open a dashboard, Grafana sends queries directly to the data source (like Prometheus or Loki) and renders charts on-the-fly. This keeps the Grafana backend lightweight and easy to operate.</p>
+          <p>The stateless design means that Grafana does not store your metric data. Instead, it securely stores dashboard configurations, user profiles, and organization permissions in a metadata database (like PostgreSQL). This architecture allows you to scale Grafana horizontally by running multiple stateless pods behind a load balancer.</p>
+          <p>Grafana supports a wide variety of data sources, allowing you to combine metrics, logs, and traces in a single dashboard. This unified visualization model helps SRE teams correlate performance indicators across different systems during incident response.</p>
+          <div class="code-block"># Example of Grafana server configuration section
+[server]
+protocol = http
+http_addr = 0.0.0.0
+http_port = 3000
+domain = grafana.corp.internal
+enforce_domain = true</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Stateless horizontal scaling requires a shared session store (like Redis) and a shared database (like PostgreSQL) to prevent user logout loops when requests are routed across different pods.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Do not store production dashboard configurations in the default SQLite database. SQLite does not support concurrent writes from multiple replicas, which can lead to database corruption.</p>
+          </div>
+        </section>
+        <section id="ch2">
+          <h2>Chapter 2: Complete Component Architecture & Blueprint</h2>
+          <p>The Grafana server process consists of several key components working together:</p>
+          <p>• Frontend Canvas: A React-based web application that runs in the browser. It handles dashboard rendering, user interactions, and query construction. It uses Canvas and SVG to draw high-performance charts.</p>
+          <p>• HTTP API Server: A Go-based backend that exposes REST endpoints for dashboard management, authentication, and user administration.</p>
+          <p>• Datasource Proxy: A secure backend service that routes queries from the browser to the data sources. It decrypts credentials, appends authentication headers, and proxies query requests.</p>
+          <p>• Alerting Engine: Evaluates alert rules against configured data sources, tracks alert states, and forwards notifications to contact points.</p>
+          <p>• Plugin Manager: Loads and manages panels, data sources, and applications that extend Grafana's functionality.</p>
+          <div style="margin: 32px 0; padding: 24px; background: rgba(255,255,255,0.01); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg);">
+            <div style="margin-bottom: 16px; font-weight: 600; font-size: 15px; color: var(--color-text-primary);">Interactive Architecture Blueprint</div>
+            <svg id="loki-svg" viewBox="0 0 760 520" xmlns="http://www.w3.org/2000/svg" style="font-family:var(--font-sans)">
+      <defs>
+        <!-- Arrowhead Markers -->
+        <marker id="aw" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,0.5 L7,4 L0,7.5 z" fill="var(--color-text-tertiary)"/>
+        </marker>
+        <marker id="ab" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,0.5 L7,4 L0,7.5 z" fill="#3b82f6"/>
+        </marker>
+        <marker id="ao" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,0.5 L7,4 L0,7.5 z" fill="#f59e0b"/>
+        </marker>
+        <marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,0.5 L7,4 L0,7.5 z" fill="#ef4444"/>
+        </marker>
+        <marker id="ag" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,0.5 L7,4 L0,7.5 z" fill="#14b8a6"/>
+        </marker>
+        <marker id="ap" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,0.5 L7,4 L0,7.5 z" fill="#a855f7"/>
+        </marker>
+      </defs>
+
+      <!-- Lane backgrounds -->
+      <!-- Clients layer -->
+      <rect x="10" y="8" width="510" height="52" rx="6" fill="var(--color-background-secondary)" opacity="0.6"/>
+      <!-- SSO & Proxies -->
+      <rect x="10" y="80" width="510" height="52" rx="6" fill="var(--color-background-secondary)" opacity="0.4"/>
+      
+      <!-- Grafana Server Wrapper (Go Backend) -->
+      <rect x="10" y="156" width="580" height="150" rx="6" fill="var(--color-background-secondary)" opacity="0.25"/>
+      <rect x="15" y="159" width="570" height="144" rx="6" fill="none" stroke="#a855f7" stroke-width="1" stroke-dasharray="6,4" opacity="0.25"/>
+      <text x="25" y="152" font-size="8" fill="#a855f7" font-weight="600" letter-spacing="0.05em">GRAFANA CORE SERVER (GO BACKEND)</text>
+      
+      <!-- Storage & DB layer -->
+      <rect x="10" y="324" width="510" height="60" rx="6" fill="var(--color-background-secondary)" opacity="0.4"/>
+      
+      <!-- Telemetry sources (Datasources) -->
+      <rect x="10" y="416" width="545" height="64" rx="6" fill="var(--color-background-secondary)" opacity="0.3"/>
+      
+      <!-- Labels -->
+      <text x="20" y="6" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">USER & CLIENT LAYER</text>
+      <text x="20" y="78" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">ACCESS & SSO GATEWAY</text>
+      <text x="20" y="320" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">METADATA DB & SESSION STATE</text>
+      <text x="20" y="412" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">TELEMETRY DATA SOURCES</text>
+      <text x="610" y="6" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">ALERTS & REPORTS</text>
+
+      <!-- ── FLOWS AND CONNECTIONS ── -->
+
+      <!-- User requests (Browser -> Proxy -> API Server) -->
+      <!-- Background static lines -->
+      <line x1="180" y1="54" x2="240" y2="86" stroke="#14b8a6" stroke-width="1.5" opacity="0.15" class="path-group path-group-auth"/>
+      <line x1="365" y1="54" x2="280" y2="86" stroke="#14b8a6" stroke-width="1.5" opacity="0.15" class="path-group path-group-auth"/>
+      <line x1="260" y1="122" x2="260" y2="170" stroke="#14b8a6" stroke-width="1.5" opacity="0.15" class="path-group path-group-auth"/>
+      <!-- Animated foreground flows -->
+      <line x1="180" y1="54" x2="240" y2="86" stroke-width="1.5" class="flow-auth path-group path-group-auth" marker-end="url(#ag)"/>
+      <line x1="365" y1="54" x2="280" y2="86" stroke-width="1.5" class="flow-auth path-group path-group-auth" marker-end="url(#ag)"/>
+      <line x1="260" y1="122" x2="260" y2="170" stroke-width="1.5" class="flow-auth path-group path-group-auth" marker-end="url(#ag)"/>
+
+      <!-- OAuth / LDAP Validation loop -->
+      <line x1="340" y1="188" x2="360" y2="104" stroke="#14b8a6" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.4" class="path-group path-group-auth" marker-end="url(#ag)"/>
+
+      <!-- Dashboard Query Path (Web UI -> API Server -> Query Proxy) -->
+      <line x1="180" y1="37" x2="260" y2="170" stroke="#a855f7" stroke-width="1.5" opacity="0.15" class="path-group path-group-query"/>
+      <line x1="180" y1="37" x2="260" y2="170" stroke-width="1.5" class="flow-query path-group path-group-query" marker-end="url(#ap)"/>
+      
+      <line x1="260" y1="206" x2="260" y2="244" stroke="#a855f7" stroke-width="1.5" opacity="0.15" class="path-group path-group-query"/>
+      <line x1="260" y1="206" x2="260" y2="244" stroke-width="1.5" class="flow-query path-group path-group-query" marker-end="url(#ap)"/>
+
+      <!-- Data Source Proxy Queries (Proxy -> Telemetry Backends) -->
+      <line x1="220" y1="280" x2="75" y2="430" stroke="#a855f7" stroke-width="1.5" opacity="0.15" class="path-group path-group-query"/>
+      <line x1="260" y1="280" x2="195" y2="430" stroke="#a855f7" stroke-width="1.5" opacity="0.15" class="path-group path-group-query"/>
+      <line x1="300" y1="280" x2="315" y2="430" stroke="#a855f7" stroke-width="1.5" opacity="0.15" class="path-group path-group-query"/>
+      <line x1="380" y1="280" x2="450" y2="430" stroke="#a855f7" stroke-width="1.5" opacity="0.15" class="path-group path-group-query"/>
+      
+      <line x1="220" y1="280" x2="75" y2="430" stroke-width="1.5" class="flow-query path-group path-group-query" marker-end="url(#ap)"/>
+      <line x1="260" y1="280" x2="195" y2="430" stroke-width="1.5" class="flow-query path-group path-group-query" marker-end="url(#ap)"/>
+      <line x1="300" y1="280" x2="315" y2="430" stroke-width="1.5" class="flow-query path-group path-group-query" marker-end="url(#ap)"/>
+      <line x1="380" y1="280" x2="450" y2="430" stroke-width="1.5" class="flow-query path-group path-group-query" marker-end="url(#ap)"/>
+
+      <!-- Alert Evaluation Loop (Alert Engine queries proxy) -->
+      <line x1="435" y1="206" x2="435" y2="244" stroke="#ef4444" stroke-width="1.5" opacity="0.15" class="path-group path-group-alert"/>
+      <line x1="435" y1="206" x2="435" y2="244" stroke-width="1.5" class="flow-alert path-group path-group-alert" marker-end="url(#ar)"/>
+
+      <!-- Alert firing (Alert Engine -> Router -> Receivers) -->
+      <line x1="510" y1="188" x2="610" y2="188" stroke="#ef4444" stroke-width="1.5" opacity="0.15" class="path-group path-group-alert"/>
+      <line x1="510" y1="188" x2="610" y2="188" stroke-width="1.5" class="flow-alert path-group path-group-alert" marker-end="url(#ar)"/>
+      
+      <line x1="675" y1="170" x2="675" y2="56" stroke="#ef4444" stroke-width="1.5" opacity="0.15" class="path-group path-group-alert"/>
+      <line x1="675" y1="170" x2="675" y2="56" stroke-width="1.5" class="flow-alert path-group path-group-alert" marker-end="url(#ar)"/>
+
+      <!-- Database state reads & writes (API server to DB/Cache) -->
+      <line x1="220" y1="206" x2="150" y2="336" stroke="#3b82f6" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+      <line x1="280" y1="206" x2="370" y2="336" stroke="#3b82f6" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+      
+      <line x1="220" y1="206" x2="150" y2="336" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#ab)"/>
+      <line x1="280" y1="206" x2="370" y2="336" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#ab)"/>
+
+      <!-- Rendering Path (Snapshots triggered by engine/API) -->
+      <line x1="360" y1="188" x2="160" y2="188" stroke="#f59e0b" stroke-width="1.5" opacity="0.15" class="path-group path-group-render"/>
+      <line x1="360" y1="188" x2="160" y2="188" stroke-width="1.5" class="flow-render path-group path-group-render" marker-end="url(#ao)"/>
+      <line x1="180" y1="188" x2="160" y2="188" stroke="#f59e0b" stroke-width="1.5" opacity="0.15" class="path-group path-group-render"/>
+      <line x1="180" y1="188" x2="160" y2="188" stroke-width="1.5" class="flow-render path-group path-group-render" marker-end="url(#ao)"/>
+      
+      <!-- Rendered snapshot flow to notify router -->
+      <path d="M90 206 C90 310 500 310 610 206" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.15" class="path-group path-group-render"/>
+      <path d="M90 206 C90 310 500 310 610 206" fill="none" stroke-width="1.5" class="flow-render path-group path-group-render" marker-end="url(#ao)"/>
+
+
+      <!-- ══ COMPONENT BOXES ══ -->
+
+      <!-- Clients -->
+      <g class="c-gray" onclick="sd('browser')" style="cursor:pointer">
+        <rect x="100" y="20" width="160" height="34" rx="6"/>
+        <text class="t" x="180" y="36" text-anchor="middle" font-size="10">Web Browser / UI</text>
+        <text class="ts" x="180" y="47" text-anchor="middle" font-size="8">React application</text>
+      </g>
+      <g class="c-gray" onclick="sd('browser')" style="cursor:pointer">
+        <rect x="300" y="20" width="130" height="34" rx="6"/>
+        <text class="t" x="365" y="36" text-anchor="middle" font-size="10">API Clients / CLI</text>
+        <text class="ts" x="365" y="47" text-anchor="middle" font-size="8">automated automation</text>
+      </g>
+
+      <!-- Gateways & Security -->
+      <g class="c-teal" onclick="sd('proxy_ingress')" style="cursor:pointer">
+        <rect x="180" y="86" width="160" height="36" rx="6"/>
+        <text class="t" x="260" y="102" text-anchor="middle" font-size="10">Reverse Proxy / Ingress</text>
+        <text class="ts" x="260" y="115" text-anchor="middle" font-size="8">Nginx / SSL termination</text>
+      </g>
+      <g class="c-teal" onclick="sd('auth_providers')" style="cursor:pointer">
+        <rect x="360" y="86" width="150" height="36" rx="6"/>
+        <text class="t" x="435" y="102" text-anchor="middle" font-size="10">Auth Providers (SSO)</text>
+        <text class="ts" x="435" y="115" text-anchor="middle" font-size="8">OAuth / SAML / LDAP</text>
+      </g>
+
+      <!-- Grafana Go Backend -->
+      <g class="c-blue" onclick="sd('image_renderer')" style="cursor:pointer">
+        <rect x="20" y="170" width="140" height="36" rx="6"/>
+        <text class="t" x="90" y="186" text-anchor="middle" font-size="10">Image Renderer</text>
+        <text class="ts" x="90" y="199" text-anchor="middle" font-size="8">Playwright microservice</text>
+      </g>
+      <g class="c-blue" onclick="sd('api_server')" style="cursor:pointer">
+        <rect x="180" y="170" width="160" height="36" rx="6"/>
+        <text class="t" x="260" y="186" text-anchor="middle" font-size="11">HTTP API Server</text>
+        <text class="ts" x="260" y="200" text-anchor="middle" font-size="8">session & dashboard router</text>
+      </g>
+      <g class="c-blue" onclick="sd('alerting_engine')" style="cursor:pointer">
+        <rect x="360" y="170" width="150" height="36" rx="6"/>
+        <text class="t" x="435" y="186" text-anchor="middle" font-size="11">Alerting Engine</text>
+        <text class="ts" x="435" y="200" text-anchor="middle" font-size="8">rules scheduler & state</text>
+      </g>
+      <g class="c-blue" onclick="sd('query_proxy')" style="cursor:pointer">
+        <rect x="180" y="244" width="330" height="36" rx="6"/>
+        <text class="t" x="345" y="260" text-anchor="middle" font-size="11">Datasource Query Proxy</text>
+        <text class="ts" x="345" y="274" text-anchor="middle" font-size="8">Credential decryption & database relays</text>
+      </g>
+
+      <!-- DB & Cache -->
+      <g class="c-amber" onclick="sd('metadata_db')" style="cursor:pointer">
+        <rect x="50" y="336" width="200" height="36" rx="6"/>
+        <text class="t" x="150" y="352" text-anchor="middle" font-size="11">Metadata Database (Postgres)</text>
+        <text class="ts" x="150" y="366" text-anchor="middle" font-size="8">dashboards, rules, configs</text>
+      </g>
+      <g class="c-amber" onclick="sd('session_store')" style="cursor:pointer">
+        <rect x="270" y="336" width="200" height="36" rx="6"/>
+        <text class="t" x="370" y="352" text-anchor="middle" font-size="11">Session & Cache Store (Redis)</text>
+        <text class="ts" x="370" y="366" text-anchor="middle" font-size="8">token caching & HA sessions</text>
+      </g>
+
+      <!-- Data Sources -->
+      <g class="c-green" onclick="sd('datasources')" style="cursor:pointer">
+        <rect x="20" y="430" width="110" height="36" rx="6"/>
+        <text class="t" x="75" y="446" text-anchor="middle" font-size="10">Prometheus</text>
+        <text class="ts" x="75" y="459" text-anchor="middle" font-size="8">metrics backend</text>
+      </g>
+      <g class="c-green" onclick="sd('datasources')" style="cursor:pointer">
+        <rect x="145" y="430" width="100" height="36" rx="6"/>
+        <text class="t" x="195" y="446" text-anchor="middle" font-size="10">Loki</text>
+        <text class="ts" x="195" y="459" text-anchor="middle" font-size="8">log aggregator</text>
+      </g>
+      <g class="c-green" onclick="sd('datasources')" style="cursor:pointer">
+        <rect x="260" y="430" width="110" height="36" rx="6"/>
+        <text class="t" x="315" y="446" text-anchor="middle" font-size="10">Tempo</text>
+        <text class="ts" x="315" y="459" text-anchor="middle" font-size="8">traces backend</text>
+      </g>
+      <g class="c-green" onclick="sd('datasources')" style="cursor:pointer">
+        <rect x="385" y="430" width="135" height="36" rx="6"/>
+        <text class="t" x="452" y="446" text-anchor="middle" font-size="10">SQL Databases</text>
+        <text class="ts" x="452" y="459" text-anchor="middle" font-size="8">PostgreSQL / MySQL / BigQuery</text>
+      </g>
+
+      <!-- Alerting Outputs (Right Panel) -->
+      <g class="c-coral" onclick="sd('alert_routers')" style="cursor:pointer">
+        <rect x="610" y="20" width="130" height="36" rx="6"/>
+        <text class="t" x="675" y="36" text-anchor="middle" font-size="11">Receivers</text>
+        <text class="ts" x="675" y="49" text-anchor="middle" font-size="9">PagerDuty / Slack / Email</text>
+      </g>
+      <g class="c-coral" onclick="sd('alert_routers')" style="cursor:pointer">
+        <rect x="610" y="170" width="130" height="36" rx="6"/>
+        <text class="t" x="675" y="186" text-anchor="middle" font-size="11">Notification Router</text>
+        <text class="ts" x="675" y="199" text-anchor="middle" font-size="9">formats templates</text>
+      </g>
+
+      <!-- Click hint -->
+      <text x="380" y="505" font-size="10" fill="var(--color-text-tertiary)" text-anchor="middle" font-weight="500">Click any component for technical specifications</text>
+    </svg>
+            <div class="leg">
+      <div class="li" onmouseenter="highlightPath('auth')" onmouseleave="clearHighlight()">
+        <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#14b8a6" stroke-width="1.5" marker-end="url(#ag)"/></svg>auth & sso path
+      </div>
+      <div class="li" onmouseenter="highlightPath('query')" onmouseleave="clearHighlight()">
+        <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#a855f7" stroke-width="1.5" marker-end="url(#ap)"/></svg>query proxy path
+      </div>
+      <div class="li" onmouseenter="highlightPath('alert')" onmouseleave="clearHighlight()">
+        <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#ef4444" stroke-width="1.5" marker-end="url(#ar)"/></svg>alerting path
+      </div>
+      <div class="li" onmouseenter="highlightPath('write')" onmouseleave="clearHighlight()">
+        <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#ab)"/></svg>metadata writes
+      </div>
+      <div class="li" onmouseenter="highlightPath('render')" onmouseleave="clearHighlight()">
+        <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ao)"/></svg>image rendering
+      </div>
+    </div>
+            <div id="dp" class="dp">
+      <div class="dp-hint">
+        <i class="ti ti-click"></i>
+        <span>Click any system component on the blueprint above to see connections, production roles, and diagnostic tips.</span>
+      </div>
+    </div>
+          </div>
+          
+        </section>
+        <section id="ch3">
+          <h2>Chapter 3: Unified Data Source Integration (Prometheus, Loki, Tempo)</h2>
+          <p>Grafana's primary strength is its ability to query data from many different sources. Data sources are configured in the backend and can be added via the UI or declarative configuration files. Grafana supports core open-source monitoring systems natively:</p>
+          <p>• Prometheus: Used for querying and visualizing metric time-series data using PromQL.</p>
+          <p>• Loki: Used for querying and visualizing log streams using LogQL.</p>
+          <p>• Tempo: Used for querying and visualizing distributed traces.</p>
+          <p>Grafana allows you to link these data sources together. For example, you can click on a spike in a Prometheus metric chart to open the corresponding logs in Loki, and then click on a log entry to view the trace in Tempo. This correlation speeds up incident investigation.</p>
+          <div class="code-block"># Datasource provisioning configuration example
+apiVersion: 1
+datasources:
+  - name: Prometheus-Prod
+    type: prometheus
+    access: proxy
+    url: http://prometheus-k8s.monitoring.svc:9090
+    isDefault: true
+    jsonData:
+      httpMethod: POST
+      timeInterval: 15s</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Use provisioning configurations (YAML files) to manage data sources. This allows you to treat configurations as code (GitOps) and ensures consistency across environments.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>When configuring data sources, always select 'Server' access (Proxy mode). 'Browser' access forces clients to connect directly to the database, exposing database credentials to the browser.</p>
+          </div>
+        </section>
+        <section id="ch4">
+          <h2>Chapter 4: Panel Types & Visualization Best Practices</h2>
+          <p>Grafana provides a variety of panel types to represent data effectively:</p>
+          <p>• Time Series: The default panel for visualizing metrics over time. It supports multiple display modes, overrides, and thresholds.</p>
+          <p>• Stat: Displays a single aggregate value (e.g., current CPU usage) with optional sparklines and color thresholds.</p>
+          <p>• Bar Gauge: Displays progress bars representing resource utilization.</p>
+          <p>• Table: Displays raw data in tabular format, useful for listing active alerts or pod statuses.</p>
+          <p>Use visualization best practices to design clear dashboards. Avoid cluttered charts with too many lines, use color thresholds consistently (e.g., red for critical status), and keep dashboards organized using collapsible rows.</p>
+          <div class="code-block"># Example of panel JSON structure within a dashboard model
+{
+  "type": "timeseries",
+  "title": "API Latency",
+  "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+  "targets": [
+    {
+      "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))",
+      "refId": "A"
+    }
+  ]
+}</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Limit the number of panels on a single dashboard to 15-20. Large dashboards with many panels load slowly, consume client CPU, and generate high query load on backend databases.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Do not use absolute color values on your panels without considering users with color vision deficiencies. Use Grafana's built-in accessible color palettes.</p>
+          </div>
+        </section>
+        <section id="ch5">
+          <h2>Chapter 5: Query Lifecycle, Backend-Sourced vs Client-Sourced Queries</h2>
+          <p>Understanding the lifecycle of a query helps SREs optimize dashboard performance. When a user opens a dashboard, the React frontend issues query requests. These queries can be processed in two ways:</p>
+          <p>1. Client-Sourced Queries: The browser sends queries directly to the data source endpoint. This requires CORS (Cross-Origin Resource Sharing) to be configured on the database, and exposes the database directly to the network.</p>
+          <p>2. Backend-Sourced Queries: The browser sends queries to the Grafana HTTP API. The Grafana server decrypts the database credentials, executes the query on behalf of the user, and returns the result. This proxying secures credentials and simplifies network routing.</p>
+          <div class="code-block"># Conceptual query proxy request path
+[Browser User] -> GET /api/datasources/proxy/1/api/v1/query?query=up
+  -> [Grafana Server (Decrypts Auth)] 
+    -> POST /api/v1/query (to Prometheus Backend)
+      -> Returns data to Grafana -> returns to User</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Enable query caching in Grafana (available in Grafana Enterprise or via plugins) to reduce query volume. This caches data source responses, preventing duplicate queries from overloading databases during incident reviews.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Backend-sourced queries increase memory and CPU usage on the Grafana server. Ensure the server has sufficient network bandwidth to handle proxied data streams.</p>
+          </div>
+        </section>
+        <section id="ch6">
+          <h2>Chapter 6: Dashboard JSON Model & Version Control (GitOps)</h2>
+          <p>Every Grafana dashboard is represented internally as a JSON document. This document contains all panel configurations, queries, layout coordinates, variables, and styling settings. By managing these JSON files in version control, you can apply GitOps practices to dashboard configurations.</p>
+          <p>With a GitOps workflow, changes to dashboards are proposed via pull requests, reviewed by team members, and deployed automatically using CI/CD pipelines. You can use tools like Terraform, Grizzly, or the Grafana REST API to automate dashboard deployments, ensuring configurations are consistent across staging and production environments.</p>
+          <div class="code-block"># Bash script to deploy a dashboard JSON via Grafana API
+curl -X POST \
+  -H "Authorization: Bearer glsa_xxx" \
+  -H "Content-Type: application/json" \
+  -d @dashboard.json \
+  http://grafana.prod.internal:3000/api/dashboards/db</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Configure dashboard folders with appropriate permissions. Maintain a clear separation between 'System Dashboards' (managed via GitOps, read-only to users) and 'Playground Folders' (where developers can create custom panels).</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Manual edits to provisioned dashboards (deployed via YAML/GitOps) will be overwritten when the Grafana server restarts or re-scans the configuration directory. Ensure you edit the source JSON in Git.</p>
+          </div>
+        </section>
+        <section id="ch7">
+          <h2>Chapter 7: Dashboard Variables, Dynamic Rows & Multi-Cluster Filtering</h2>
+          <p>Dashboard Variables make dashboards dynamic. Instead of hardcoding values (like a specific pod name or region), you define variables that users can select from drop-down menus at the top of the dashboard.</p>
+          <p>Types of variables include:</p>
+          <p>• Query: Dynamically queries a data source for values (e.g., retrieving all active namespaces).</p>
+          <p>• Custom: A hardcoded list of values.</p>
+          <p>• Textbox: Allows users to input free-form text.</p>
+          <p>Variables can be nested, where selecting a value in the first variable (e.g., `Region`) filters the options available in the second (e.g., `Cluster`). SREs can also use variables to dynamically repeat rows or panels for each selected value, simplifying multi-environment monitoring.</p>
+          <div class="code-block"># PromQL target query utilizing variables
+sum(rate(container_cpu_usage_seconds_total{cluster="$cluster", namespace="$namespace"}[5m]))</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Use variables to create single, reusable dashboards for multi-cluster environments. This avoids dashboard fragmentation and simplifies maintenance.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>If a query variable retrieves too many values (e.g., 5,000 pod names), the dropdown menu will load slowly and degrade browser performance. Limit variable query results using regex filters.</p>
+          </div>
+        </section>
+        <section id="ch8">
+          <h2>Chapter 8: Metadata DB & SQLite Migrations</h2>
+          <p>Grafana requires a SQL database to store user profiles, organizations, dashboards, alert rules, and session data. By default, it uses SQLite, which is stored as a single file on the local disk. SQLite is suitable for development and testing, but it is not designed for production scaling.</p>
+          <p>SQLite locks the database file during write operations. If you run multiple Grafana replicas or have many concurrent users saving dashboards, SQLite write contention will cause database locked errors and corruption.</p>
+          <p>For production environments, migrate Grafana to an external database like PostgreSQL or MySQL. This allows you to run multiple stateless Grafana replicas, enables high availability, and supports database backups.</p>
+          <div class="code-block"># Configuration to migrate database from SQLite to PostgreSQL
+[database]
+type = postgres
+host = postgres-ha.infra.svc.cluster.local:5432
+name = grafana_metadata
+user = grafana_app
+password = SEC_PASS_REPLACED
+ssl_mode = require
+max_open_conn = 30
+max_idle_conn = 10</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Run database migrations during scheduled maintenance. Grafana automatically runs migrations on startup when upgrading versions, which can temporarily lock tables in large databases.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Always perform a database backup before upgrading Grafana. If a database migration fails during upgrade, the metadata can become corrupted, requiring a restore.</p>
+          </div>
+        </section>
+        <section id="ch9">
+          <h2>Chapter 9: Shared Caching, Sessions, & Redis Cluster Integration</h2>
+          <p>When running multiple replicas of Grafana behind a load balancer, users will face sudden logouts if session data is stored locally in the pod's memory. To prevent this, configure a shared session provider like Redis.</p>
+          <p>Redis acts as a centralized store for session states, user permissions, and login states. When a user requests a dashboard, any Grafana pod can validate the session ID against Redis. Redis can also cache data source query responses, reducing the load on backend databases during high-traffic incidents.</p>
+          <div class="code-block"># Configuration to enable Redis session storage
+[session]
+provider = redis
+provider_config = addr=redis-cluster.infra.svc:6379,password=SEC_REDIS_REPLACED,pool_size=100,ssl=true
+cookie_secure = true
+session_life_time = 86400</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Monitor Redis replication lag and memory usage. If Redis runs out of memory, active users will be logged out, and dashboard configurations may fail to load.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Ensure session cookies are secure (`cookie_secure = true`) when running Grafana behind SSL/TLS proxies to prevent session interception.</p>
+          </div>
+        </section>
+        <section id="ch10">
+          <h2>Chapter 10: High Availability & Clustering (Grafana stateless scaling)</h2>
+          <p>To deploy Grafana in a High Availability (HA) configuration, you must scale the server stateless replicas horizontally behind a Load Balancer (like AWS ALB or Nginx). The stateless replicas do not share local storage; instead, they coordinate using a shared database (PostgreSQL) and session store (Redis).</p>
+          <p>This setup allows pods to be terminated or rescheduled without affecting user sessions. SREs can perform rolling updates to Grafana deployments with zero downtime, and the load balancer distributes traffic evenly across active nodes, improving performance during high-traffic events.</p>
+          <div class="code-block"># Nginx load balancer configuration for Grafana HA cluster
+upstream grafana_servers {
+    server grafana-1.monitoring.svc:3000;
+    server grafana-2.monitoring.svc:3000;
+    keepalive 32;
+}
+server {
+    listen 80;
+    location / {
+        proxy_pass http://grafana_servers;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+    }
+}</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Configure a unified secret key (`secret_key`) across all Grafana replica pods. Mismatched keys will prevent replicas from decrypting session cookies, leading to login loops.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Do not configure sticky sessions on your load balancer as a substitute for a shared session store. Sticky sessions are fragile and do not support true high availability.</p>
+          </div>
+        </section>
+        <section id="ch11">
+          <h2>Chapter 11: Authentication & Single Sign-On (OAuth2, OIDC, SAML, LDAP)</h2>
+          <p>Securing access to dashboards is critical for SRE teams. Grafana supports multiple authentication methods, including Single Sign-On (SSO) protocols like OAuth2, OpenID Connect (OIDC), SAML, and LDAP. This allows you to integrate Grafana with your identity provider (e.g., Okta, Keycloak, Auth0, Active Directory) to manage access centrally.</p>
+          <p>Once authenticated, users are assigned to roles based on group memberships in the identity provider, simplifying user provisioning.</p>
+          <div class="code-block"># Generic OAuth2 integration with Keycloak
+[auth.generic_oauth]
+enabled = true
+name = Keycloak
+client_id = grafana
+client_secret = SEC_SECRET_REPLACED
+scopes = openid profile email
+auth_url = https://keycloak.corp.com/realms/infra/protocol/openid-connect/auth
+token_url = https://keycloak.corp.com/realms/infra/protocol/openid-connect/token
+api_url = https://keycloak.corp.com/realms/infra/protocol/openid-connect/userinfo
+role_attribute_path = contains(roles, 'admin') && 'Admin' || contains(roles, 'editor') && 'Editor' || 'Viewer'</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Use role mapping to assign user permissions dynamically based on active directory groups, ensuring that only SRE team members have admin access.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Disable local password login (`disable_login_form = true`) once SSO is enabled to prevent users from bypassing your identity provider.</p>
+          </div>
+        </section>
+        <section id="ch12">
+          <h2>Chapter 12: Authorization, RBAC, & Multi-Org Access Policies</h2>
+          <p>Grafana supports a multi-tenant authorization model. SREs can organize users and dashboards into separate Organizations. Organizations act as hard security boundaries; dashboards, data sources, and users cannot be shared across organizations without explicit configuration.</p>
+          <p>Within an organization, access is managed using Role-Based Access Control (RBAC). The default roles are Admin, Editor, and Viewer. In Grafana Enterprise, you can define fine-grained permissions to restrict access to specific folders, dashboards, or data sources, helping teams meet compliance requirements.</p>
+          <div class="code-block"># Provisioning configuration mapping teams to folders
+# Note: Enforced via external API or Terraform configurations
+resource "grafana_folder_permission" "sre_folder_perms" {
+  folder_uid = "sre_dashboards"
+  permissions {
+    team_id    = 1 # SRE Team
+    permission = "Admin"
+  }
+  permissions {
+    team_id    = 2 # Dev Team
+    permission = "View"
+  }
+}</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Use Organizations to separate multi-tenant environments (e.g., separating internal infrastructure monitoring from external customer dashboards).</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Users with Admin access to an organization can create or modify data sources, exposing database access. Restrict Admin roles to trusted SRE members.</p>
+          </div>
+        </section>
+        <section id="ch13">
+          <h2>Chapter 13: Alerting Engine (Unified Alerting, Evaluators, Mute Timings)</h2>
+          <p>Grafana Unified Alerting allows SREs to define alert rules that query data sources, evaluate thresholds, and send notifications. Alert rules are evaluated by a background scheduler in the Grafana server.</p>
+          <p>The alerting engine tracks alert states: Normal, Pending, and Firing. If an alert threshold is met, the alert enters the Pending state for a configured duration before transitioning to Firing. This delay reduces alert noise from temporary spikes. SREs can also configure Mute Timings to suppress alerts during planned maintenance windows.</p>
+          <div class="code-block"># Alert rule definition in Grafana provisioning format
+groups:
+  - orgId: 1
+    name: SRE-Alert-Group
+    rules:
+      - uid: api_latency_alert
+        title: High API Latency
+        condition: A
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus-prod
+            model:
+              expr: "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket[5m]))) > 2.0"</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Align alert evaluation intervals with your database scrape intervals. Evaluating alerts too frequently generates redundant query load on databases.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>If the alerting scheduler falls behind because of slow queries, Grafana will record alert execution errors, which can result in missed notifications.</p>
+          </div>
+        </section>
+        <section id="ch14">
+          <h2>Chapter 14: Contact Points & Custom Notification Templates</h2>
+          <p>Contact Points define where alerts are sent when they trigger. Grafana supports integrations with Slack, PagerDuty, email, and Webhook destinations.</p>
+          <p>SREs can customize notifications using the Go Template Engine. Templates allow you to format alert messages, include dynamic data (like actual metric values), and add links to dashboards and runbooks, helping teams respond quickly to incidents.</p>
+          <div class="code-block"># Custom notification template example
+{{ define "slack.title" }}
+  [{{ .Status | toUpper }}] {{ .CommonAnnotations.summary }}
+{{ end }}
+{{ define "slack.message" }}
+  *Details:* {{ .CommonAnnotations.description }}
+  *Runbook:* {{ .CommonAnnotations.runbook_url }}
+{{ end }}</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Include links to relevant dashboards and runbooks in all alert templates. This gives on-call engineers immediate access to diagnostic tools and procedures.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Make sure your templates handle unresolved alerts. Failing to test templates for recovery states can lead to confusing notifications.</p>
+          </div>
+        </section>
+        <section id="ch15">
+          <h2>Chapter 15: Grafana Plugins Architecture (Panel, Data Source, App Plugins)</h2>
+          <p>Grafana's extensible architecture is built around Plugins, which fall into three categories:</p>
+          <p>• Panel Plugins: Add new visualizations (e.g., specialized graphs or gauges).</p>
+          <p>• Data Source Plugins: Allow Grafana to query new databases.</p>
+          <p>• App Plugins: Package dashboards, data sources, and panels into a single application.</p>
+          <p>Plugins run in a sandboxed environment. Grafana enforces signing requirements on all plugins to prevent execution of unauthorized code. SREs can configure allowed plugins in the server configuration file.</p>
+          <div class="code-block"># Allow installation of unsigned plugins (for development only)
+[plugins]
+allow_loading_unsigned_plugins = custom-datasource-plugin,internal-panel-plugin</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Verify plugin signatures before deploying them in production. Unsigned or unverified plugins can introduce security vulnerabilities and performance bottlenecks.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Unsigned plugins will fail to load in Grafana by default. Do not disable signature verification in production environments.</p>
+          </div>
+        </section>
+        <section id="ch16">
+          <h2>Chapter 16: Enterprise Features (Reporting, Audit Logs, Usage Analytics)</h2>
+          <p>Grafana Enterprise offers advanced capabilities for large organizations:</p>
+          <p>• PDF Reporting: Automatically generates and emails PDF copies of dashboards.</p>
+          <p>• Audit Logs: Records user actions (dashboard saves, login attempts, permission changes) for compliance.</p>
+          <p>• Usage Analytics: Tracks dashboard views and query execution times to locate unused panels and optimize slow queries.</p>
+          <p>These features help SRE teams manage large Grafana deployments, track user activity, and maintain compliance standards.</p>
+          <div class="code-block"># Enterprise audit logging configuration
+[enterprise.auditing]
+enabled = true
+log_filters = action=dashboard-save,action=login-attempt
+writer = file
+file_path = /var/log/grafana/audit.log</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Review usage analytics regularly. Delete unused dashboards to clean up your metadata database and reduce background query load.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Audit logs can generate significant log volume. Configure log rotation and retention policies to prevent disk space exhaustion.</p>
+          </div>
+        </section>
+        <section id="ch17">
+          <h2>Chapter 17: High Cardinality Queries, Query Cache & Limit Policies</h2>
+          <p>High cardinality queries can cause performance issues in Grafana. When a dashboard requests data with millions of points, it can overload the frontend and crash the user's browser.</p>
+          <p>To prevent this, configure Query Limits. SREs can limit the maximum number of data points per panel and set query timeouts. Grafana also supports Query Caching, which stores database responses to speed up repeated queries.</p>
+          <div class="code-block"># Configuration to cache data source queries
+[query_caching]
+enabled = true
+ttl = 5m
+max_size_mb = 100</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Enable query limits on public-facing dashboards. Set `max_data_points` to match the screen width (typically 1500 points) to optimize rendering.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>High cardinality queries can cause OOM crashes on the Grafana server if the backend proxy runs out of memory processing results.</p>
+          </div>
+        </section>
+        <section id="ch18">
+          <h2>Chapter 18: Grafana Provisioning (Dashboards, Datasources, Alerting via YAML)</h2>
+          <p>Grafana Provisioning allows SREs to manage configurations declaratively. Instead of creating data sources and dashboards manually in the UI, you define them in YAML and JSON files.</p>
+          <p>Grafana scans a provisioning directory on startup and applies the configurations. This supports a GitOps workflow, where configurations are managed in version control and deployed automatically.</p>
+          <div class="code-block"># Provisioning configuration mapping datasources
+apiVersion: 1
+datasources:
+  - name: Prometheus-Demo
+    type: prometheus
+    url: http://localhost:9090
+    access: proxy</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Use provisioning to ensure configurations are consistent across environments. This prevents configuration drift and simplifies disaster recovery.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Manual edits to provisioned dashboards in the UI will be lost on server restart. Make all dashboard changes in your version control repository.</p>
+          </div>
+        </section>
+        <section id="ch19">
+          <h2>Chapter 19: SRE Troubleshooting & Diagnostics (Deadlocks, OOM, Latency)</h2>
+          <p>When troubleshooting Grafana incidents, SREs typically encounter three main scenarios:</p>
+          <p>1. Database Locked Errors: Caused by SQLite write contention. SREs can resolve this by migrating the metadata database to PostgreSQL.</p>
+          <p>2. User Logout Loops: Triggered by mismatched secret keys across replica pods. SREs can fix this by setting a unified key.</p>
+          <p>3. Slow Dashboard Loading: Caused by slow data source queries. SREs can debug this by checking the query logs and configuring query caches.</p>
+          <div class="code-block"># Command to check Grafana logs for database deadlocks
+# 1. Inspect logs for locking messages:
+kubectl logs deployment/grafana -n monitoring | grep -E -i "database locked|deadlock"</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Configure a health check endpoint for Grafana (`/api/health`). Use this endpoint in your load balancer configuration to route traffic away from unhealthy pods.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Restarting the database during active migrations can corrupt the metadata schema. Wait for migrations to complete before performing maintenance.</p>
+          </div>
+        </section>
+        <section id="ch20">
+          <h2>Chapter 20: Performance Tuning & Resource Sizing (Go GC settings, DB Pools)</h2>
+          <p>Tuning the Grafana server parameters improves performance under heavy load:</p>
+          <p>• Go Garbage Collection: Tune the `GOGC` environment variable to control memory usage. Setting `GOGC=80` increases collection frequency, reducing memory usage at the cost of slight CPU overhead.</p>
+          <p>• Database Connection Pools: Configure connection pool limits (`max_open_conn` and `max_idle_conn`) to match your database capacity, preventing connection exhaustion under peak load.</p>
+          <div class="code-block"># Docker compose environment variables for Grafana performance tuning
+environment:
+  - GOGC=80
+  - GOMAXPROCS=4
+  - GF_DATABASE_MAX_OPEN_CONN=40
+  - GF_DATABASE_MAX_IDLE_CONN=15</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Monitor database connection pool metrics. Alert when active connections reach 80% of your maximum pool size to prevent connection failures.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Setting connection pool limits too high can overload your external database, while setting them too low will cause query latency for users.</p>
+          </div>
+        </section>
+        <section id="ch21">
+          <h2>Chapter 21: Grafana vs Competitors (Kibana, Datadog, CloudWatch)</h2>
+          <p>Selecting a visualization platform depends on your monitoring requirements:</p>
+          <p>• Kibana: Designed specifically for visualizing Elasticsearch data. While powerful for log analysis, it is less suited for multi-datasource metrics and tracing.</p>
+          <p>• Datadog: A comprehensive SaaS platform. It offers advanced features but introduces high subscription costs and vendor lock-in.</p>
+          <p>• AWS CloudWatch: A managed monitoring service for AWS. It is simple to use but lacks the advanced layout and multi-datasource features of Grafana.</p>
+          <p>Grafana remains the default choice for SRE teams due to its open-source model, extensive plugin ecosystem, and support for multi-datasource correlation.</p>
+          <table>
+            <thead>
+              <tr><th>Feature</th><th>Grafana</th><th>Kibana</th><th>Datadog</th>
+              </tr>
+            </thead>
+            <tbody><tr><td>Data Scope</td><td>Multi-datasource</td><td>Elasticsearch only</td><td>Proprietary SaaS</td></tr><tr><td>Cost Model</td><td>Open-source / Paid Enterprise</td><td>Open-source / Elastic License</td><td>SaaS Pricing</td></tr><tr><td>Plugin Ecosystem</td><td>Excellent (Plugins Hub)</td><td>Good (Elastic Integrations)</td><td>Proprietary</td></tr><tr><td>Alerting Engine</td><td>Unified Alerting (PromQL/LogQL)</td><td>Kibana Alerting</td><td>SaaS Monitor Alerts</td></tr>
+            </tbody>
+          </table>
+          <div class="code-block"># CLI command to install a plugin
+grafana-cli plugins install grafana-piechart-panel</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Choose Grafana if you require a unified dashboard platform that integrates with multiple databases. Choose Kibana if your monitoring is centered entirely on the Elastic Stack.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Ensure you verify plugin compatibility when upgrading Grafana. Older plugins may fail to load on newer major versions.</p>
+          </div>
+        </section>
+        <section id="ch22">
+          <h2>Chapter 22: Real-World Startup & Enterprise Architectures</h2>
+          <p>Grafana deployments scale with your infrastructure requirements:</p>
+          <p>• Startup Architecture: A single Grafana container running with a local SQLite database, querying a local Prometheus instance. This is simple and cost-effective.</p>
+          <p>• Enterprise Architecture: A stateless Grafana cluster deployed in Kubernetes. Pods run behind an ALB load balancer, using an external PostgreSQL instance for metadata and a Redis cluster for sessions. This configuration supports high availability, zero-downtime updates, and global queries.</p>
+          <div class="code-block"># Enterprise helm chart values snippet for Grafana HA
+replicas: 3
+env:
+  GF_SESSION_PROVIDER: redis
+  GF_SESSION_PROVIDER_CONFIG: "addr=redis-cluster:6379,pool_size=100"
+database:
+  type: postgres
+  host: pg-master.infra.svc:5432
+  name: grafana</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Use automated pipelines to backup your metadata database regularly. A loss of the PostgreSQL database will delete all user-created dashboards and permissions.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Ensure that your Grafana replica pods have identical config files. Configuration drift across replicas can cause erratic session behavior.</p>
+          </div>
+        </section>
+        <section id="ch23">
+          <h2>Chapter 23: SRE Interview Prep & 75 Core Q&A Bank</h2>
+          <p>Here are key technical questions and answers for SRE interviews covering Grafana architecture and operations:</p>
+          <p>Q1: What are database locked errors in Grafana and how do you resolve them?
+A1: Database locked errors occur when SQLite is subjected to concurrent writes from multiple replicas. SREs can resolve this by migrating the metadata database to PostgreSQL.</p>
+          <p>Q2: How do you scale Grafana horizontally for high availability?
+A2: SREs can scale Grafana horizontally by running multiple stateless replica pods behind a load balancer, using a shared database (PostgreSQL) and session store (Redis).</p>
+          <p>Q3: What is the difference between direct and proxy datasource access in Grafana?
+A3: Direct access forces the browser to query the database directly (exposing credentials). Proxy access routes queries through the Grafana server, securing credentials.</p>
+          <p>Q4: What are dashboard variables and how do they work?
+A4: Dashboard variables are dynamic fields that allow users to filter dashboard data (e.g. by region or namespace) using dropdown menus at the top of the panel.</p>
+          <p>Q5: How do you manage Grafana configurations declaratively?
+A5: SREs can manage configurations declaratively using the Provisioning directory, where data sources, dashboards, and alerts are defined in YAML and JSON files.</p>
+          <div class="code-block"># API request to verify active sessions
+curl -s -H "Authorization: Bearer glsa_xxx" http://localhost:3000/api/admin/users</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Prepare for interview questions by understanding the details of OAuth2 role mapping and the SQL database schema used by Grafana.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Make sure you can explain the security implications of direct vs proxy access modes in interview scenarios.</p>
+          </div>
+        </section>
+        <section id="ch24">
+          <h2>Chapter 24: Comprehensive Glossary Reference</h2>
+          <p>• **Provisioning**: The declarative configuration of Grafana data sources and dashboards using files.</p>
+          <p>• **SSO (Single Sign-On)**: An authentication scheme that allows users to log in with a single set of credentials across multiple applications.</p>
+          <p>• **RBAC (Role-Based Access Control)**: An authorization scheme that manages permissions based on user roles (Admin, Editor, Viewer).</p>
+          <p>• **Query Proxy**: The Go backend layer that routes database queries from the browser, securing credentials.</p>
+          <p>• **Image Renderer**: A stateless microservice that captures PNG snapshots of dashboard panels.</p>
+          <p>• **Datasource**: A database connection (e.g., Prometheus, Loki) configured in Grafana to retrieve metrics.</p>
+          <p>• **Dashboard JSON**: The internal JSON representation of a Grafana dashboard.</p>
+          <p>• **Alerting Engine**: The backend scheduler that evaluates alert rules and routes notifications.</p>
+          <p>• **Mute Timing**: A schedule used to suppress alert notifications during maintenance windows.</p>
+          <p>• **Redis**: A shared session store used to synchronize user logins across stateless replicas.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab Switching
+    function swTab(id, btn) {
+      document.querySelectorAll('.tc').forEach(t => t.classList.remove('on'));
+      document.querySelectorAll('.tb').forEach(t => t.classList.remove('on'));
+      document.getElementById('tab-' + id).classList.add('on');
+      btn.classList.add('on');
+    }
+
+    // Component Metadata
+    const D = {
+      browser: {
+        name: 'User Web Browser & API Clients',
+        color: '#64748b',
+        items: [
+          { l: 'User Interface (UI)', t: 'A React-based Single Page Application (SPA). Downloads dashboard models (JSON), rendering them locally using canvas and charting libraries. Communicates with Grafana Server via HTTP REST APIs.' },
+          { l: 'Ad-Hoc Query Engine', t: 'Allows users to run raw queries directly inside the Explore tab, pulling logs, metrics, or traces on the fly without building dedicated dashboard panels.' },
+          { l: 'API Integration', t: 'Scripts, Terraform providers, or CI/CD pipelines creating or updating dashboards programmatically by posting JSON models to `/api/dashboards/db`.' }
+        ]
+      },
+      proxy_ingress: {
+        name: 'Reverse Proxy / Ingress Gateway',
+        color: '#14b8a6',
+        items: [
+          { l: 'Traffic routing', t: 'Incoming HTTP requests are routed to Grafana pods. Terminates SSL, applies compression, and handles header forwarding (such as `X-Forwarded-For`).' },
+          { l: 'Rate limiting', t: 'Protects the Grafana Go server from being overwhelmed by public dashboard traffic or script queries. Prevents brute force login attacks.' },
+          { l: 'Websocket Support', t: 'Ingress must be configured to allow WebSocket upgrades to support real-time dashboard updates and live alert streaming.' }
+        ]
+      },
+      auth_providers: {
+        name: 'Authentication Providers (SSO)',
+        color: '#14b8a6',
+        items: [
+          { l: 'SSO Integrations', t: 'Connects to enterprise authentication servers (such as Okta, AzureAD, Keycloak, or Active Directory) using SAML, OAuth2, or LDAP protocols.' },
+          { l: 'Role Syncing', t: 'Maps user group permissions in the Identity Provider directly to Grafana roles (Admin, Editor, Viewer) on login, avoiding manual user management.' },
+          { l: 'Auth Tokens', t: 'After successful auth, Grafana generates a session token stored in the cookie, which is validated on subsequent API calls.' }
+        ]
+      },
+      api_server: {
+        name: 'HTTP API Server (Go Backend)',
+        color: '#3b82f6',
+        items: [
+          { l: 'REST Gateway', t: 'Serves API endpoints, parses JSON dashboard schemas, handles organization creation, user profile settings, and acts as the central router for backend services.' },
+          { l: 'Session Valider', t: 'Decrypts incoming session cookies. Validates session state against the local memory cache or Redis, rejecting requests if sessions are expired.' },
+          { l: 'Dashboard Manager', t: 'Handles dashboard versioning, locking dashboard saves to prevent overwrite conflicts, and generates JSON schemas.' }
+        ]
+      },
+      image_renderer: {
+        name: 'Panel Image Renderer',
+        color: '#3b82f6',
+        items: [
+          { l: 'Snapshots service', t: 'Runs a separate Node.js service containing headless Chromium (Playwright/Puppeteer). It opens Grafana panels, renders the canvas, and takes a PNG snapshot.' },
+          { l: 'Alert Integration', t: 'Unified Alerting calls the Renderer during alert state changes, capturing panel charts to embed inside Slack messages or emails.' },
+          { l: 'Scaling Bottleneck', t: 'Since Chromium consumes excessive memory, ensure this is deployed as a standalone microservice to prevent main Web UI lockups.' }
+        ]
+      },
+      alerting_engine: {
+        name: 'Alerting Engine (Scheduler)',
+        color: '#ef4444',
+        items: [
+          { l: 'Rule Scheduler', t: 'Continuously loops through configured alert rules. Executes the alert query on defined schedules (e.g. every 1 minute) against the datasource.' },
+          { l: 'State Evaluation', t: 'Transitions alert status based on results: Normal, Pending (in threshold but not yet firing), and Firing. Manages alert intervals.' },
+          { l: 'Unified Alerting', t: 'Compatible with Prometheus Alertmanager format. Aggregates alerts across multiple datacenters into a single scheduler instance.' }
+        ]
+      },
+      query_proxy: {
+        name: 'Datasource Query Proxy',
+        color: '#3b82f6',
+        items: [
+          { l: 'Secure Proxy', t: 'The web browser does not talk directly to database backends. All query requests are proxied through Grafana backend for security.' },
+          { l: 'Credential Decryption', t: 'Decrypts stored credentials (like API keys or passwords) on-the-fly from the Metadata database, injecting them into proxy headers.' },
+          { l: 'Query Refiners', t: 'Applies query limits (e.g., maximum series returned) and enforces organization boundaries so users only query allowed data sources.' }
+        ]
+      },
+      metadata_db: {
+        name: 'Metadata Database (Postgres)',
+        color: '#f59e0b',
+        items: [
+          { l: 'Persistent state store', t: 'Grafana\'s single source of truth. Contains user tables, encrypted credentials, alerting configurations, and JSON schemas for dashboards.' },
+          { l: 'No metric data', t: 'Does not store metric values, log streams, or trace chunks. Only holds system configuration and user-created settings.' },
+          { l: 'Production scaling', t: 'Ensure database backups are scheduled. Never use SQLite in HA setups due to SQLite write locks and file-locking corruption.' }
+        ]
+      },
+      session_store: {
+        name: 'Redis Session & Cache Store',
+        color: '#f59e0b',
+        items: [
+          { l: 'Session Replication', t: 'Saves active user session tokens in Redis. When you scale Grafana horizontally, any replica can validate user requests against Redis.' },
+          { l: 'Dashboard Caching', t: 'Caches frequently accessed dashboard layouts and folder permissions, lowering the volume of direct database queries.' },
+          { l: 'Query Caching', t: 'Caches backend query results for a short period (e.g., 10 seconds), preventing duplicate panel queries from hammering metrics servers.' }
+        ]
+      },
+      datasources: {
+        name: 'Telemetry Backends (Prometheus, Loki, tempo)',
+        color: '#22c55e',
+        items: [
+          { l: 'Scraped Telemetry', t: 'The external databases (Prometheus for metrics, Loki for logs, Tempo for traces, PostgreSQL for relational data) containing the target data.' },
+          { l: 'API Compatibility', t: 'Datasource plugins translate Grafana variables and query shapes into target queries (e.g., PromQL, LogQL, TraceQL, SQL).' },
+          { l: 'Production concern', t: 'If queries timeout, verify connectivity between Grafana pods and the datasource service. Use recording rules to pre-calculate slow panels.' }
+        ]
+      },
+      alert_routers: {
+        name: 'Notification Routers',
+        color: '#ef4444',
+        items: [
+          { l: 'Template Formatting', t: 'Converts raw alert JSON payloads into readable Slack blocks, HTML emails, or PagerDuty event shapes using Go template parameters.' },
+          { l: 'Deduplication', t: 'Coordinates with Alertmanager clusters to prevent double notifications. Groups alert instances by label before dispatch.' },
+          { l: 'Retry Queue', t: 'If notification endpoints (like Slack API) fail, Alertmanager queues the notification and retries it periodically before logging failures.' }
+        ]
+      }
+    };
+
+    // Component details display handler
+    function sd(id) {
+      const d = D[id];
+      if (!d) return;
+      
+      let h = `
+        <div class="dp-title" style="color: ${d.color}">
+          <div class="dp-dot" style="background-color: ${d.color}; box-shadow: 0 0 12px ${d.color}"></div>
+          <span>${d.name} Specification</span>
+        </div>
+        <div class="dp-grid">
+      `;
+      
+      d.items.forEach(i => {
+        h += `
+          <div class="dp-block">
+            <div class="lbl">${i.l}</div>
+            <div class="txt">${i.t}</div>
+          </div>
+        `;
+      });
+      
+      h += '</div>';
+      
+      const dpEl = document.getElementById('dp');
+      dpEl.innerHTML = h;
+      dpEl.style.borderColor = d.color;
+      dpEl.style.boxShadow = `0 8px 30px -4px ${d.color}25`;
+    }
+
+    // Legend Hover Highlights
+    function highlightPath(type) {
+      const svg = document.getElementById('loki-svg');
+      svg.classList.add('highlight-' + type);
+    }
+
+    // Clear Legend Highlights
+    function clearHighlight() {
+      const svg = document.getElementById('loki-svg');
+      svg.classList.remove('highlight-auth', 'highlight-query', 'highlight-alert', 'highlight-write', 'highlight-render');
+    }
+  </script>
+
+  <script>
+    // Scroll active link behavior
+    window.addEventListener('DOMContentLoaded', () => {
+      const links = document.querySelectorAll('.toc-link');
+      const sections = document.querySelectorAll('section');
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            links.forEach(l => {
+              if (l.getAttribute('href') === '#' + entry.target.id) {
+                l.classList.add('active');
+              } else {
+                l.classList.remove('active');
+              }
+            });
+          }
+        });
+      }, { rootMargin: '-10% 0px -80% 0px' });
+
+      sections.forEach(s => observer.observe(s));
+    });
+  </script>
+</body>
+</html>

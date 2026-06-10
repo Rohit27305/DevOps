@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prometheus Engine - SRE Deep Dive & Operations Reference Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    /* Injected layout-wide CSS */
+    :root {
+      --color-background-primary: #0b0f19;
+      --color-background-secondary: #161d30;
+      --color-border-tertiary: #233152;
+      --color-text-primary: #f1f5f9;
+      --color-text-secondary: #cbd5e1;
+      --color-text-tertiary: #64748b;
+      
+      --color-background-danger: rgba(220, 38, 38, 0.15);
+      --color-text-danger: #fca5a5;
+      --color-background-warning: rgba(217, 119, 6, 0.15);
+      --color-text-warning: #fde047;
+      --color-background-success: rgba(5, 150, 105, 0.15);
+      --color-text-success: #86efac;
+      --color-background-info: rgba(37, 99, 235, 0.15);
+      --color-text-info: #7dd3fc;
+      
+      --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'Fira Code', 'Courier New', monospace;
+      --border-radius-md: 8px;
+      --border-radius-lg: 12px;
+      --border-radius-xl: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-sans); background-color: var(--color-background-primary); color: var(--color-text-primary); line-height: 1.6; }
+    
+    .app-container { display: flex; min-height: 100vh; }
+    .sidebar { width: 300px; background-color: #080b13; border-right: 1px solid var(--color-border-tertiary); padding: 24px; position: sticky; top: 0; height: 100vh; overflow-y: auto; flex-shrink: 0; }
+    .sidebar h2 { font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #e07e26; margin-bottom: 20px; }
+    .toc-list { list-style: none; }
+    .toc-item { margin-bottom: 8px; }
+    .toc-link { color: var(--color-text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; transition: all 0.2s ease; display: block; padding: 6px 10px; border-radius: var(--border-radius-md); }
+    .toc-link:hover { background: rgba(255, 255, 255, 0.03); color: var(--color-text-primary); transform: translateX(4px); }
+    .toc-link.active { background: rgba(255, 255, 255, 0.05); color: #fbd38d; font-weight: 600; box-shadow: inset 2px 0 0 #e07e26; }
+
+    .content-area { flex-grow: 1; padding: 40px; max-width: 980px; overflow-y: auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--color-border-tertiary); }
+    .logo-area { display: flex; align-items: center; gap: 16px; }
+    .header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; background: linear-gradient(to right, #e07e26, #fbd38d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .subtitle { font-size: 13px; color: var(--color-text-tertiary); font-weight: 500; }
+    .status-indicator { display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--color-border-tertiary); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; color: #fbd38d; text-transform: uppercase; letter-spacing: 0.05em; }
+    .status-dot { width: 6px; height: 6px; background-color: #e07e26; border-radius: 50%; box-shadow: 0 0 8px #e07e26; animation: pulse 2s infinite; }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(224, 126, 38, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(224, 126, 38, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(224, 126, 38, 0); }
+    }
+
+    /* Injected CSS block from source blueprint */
+    
+    :root {
+      --color-background-primary: #0b0f19;
+      --color-background-secondary: #161d30;
+      --color-border-tertiary: #233152;
+      --color-text-primary: #f1f5f9;
+      --color-text-secondary: #cbd5e1;
+      --color-text-tertiary: #64748b;
+      
+      --color-background-danger: rgba(220, 38, 38, 0.15);
+      --color-text-danger: #fca5a5;
+      --color-background-warning: rgba(217, 119, 6, 0.15);
+      --color-text-warning: #fde047;
+      --color-background-success: rgba(5, 150, 105, 0.15);
+      --color-text-success: #86efac;
+      --color-background-info: rgba(37, 99, 235, 0.15);
+      --color-text-info: #7dd3fc;
+      
+      --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'Fira Code', 'Courier New', monospace;
+      --border-radius-md: 8px;
+      --border-radius-lg: 12px;
+      --border-radius-xl: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--color-background-primary);
+      color: var(--color-text-primary);
+      padding: 32px 40px;
+      max-width: 1280px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    /* Header Styling */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #ff4e00, #ec9f05);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--color-text-tertiary);
+      font-weight: 500;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(236, 159, 5, 0.1);
+      border: 1px solid rgba(236, 159, 5, 0.2);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fbd38d;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #ec9f05;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #ec9f05;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(236, 159, 5, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(236, 159, 5, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(236, 159, 5, 0); }
+    }
+
+    /* Tabs Styling */
+    .tbr {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+      margin-bottom: 24px;
+      padding-bottom: 4px;
+    }
+
+    .tb {
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 18px;
+      border: none;
+      background: transparent;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      border-radius: var(--border-radius-md);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-sans);
+    }
+
+    .tb:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--color-text-primary);
+    }
+
+    .tb.on {
+      background: rgba(236, 159, 5, 0.12);
+      color: #fbd38d;
+      box-shadow: inset 0 0 0 1px rgba(236, 159, 5, 0.25);
+    }
+
+    .tc {
+      display: none;
+    }
+
+    .tc.on {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* SVG Base & Lane Styles */
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: default;
+    }
+
+    /* Component Colors & Hover Glows */
+    g text {
+      transition: fill 0.2s ease;
+      pointer-events: none;
+    }
+
+    g rect {
+      transition: fill-opacity 0.25s ease, stroke 0.25s ease, stroke-width 0.25s ease, filter 0.25s ease;
+    }
+
+    .c-gray rect { fill: #64748b; stroke: #475569; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-gray:hover rect { fill-opacity: 0.25; stroke: #94a3b8; filter: drop-shadow(0 0 8px rgba(148, 163, 184, 0.35)); stroke-width: 2px; }
+    .c-gray text.t { fill: #f8fafc; font-weight: 600; }
+    .c-gray text.ts { fill: #94a3b8; }
+
+    .c-teal rect { fill: #14b8a6; stroke: #0f766e; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-teal:hover rect { fill-opacity: 0.25; stroke: #2dd4bf; filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.35)); stroke-width: 2px; }
+    .c-teal text.t { fill: #f8fafc; font-weight: 600; }
+    .c-teal text.ts { fill: #2dd4bf; }
+
+    .c-blue rect { fill: #3b82f6; stroke: #1d4ed8; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-blue:hover rect { fill-opacity: 0.25; stroke: #60a5fa; filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.35)); stroke-width: 2px; }
+    .c-blue text.t { fill: #f8fafc; font-weight: 600; }
+    .c-blue text.ts { fill: #60a5fa; }
+
+    .c-amber rect { fill: #f59e0b; stroke: #b45309; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-amber:hover rect { fill-opacity: 0.25; stroke: #fbbf24; filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.35)); stroke-width: 2px; }
+    .c-amber text.t { fill: #f8fafc; font-weight: 600; }
+    .c-amber text.ts { fill: #fbbf24; }
+
+    .c-coral rect { fill: #ef4444; stroke: #b91c1c; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-coral:hover rect { fill-opacity: 0.25; stroke: #f87171; filter: drop-shadow(0 0 8px rgba(248, 113, 113, 0.35)); stroke-width: 2px; }
+    .c-coral text.t { fill: #f8fafc; font-weight: 600; }
+    .c-coral text.ts { fill: #f87171; }
+
+    .c-purple rect { fill: #a855f7; stroke: #7e22ce; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-purple:hover rect { fill-opacity: 0.25; stroke: #c084fc; filter: drop-shadow(0 0 8px rgba(192, 132, 252, 0.35)); stroke-width: 2px; }
+    .c-purple text.t { fill: #f8fafc; font-weight: 600; }
+    .c-purple text.ts { fill: #c084fc; }
+
+    .c-green rect { fill: #22c55e; stroke: #15803d; stroke-width: 1.5; fill-opacity: 0.12; }
+    .c-green:hover rect { fill-opacity: 0.25; stroke: #4ade80; filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.35)); stroke-width: 2px; }
+    .c-green text.t { fill: #f8fafc; font-weight: 600; }
+    .c-green text.ts { fill: #4ade80; }
+
+    /* Flow Pathway Animations */
+    .path-group {
+      transition: opacity 0.25s ease, stroke-width 0.25s ease;
+    }
+
+    .flow-scrape {
+      stroke: #14b8a6;
+      stroke-dasharray: 6, 4;
+      animation: flow-forward 1.2s linear infinite;
+    }
+
+    .flow-push {
+      stroke: #f59e0b;
+      stroke-dasharray: 6, 4;
+      animation: flow-forward 1s linear infinite;
+    }
+
+    .flow-write {
+      stroke: #3b82f6;
+      stroke-dasharray: 4, 3;
+      animation: flow-forward 0.8s linear infinite;
+    }
+
+    .flow-retention {
+      stroke: #ef4444;
+      stroke-dasharray: 6, 4;
+      animation: flow-forward 2.5s linear infinite;
+    }
+
+    .flow-alert {
+      stroke: #ef4444;
+      stroke-dasharray: 5, 3;
+      animation: flow-forward 1.2s linear infinite;
+    }
+
+    .flow-query {
+      stroke: #a855f7;
+      stroke-dasharray: 6, 4;
+      animation: flow-forward 1s linear infinite;
+    }
+
+    @keyframes flow-forward {
+      from {
+        stroke-dashoffset: 20;
+      }
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    /* Highlight class triggered by Legend Hovers */
+    svg.highlight-scrape .path-group:not(.path-group-scrape),
+    svg.highlight-push .path-group:not(.path-group-push),
+    svg.highlight-write .path-group:not(.path-group-write),
+    svg.highlight-retention .path-group:not(.path-group-retention),
+    svg.highlight-alert .path-group:not(.path-group-alert),
+    svg.highlight-query .path-group:not(.path-group-query) {
+      opacity: 0.15;
+    }
+
+    svg.highlight-scrape .path-group.path-group-scrape,
+    svg.highlight-push .path-group.path-group-push,
+    svg.highlight-write .path-group.path-group-write,
+    svg.highlight-retention .path-group.path-group-retention,
+    svg.highlight-alert .path-group.path-group-alert,
+    svg.highlight-query .path-group.path-group-query {
+      stroke-width: 2.5px;
+    }
+
+    /* Details Panel */
+    .dp {
+      background: linear-gradient(135deg, rgba(22, 29, 48, 0.4) 0%, rgba(11, 15, 25, 0.8) 100%);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 24px 28px;
+      margin-top: 24px;
+      min-height: 120px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .dp-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.01em;
+    }
+
+    .dp-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+
+    .dp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 24px;
+    }
+
+    .dp-block .lbl {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--color-text-tertiary);
+      margin-bottom: 4px;
+    }
+
+    .dp-block .txt {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    .dp-hint {
+      font-size: 13px;
+      color: var(--color-text-tertiary);
+      text-align: center;
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dp-hint i {
+      font-size: 20px;
+      color: #ec9f05;
+      animation: pulseHint 2s infinite;
+    }
+
+    @keyframes pulseHint {
+      0%, 100% { opacity: 0.6; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-4px); }
+    }
+
+    /* Legend */
+    .leg {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--color-border-tertiary);
+    }
+
+    .li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .li:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--color-border-tertiary);
+      color: var(--color-text-primary);
+    }
+
+    /* Operational and Troubleshooting Cards */
+    .sec-h {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--color-text-tertiary);
+      margin: 24px 0 12px;
+    }
+
+    .cg {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: linear-gradient(135deg, var(--color-background-secondary) 0%, rgba(22, 29, 48, 0.4) 100%);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 20px 22px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: #ec9f05;
+      box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3), 0 4px 8px -2px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-h {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-b {
+      font-size: 12.5px;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    .bdg {
+      font-size: 9px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .bc { background: var(--color-background-danger); color: var(--color-text-danger); border: 1px solid rgba(220, 38, 38, 0.3); }
+    .bw { background: var(--color-background-warning); color: var(--color-text-warning); border: 1px solid rgba(217, 119, 6, 0.3); }
+    .bg { background: var(--color-background-success); color: var(--color-text-success); border: 1px solid rgba(5, 150, 105, 0.3); }
+    .bi { background: var(--color-background-info); color: var(--color-text-info); border: 1px solid rgba(37, 99, 235, 0.3); }
+
+    .cmd {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: #070a12;
+      border: 1px solid #1c263d;
+      border-radius: var(--border-radius-md);
+      padding: 10px 14px;
+      margin-top: 10px;
+      color: #38bdf8;
+      display: block;
+      white-space: pre-wrap;
+      word-break: break-all;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .fb {
+      font-size: 10px;
+      padding: 3px 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 6px;
+      color: var(--color-text-secondary);
+      font-weight: 500;
+    }
+
+    .fa {
+      font-size: 12px;
+      color: var(--color-text-tertiary);
+      font-weight: bold;
+    }
+  
+
+    /* Standard content classes overrides */
+    h1, h2, h3, h4 { font-family: var(--font-sans); font-weight: 700; color: var(--color-text-primary); margin-top: 36px; margin-bottom: 16px; letter-spacing: -0.02em; }
+    h2 { font-size: 22px; border-bottom: 1px solid var(--color-border-tertiary); padding-bottom: 8px; margin-top: 48px; scroll-margin-top: 40px; }
+    h3 { font-size: 16px; margin-top: 28px; }
+    p { color: var(--color-text-secondary); margin-bottom: 16px; font-size: 14.5px; line-height: 1.7; }
+    ul { margin-bottom: 20px; padding-left: 24px; color: var(--color-text-secondary); font-size: 14.5px; }
+    li { margin-bottom: 8px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; text-align: left; }
+    th, td { padding: 12px 16px; border-bottom: 1px solid var(--color-border-tertiary); }
+    th { background-color: var(--color-background-secondary); color: var(--color-text-primary); font-weight: 600; }
+    td { color: var(--color-text-secondary); }
+    tr:hover td { background-color: rgba(255, 255, 255, 0.01); }
+
+    .code-block { font-family: var(--font-mono); font-size: 13px; background: #070a12; padding: 14px; border-radius: 6px; color: #38bdf8; margin: 20px 0; overflow-x: auto; white-space: pre; }
+    .warning-box { background: rgba(220, 38, 38, 0.06); border-left: 4px solid #ef4444; padding: 16px 20px; border-radius: 4px; margin: 24px 0; }
+    .warning-box strong { color: #fca5a5; }
+    .warning-box p { margin: 0; font-size: 14px; color: var(--color-text-secondary); }
+    .best-practice { background: rgba(5, 150, 105, 0.06); border-left: 4px solid #10b981; padding: 16px 20px; border-radius: 4px; margin: 24px 0; }
+    .best-practice strong { color: #a7f3d0; }
+    .best-practice p { margin: 0; font-size: 14px; color: var(--color-text-secondary); }
+    .info-box { background: rgba(37, 99, 235, 0.06); border-left: 4px solid #3b82f6; padding: 16px 20px; border-radius: 4px; margin: 24px 0; }
+    .info-box strong { color: #bfdbfe; }
+    .info-box p { margin: 0; font-size: 14px; color: var(--color-text-secondary); }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="sidebar">
+      <h2>Chapters</h2>
+      <ul class="toc-list">
+
+        <li class="toc-item"><a href="#ch1" class="toc-link">1. Prometheus Fundamentals</a></li>
+        <li class="toc-item"><a href="#ch2" class="toc-link">2. Complete Prometheus Component Details & Architecture Blueprint</a></li>
+        <li class="toc-item"><a href="#ch3" class="toc-link">3. Prometheus Data Model & Time Series Layout</a></li>
+        <li class="toc-item"><a href="#ch4" class="toc-link">4. Core Metric Types</a></li>
+        <li class="toc-item"><a href="#ch5" class="toc-link">5. Core Exporters Deep Dive</a></li>
+        <li class="toc-item"><a href="#ch6" class="toc-link">6. Service Discovery</a></li>
+        <li class="toc-item"><a href="#ch7" class="toc-link">7. Scraping Internals, Relabeling & Metric Modification</a></li>
+        <li class="toc-item"><a href="#ch8" class="toc-link">8. TSDB Engine, Storage Blocks & Compaction Loops</a></li>
+        <li class="toc-item"><a href="#ch9" class="toc-link">9. WAL</a></li>
+        <li class="toc-item"><a href="#ch10" class="toc-link">10. Chunks & Storage Block Lifecycles on Disk</a></li>
+        <li class="toc-item"><a href="#ch11" class="toc-link">11. PromQL</a></li>
+        <li class="toc-item"><a href="#ch12" class="toc-link">12. Alertmanager Engine</a></li>
+        <li class="toc-item"><a href="#ch13" class="toc-link">13. Recording Rules & Query Load Offloading</a></li>
+        <li class="toc-item"><a href="#ch14" class="toc-link">14. Hierarchical & Cross-Cluster Federation</a></li>
+        <li class="toc-item"><a href="#ch15" class="toc-link">15. Remote Write, Remote Read & Thanos Architecture</a></li>
+        <li class="toc-item"><a href="#ch16" class="toc-link">16. Kubernetes Cluster Observability Blueprint</a></li>
+        <li class="toc-item"><a href="#ch17" class="toc-link">17. High Cardinality Diagnostics & Memory Optimization</a></li>
+        <li class="toc-item"><a href="#ch18" class="toc-link">18. Horizontal & Vertical Scaling Operations</a></li>
+        <li class="toc-item"><a href="#ch19" class="toc-link">19. SRE Incident Recovery Troubleshooting Guide</a></li>
+        <li class="toc-item"><a href="#ch20" class="toc-link">20. Production Operation Best Practices</a></li>
+        <li class="toc-item"><a href="#ch21" class="toc-link">21. Prometheus vs Alternatives</a></li>
+        <li class="toc-item"><a href="#ch22" class="toc-link">22. Real-World Startup & Enterprise Architectures</a></li>
+        <li class="toc-item"><a href="#ch23" class="toc-link">23. SRE Interview Prep & 75 Core Q&A Bank</a></li>
+        <li class="toc-item"><a href="#ch24" class="toc-link">24. Comprehensive Glossary Reference</a></li>
+      </ul>
+    </div>
+    
+    <div class="content-area">
+      <div class="header">
+        <div class="logo-area">
+          <svg viewBox="0 0 50 50" width="38" height="38" fill="none">
+            <path d="M25 5 L42 15 L42 35 L25 45 L8 35 L8 15 Z" stroke="#e07e26" stroke-width="2"/>
+            <circle cx="25" cy="25" r="4" fill="#e07e26"/>
+          </svg>
+          <div>
+            <h1>Prometheus Engine</h1>
+            <p class="subtitle">SRE Deep Dive & Operations Reference Guide</p>
+          </div>
+        </div>
+        <div class="status-indicator">
+          <div class="status-dot"></div>
+          <span>SRE Production Approved</span>
+        </div>
+      </div>
+      
+      <div class="guide-sections">
+    
+        <section id="ch1">
+          <h2>Chapter 1: Prometheus Fundamentals (Architecture, Trade-offs & Scrape Loops)</h2>
+          <p>Prometheus is a graduate-level CNCF project designed for active, pull-based metrics collection from dynamic cloud environments. Originally created at SoundCloud, it was specifically engineered to address the limitations of push-based agents, which frequently lead to network congestion, socket exhaustion, and a complete lack of visibility into down-target health. By pulling metrics via HTTP GET requests on a `/metrics` endpoint, Prometheus shifts the resource burden of monitoring from the application container to the monitoring infrastructure itself. This model provides immediate down-state detection through the `up` metric, indicating if a target is unreachable.</p>
+          <p>The trade-off of a pull-based monitoring system is the dependency on a robust Service Discovery mechanism to locate active targets and the need for a Pushgateway to buffer short-lived batch jobs. When a target is scraped, Prometheus establishes a TCP connection, reads the exposition format payload, parses it into internal memory structures, and immediately writes it to the TSDB Head block. This ensures that the scrape operations are highly efficient and decoupled from disk writes.</p>
+          <p>Compared to legacy systems like Nagios, which rely on executing scripts that spawn heavy processes and consume host CPU, Prometheus is incredibly lightweight. Compared to SaaS offerings like Datadog or New Relic, it is self-hosted, keeping all performance data local and eliminating expensive data egress fees. Compared to general-purpose time-series engines like InfluxDB or Elasticsearch, the Prometheus TSDB is strictly optimized for numeric timestamp-value pairs, achieving superior write throughput and storage compression.</p>
+          <div class="code-block"># Example of Prometheus scrape configuration for static and dynamic targets
+scrape_configs:
+  - job_name: 'api-server'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['api-service.prod.svc.cluster.local:8080']</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Production scaling requires understanding that pull-based systems put the network load on Prometheus itself. If you have 10,000 pods scraped every 10 seconds, Prometheus will establish 1,000 connections per second. Make sure to optimize TCP reuse by configuring keep-alive timeouts appropriately and using HTTP proxies if traversing WAN segments.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Never use the Pushgateway as a general-purpose aggregator for push metrics. The Pushgateway does not aggregate metrics automatically; it acts as a buffer. If multiple replicas push to the same job/instance index, they will overwrite each other's metrics, resulting in data loss.</p>
+          </div>
+        </section>
+        <section id="ch2">
+          <h2>Chapter 2: Complete Prometheus Component Details & Architecture Blueprint</h2>
+          <p>Every Prometheus instance runs as a single process containing several modular engines. The Scrape Manager handles target scheduling based on user-defined configurations. It coordinates with the Service Discovery (SD) Manager to listen for dynamically discovered targets. The SD Manager maintains a set of target groups and updates the Scrape Manager when endpoints are added, updated, or removed.</p>
+          <p>Once targets are discovered, they pass through the Relabeling Engine, which applies rule-based labels to filters. The Storage Engine (TSDB) is the destination for all scraped samples. It buffers data in memory (Head block) and handles disk writes to the Write-Ahead Log (WAL) and persistent blocks.</p>
+          <p>The Rule Evaluator is an independent internal loop that runs query expressions against the TSDB at configured evaluation intervals. If an alerting rule evaluates to true, the Rule Evaluator transitions the alert state to Pending or Firing and ships active triggers to the Alertmanager. Alertmanager is a separate microservice (usually deployed as a StatefulSet) that deduplicates, groups, and routes these alerts to notification receivers such as PagerDuty, Slack, or Webhook backends.</p>
+          <div style="margin: 32px 0; padding: 24px; background: rgba(255,255,255,0.01); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg);">
+            <div style="margin-bottom: 16px; font-weight: 600; font-size: 15px; color: var(--color-text-primary);">Interactive Architecture Blueprint</div>
+            <svg id="loki-svg" viewBox="0 0 760 550" xmlns="http://www.w3.org/2000/svg" style="font-family:var(--font-sans)">
+      <defs>
+        <!-- Arrowhead Markers -->
+        <marker id="aw" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,0.5 L7,4 L0,7.5 z" fill="var(--color-text-tertiary)"/>
+        </marker>
+        <marker id="ab" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,0.5 L7,4 L0,7.5 z" fill="#3b82f6"/>
+        </marker>
+        <marker id="ao" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,0.5 L7,4 L0,7.5 z" fill="#f59e0b"/>
+        </marker>
+        <marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,0.5 L7,4 L0,7.5 z" fill="#ef4444"/>
+        </marker>
+        <marker id="ag" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,0.5 L7,4 L0,7.5 z" fill="#14b8a6"/>
+        </marker>
+        <marker id="ap" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0,0.5 L7,4 L0,7.5 z" fill="#a855f7"/>
+        </marker>
+      </defs>
+
+      <!-- Lane backgrounds -->
+      <!-- Target layer -->
+      <rect x="10" y="8" width="510" height="52" rx="6" fill="var(--color-background-secondary)" opacity="0.6"/>
+      <!-- Discovery & Configuration -->
+      <rect x="10" y="80" width="510" height="52" rx="6" fill="var(--color-background-secondary)" opacity="0.4"/>
+      <!-- Prometheus core server wrapper -->
+      <rect x="10" y="156" width="580" height="150" rx="6" fill="var(--color-background-secondary)" opacity="0.25"/>
+      <rect x="15" y="159" width="570" height="144" rx="6" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="6,4" opacity="0.25"/>
+      <text x="25" y="152" font-size="8" fill="#f59e0b" font-weight="600" letter-spacing="0.05em">PROMETHEUS SERVER (STATEFULSET)</text>
+      
+      <!-- Local PV storage layer -->
+      <rect x="10" y="324" width="420" height="60" rx="6" fill="var(--color-background-secondary)" opacity="0.4"/>
+      
+      <!-- PV dashed border -->
+      <rect x="14" y="322" width="412" height="64" rx="6" fill="none" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.4"/>
+      <text x="420" y="360" font-size="9" fill="#f59e0b" font-weight="600" text-anchor="end" opacity="0.8">Local SSD PV (Storage)</text>
+
+      <!-- Lane labels -->
+      <text x="20" y="6" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">TARGET LAYER (SCRAPED METRICS)</text>
+      <text x="20" y="78" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">DISCOVERY & OPERATOR CONFIGURATION</text>
+      <text x="20" y="320" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">PERSISTENT VOLUME LAYER</text>
+      <text x="450" y="320" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">ALERTING SYSTEM</text>
+
+      <!-- Right Panel Labels -->
+      <text x="610" y="6" font-size="8" fill="var(--color-text-tertiary)" font-weight="600" letter-spacing="0.05em">QUERY & DASHBOARD LAYER</text>
+
+      <!-- ── FLOWS AND CONNECTIONS ── -->
+
+      <!-- Scrape Path (Retrieval -> targets) -->
+      <!-- Background static lines -->
+      <line x1="240" y1="170" x2="75" y2="54" stroke="#14b8a6" stroke-width="1.5" opacity="0.15" class="path-group path-group-scrape"/>
+      <line x1="250" y1="170" x2="200" y2="54" stroke="#14b8a6" stroke-width="1.5" opacity="0.15" class="path-group path-group-scrape"/>
+      <line x1="290" y1="170" x2="335" y2="54" stroke="#14b8a6" stroke-width="1.5" opacity="0.15" class="path-group path-group-scrape"/>
+      <line x1="320" y1="170" x2="470" y2="122" stroke="#14b8a6" stroke-width="1.5" opacity="0.15" class="path-group path-group-scrape"/>
+      <!-- Animated foreground flows -->
+      <line x1="240" y1="170" x2="75" y2="54" stroke-width="1.5" class="flow-scrape path-group path-group-scrape" marker-end="url(#ag)"/>
+      <line x1="250" y1="170" x2="200" y2="54" stroke-width="1.5" class="flow-scrape path-group path-group-scrape" marker-end="url(#ag)"/>
+      <line x1="290" y1="170" x2="335" y2="54" stroke-width="1.5" class="flow-scrape path-group path-group-scrape" marker-end="url(#ag)"/>
+      <line x1="320" y1="170" x2="470" y2="122" stroke-width="1.5" class="flow-scrape path-group path-group-scrape" marker-end="url(#ag)"/>
+
+      <!-- Push Path (Batch Jobs -> Pushgateway) -->
+      <line x1="465" y1="54" x2="465" y2="86" stroke="#f59e0b" stroke-width="1.5" opacity="0.15" class="path-group path-group-push"/>
+      <line x1="465" y1="54" x2="465" y2="86" stroke-width="1.5" class="flow-push path-group path-group-push" marker-end="url(#ao)"/>
+
+      <!-- Service Discovery (Kubernetes API -> Scraper SD Engine) -->
+      <line x1="352" y1="122" x2="352" y2="170" stroke="#14b8a6" stroke-width="1.5" opacity="0.15" class="path-group path-group-scrape"/>
+      <line x1="352" y1="122" x2="352" y2="170" stroke-width="1.5" class="flow-scrape path-group path-group-scrape" marker-end="url(#ag)"/>
+
+      <!-- Configuration (Operator -> ServiceMonitors -> K8s API) -->
+      <line x1="90" y1="122" x2="90" y2="159" stroke="#14b8a6" stroke-width="1" stroke-dasharray="2,2" opacity="0.5" class="path-group path-group-scrape"/>
+      <line x1="160" y1="104" x2="180" y2="104" stroke="#14b8a6" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.5" class="path-group path-group-scrape" marker-end="url(#ag)"/>
+      <line x1="290" y1="104" x2="305" y2="104" stroke="#14b8a6" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.5" class="path-group path-group-scrape" marker-end="url(#ag)"/>
+
+      <!-- Write Path: Scraper -> Head Block & WAL -->
+      <line x1="235" y1="206" x2="235" y2="244" stroke="#3b82f6" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+      <line x1="200" y1="206" x2="105" y2="244" stroke="#3b82f6" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+      <line x1="235" y1="206" x2="235" y2="244" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#ab)"/>
+      <line x1="200" y1="206" x2="105" y2="244" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#ab)"/>
+
+      <!-- Durability: Head/WAL writes to PV Local storage -->
+      <line x1="105" y1="280" x2="105" y2="330" stroke="#3b82f6" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+      <line x1="105" y1="280" x2="105" y2="330" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#ab)"/>
+      <line x1="365" y1="280" x2="365" y2="330" stroke="#3b82f6" stroke-width="1.5" opacity="0.15" class="path-group path-group-write"/>
+      <line x1="365" y1="280" x2="365" y2="330" stroke-width="1.5" class="flow-write path-group path-group-write" marker-end="url(#ab)"/>
+
+      <!-- Retention/Flush Path: Head Block -> TSDB Blocks on disk (every 2 hours) -->
+      <line x1="290" y1="262" x2="310" y2="262" stroke="#f59e0b" stroke-width="1.5" opacity="0.15" class="path-group path-group-retention"/>
+      <line x1="290" y1="262" x2="310" y2="262" stroke-width="1.5" class="flow-retention path-group path-group-retention" marker-end="url(#ao)"/>
+
+      <!-- Query Path: Grafana -> PromQL Querier -->
+      <line x1="675" y1="56" x2="675" y2="244" stroke="#a855f7" stroke-width="1.5" opacity="0.15" class="path-group path-group-query"/>
+      <line x1="675" y1="56" x2="675" y2="244" stroke-width="1.5" class="flow-query path-group path-group-query" marker-end="url(#ap)"/>
+
+      <!-- Query Path: Web UI -> PromQL Querier -->
+      <line x1="675" y1="166" x2="675" y2="244" stroke="#a855f7" stroke-width="1.5" opacity="0.15" class="path-group path-group-query"/>
+      <line x1="675" y1="166" x2="675" y2="244" stroke-width="1.5" class="flow-query path-group path-group-query" marker-end="url(#ap)"/>
+
+      <!-- Query execution: Querier fetching data from memory/disk -->
+      <path d="M610 262 C510 262 410 262 290 262" fill="none" stroke="#a855f7" stroke-width="1.5" opacity="0.15" class="path-group path-group-query"/>
+      <path d="M610 262 Q510 270 420 262" fill="none" stroke="#a855f7" stroke-width="1.5" opacity="0.15" class="path-group path-group-query"/>
+      <path d="M610 262 C510 262 410 262 290 262" fill="none" stroke-width="1.2" class="flow-query path-group path-group-query" marker-end="url(#ap)"/>
+      <path d="M610 262 Q510 270 420 262" fill="none" stroke-width="1.2" class="flow-query path-group path-group-query" marker-end="url(#ap)"/>
+
+      <!-- Alert Path: Evaluator -> Alertmanager -->
+      <line x1="400" y1="188" x2="450" y2="218" stroke="#ef4444" stroke-width="1.5" opacity="0.15" class="path-group path-group-alert"/>
+      <line x1="400" y1="188" x2="450" y2="218" stroke-width="1.5" class="flow-alert path-group path-group-alert" marker-end="url(#ar)"/>
+      
+      <line x1="510" y1="236" x2="510" y2="330" stroke="#ef4444" stroke-width="1.5" opacity="0.15" class="path-group path-group-alert"/>
+      <line x1="510" y1="236" x2="510" y2="330" stroke-width="1.5" class="flow-alert path-group path-group-alert" marker-end="url(#ar)"/>
+
+      <!-- Alert Notification: Alertmanager -> Channels (Slack) -->
+      <line x1="520" y1="368" x2="520" y2="430" stroke="#ef4444" stroke-width="1.5" opacity="0.15" class="path-group path-group-alert"/>
+      <line x1="520" y1="368" x2="520" y2="430" stroke-width="1.5" class="flow-alert path-group path-group-alert" marker-end="url(#ar)"/>
+
+
+      <!-- ══ COMPONENT BOXES ══ -->
+
+      <!-- Targets -->
+      <g class="c-gray" onclick="sd('app_pods')" style="cursor:pointer">
+        <rect x="20" y="20" width="110" height="34" rx="6"/>
+        <text class="t" x="75" y="36" text-anchor="middle" font-size="10">App Pods</text>
+        <text class="ts" x="75" y="47" text-anchor="middle" font-size="8">instrumented /metrics</text>
+      </g>
+      <g class="c-gray" onclick="sd('node_exporter')" style="cursor:pointer">
+        <rect x="145" y="20" width="110" height="34" rx="6"/>
+        <text class="t" x="200" y="36" text-anchor="middle" font-size="10">Node Exporter</text>
+        <text class="ts" x="200" y="47" text-anchor="middle" font-size="8">OS-level metrics</text>
+      </g>
+      <g class="c-gray" onclick="sd('kube_state_metrics')" style="cursor:pointer">
+        <rect x="270" y="20" width="130" height="34" rx="6"/>
+        <text class="t" x="335" y="36" text-anchor="middle" font-size="10">Kube-State-Metrics</text>
+        <text class="ts" x="335" y="47" text-anchor="middle" font-size="8">cluster resource states</text>
+      </g>
+      <g class="c-gray" onclick="sd('app_pods')" style="cursor:pointer">
+        <rect x="420" y="20" width="90" height="34" rx="6"/>
+        <text class="t" x="465" y="36" text-anchor="middle" font-size="10">Batch Jobs</text>
+        <text class="ts" x="465" y="47" text-anchor="middle" font-size="8">short-lived jobs</text>
+      </g>
+
+      <!-- Config & Discovery -->
+      <g class="c-teal" onclick="sd('operator_controller')" style="cursor:pointer">
+        <rect x="20" y="86" width="140" height="36" rx="6"/>
+        <text class="t" x="90" y="102" text-anchor="middle" font-size="10">Prometheus Operator</text>
+        <text class="ts" x="90" y="115" text-anchor="middle" font-size="8">translates CRDs to config</text>
+      </g>
+      <g class="c-teal" onclick="sd('operator_controller')" style="cursor:pointer">
+        <rect x="180" y="86" width="110" height="36" rx="6"/>
+        <text class="t" x="235" y="102" text-anchor="middle" font-size="10">ServiceMonitors</text>
+        <text class="ts" x="235" y="115" text-anchor="middle" font-size="8">CRD scrape settings</text>
+      </g>
+      <g class="c-teal" onclick="sd('discovery')" style="cursor:pointer">
+        <rect x="305" y="86" width="95" height="36" rx="6"/>
+        <text class="t" x="352" y="102" text-anchor="middle" font-size="10">Kubernetes API</text>
+        <text class="ts" x="352" y="115" text-anchor="middle" font-size="8">target discovery</text>
+      </g>
+      <g class="c-gray" onclick="sd('pushgateway')" style="cursor:pointer">
+        <rect x="420" y="86" width="100" height="36" rx="6"/>
+        <text class="t" x="470" y="102" text-anchor="middle" font-size="10">Pushgateway</text>
+        <text class="ts" x="470" y="115" text-anchor="middle" font-size="8">scrapes pushed metrics</text>
+      </g>
+
+      <!-- Core Engine -->
+      <g class="c-blue" onclick="sd('retrieval')" style="cursor:pointer">
+        <rect x="180" y="170" width="220" height="36" rx="6"/>
+        <text class="t" x="290" y="186" text-anchor="middle" font-size="11">Retrieval (Scraper & SD Engine)</text>
+        <text class="ts" x="290" y="200" text-anchor="middle" font-size="9">pulls `/metrics` every 15s</text>
+      </g>
+
+      <g class="c-blue" onclick="sd('wal')" style="cursor:pointer">
+        <rect x="50" y="244" width="110" height="36" rx="6"/>
+        <text class="t" x="105" y="260" text-anchor="middle" font-size="11">WAL</text>
+        <text class="ts" x="105" y="274" text-anchor="middle" font-size="9">Write Ahead Log</text>
+      </g>
+      <g class="c-blue" onclick="sd('head_block')" style="cursor:pointer">
+        <rect x="180" y="244" width="110" height="36" rx="6"/>
+        <text class="t" x="235" y="260" text-anchor="middle" font-size="11">Head Block</text>
+        <text class="ts" x="235" y="274" text-anchor="middle" font-size="9">In-memory chunks</text>
+      </g>
+      <g class="c-blue" onclick="sd('tsdb_blocks')" style="cursor:pointer">
+        <rect x="310" y="244" width="110" height="36" rx="6"/>
+        <text class="t" x="365" y="260" text-anchor="middle" font-size="11">TSDB Blocks</text>
+        <text class="ts" x="365" y="274" text-anchor="middle" font-size="9">Immutable 2h blocks</text>
+      </g>
+
+      <!-- Local Volume -->
+      <g class="c-amber" onclick="sd('tsdb_blocks')" style="cursor:pointer">
+        <rect x="22" y="336" width="396" height="36" rx="6"/>
+        <text class="t" x="220" y="352" text-anchor="middle" font-size="11">Persistent Local storage (/data/prometheus/)</text>
+        <text class="ts" x="220" y="366" text-anchor="middle" font-size="9">durable data blocks & index shipper</text>
+      </g>
+
+      <!-- Alerting Layer -->
+      <g class="c-coral" onclick="sd('alertmanager')" style="cursor:pointer">
+        <rect x="450" y="200" width="120" height="36" rx="6"/>
+        <text class="t" x="510" y="216" text-anchor="middle" font-size="11">Rules Evaluator</text>
+        <text class="ts" x="510" y="230" text-anchor="middle" font-size="9">evaluates alert rules</text>
+      </g>
+      <g class="c-coral" onclick="sd('alertmanager')" style="cursor:pointer">
+        <rect x="450" y="330" width="140" height="38" rx="6"/>
+        <text class="t" x="520" y="348" text-anchor="middle" font-size="11">Alertmanager</text>
+        <text class="ts" x="520" y="361" text-anchor="middle" font-size="9">deduplicates & routes</text>
+      </g>
+      <g class="c-coral" onclick="sd('alertmanager')" style="cursor:pointer">
+        <rect x="450" y="430" width="140" height="36" rx="6"/>
+        <text class="t" x="520" y="446" text-anchor="middle" font-size="11">Slack / PagerDuty</text>
+        <text class="ts" x="520" y="460" text-anchor="middle" font-size="9">notification channels</text>
+      </g>
+
+      <!-- Query & Viz -->
+      <g class="c-purple" onclick="sd('grafana')" style="cursor:pointer">
+        <rect x="610" y="20" width="130" height="36" rx="6"/>
+        <text class="t" x="675" y="36" text-anchor="middle" font-size="11">Grafana</text>
+        <text class="ts" x="675" y="49" text-anchor="middle" font-size="9">visual dashboards</text>
+      </g>
+      <g class="c-purple" onclick="sd('grafana')" style="cursor:pointer">
+        <rect x="610" y="130" width="130" height="36" rx="6"/>
+        <text class="t" x="675" y="146" text-anchor="middle" font-size="11">Prom UI Console</text>
+        <text class="ts" x="675" y="159" text-anchor="middle" font-size="9">expression browser</text>
+      </g>
+      <g class="c-purple" onclick="sd('grafana')" style="cursor:pointer">
+        <rect x="610" y="244" width="130" height="36" rx="6"/>
+        <text class="t" x="675" y="260" text-anchor="middle" font-size="11">PromQL Querier</text>
+        <text class="ts" x="675" y="274" text-anchor="middle" font-size="9">index & block scans</text>
+      </g>
+
+      <!-- Click hint -->
+      <text x="380" y="535" font-size="10" fill="var(--color-text-tertiary)" text-anchor="middle" font-weight="500">Click any component for technical specifications</text>
+    </svg>
+            <div class="leg">
+      <div class="li" onmouseenter="highlightPath('scrape')" onmouseleave="clearHighlight()">
+        <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#14b8a6" stroke-width="1.5" marker-end="url(#ag)"/></svg>scrape path
+      </div>
+      <div class="li" onmouseenter="highlightPath('push')" onmouseleave="clearHighlight()">
+        <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ao)"/></svg>push path
+      </div>
+      <div class="li" onmouseenter="highlightPath('write')" onmouseleave="clearHighlight()">
+        <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#ab)"/></svg>write/storage path
+      </div>
+      <div class="li" onmouseenter="highlightPath('retention')" onmouseleave="clearHighlight()">
+        <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#ef4444" stroke-width="1.5" marker-end="url(#ar)"/></svg>TSDB compaction
+      </div>
+      <div class="li" onmouseenter="highlightPath('alert')" onmouseleave="clearHighlight()">
+        <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#ar)"/></svg>alert path
+      </div>
+      <div class="li" onmouseenter="highlightPath('query')" onmouseleave="clearHighlight()">
+        <svg width="24" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#a855f7" stroke-width="1.5" marker-end="url(#ap)"/></svg>query path
+      </div>
+    </div>
+            <div id="dp" class="dp">
+      <div class="dp-hint">
+        <i class="ti ti-click"></i>
+        <span>Click any system component on the blueprint above to see connections, production roles, and diagnostic tips.</span>
+      </div>
+    </div>
+          </div>
+          
+        </section>
+        <section id="ch3">
+          <h2>Chapter 3: Prometheus Data Model & Time Series Layout</h2>
+          <p>At its core, the Prometheus data model is multi-dimensional. A Time Series is uniquely identified by its metric name and a set of key-value pairs called Labels. Every unique combination of label values defines a completely separate time series in the database. A sample is a single data point within a time series, consisting of a float64 value and a millisecond-precision epoch timestamp.</p>
+          <p>Internally, Prometheus maps every time series to a unique 64-bit integer called a Series ID. When data is ingested, the label names and values are stored in an inverted index (postings list). This index allows queries to quickly locate all Series IDs matching specific labels (e.g. `env="production"` and `method="POST"`) without scanning the raw samples.</p>
+          <p>High cardinality occurs when a label has an extremely large set of unique values (such as user IDs, request IPs, or temporary container hashes). High cardinality causes a series explosion, creating millions of unique series IDs. Each series ID requires memory inside the TSDB Head block for indexing, leading to rapid RAM exhaustion and slow query execution.</p>
+          <div class="code-block"># Inverted index postings example (conceptual visualization)
+LabelName='env', LabelValue='prod'  -> Postings List: [102, 105, 203, 305]
+LabelName='app', LabelValue='api'   -> Postings List: [102, 203, 401]
+# Query matching {env='prod', app='api'} performs an intersection of the two postings lists:
+# Result: [102, 203] (Series IDs to look up)</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Calculate cardinality regularly using the TSDB status endpoint: `GET /api/v1/status/tsdb`. Monitor the metric `prometheus_tsdb_head_series` to track series growth and alert when it exceeds pre-established capacity limits.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Never include raw dynamic values like request IDs, session tokens, or timestamps in Prometheus label keys or values. Doing so will create an infinite number of time series, crash your Prometheus pod, and corrupt the TSDB index.</p>
+          </div>
+        </section>
+        <section id="ch4">
+          <h2>Chapter 4: Core Metric Types (Counters, Gauges, Histograms, Summaries)</h2>
+          <p>Prometheus exposes four main metric types, each serving a distinct operational purpose:</p>
+          <p>1. Counter: A cumulative metric that only increases or resets to zero on restart. It is used to track events like total requests, errors, or CPU seconds. Never calculate rates or averages directly on a raw counter; always use functions like `rate()` or `increase()` which are designed to detect and compensate for counter resets.</p>
+          <p>2. Gauge: A metric that represents a single numerical value that can arbitrarily go up or down. Examples include memory usage, CPU load, queue length, or active threads. Gauges are analyzed using instant queries or time-averaged aggregators like `avg_over_time()`.</p>
+          <p>3. Histogram: A client-side bucketed representation of observations (like request latencies). It provides a count of events and a sum of values, grouped into configurable cumulative buckets (e.g. `le="0.1"`, `le="0.5"`). Histograms allow the server to calculate quantiles (e.g., 95th percentile latency) across multiple target replicas using the `histogram_quantile()` function.</p>
+          <p>4. Summary: Similar to a histogram, a summary calculates configurable quantiles (e.g., p95, p99) over a sliding time window. While summaries are highly accurate and require less processing power on the Prometheus server, they are calculated on the client side and cannot be aggregated across multiple replicas or instances.</p>
+          <div class="code-block"># PromQL to calculate 95th percentile latency from a histogram over 5 minutes:
+histogram_quantile(0.95, sum by (le, job) (rate(http_request_duration_seconds_bucket[5m])))
+
+# PromQL to calculate rate of requests:
+sum by (status) (rate(http_requests_total[5m]))</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>When defining histogram buckets, ensure they span the expected range of your service response times. If p99 latency falls outside your highest bucket (e.g. your maximum bucket is `le="10.0"` but actual latency is 15s), the `histogram_quantile` function will return an inaccurate linear extrapolation.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Do not create histograms with too many buckets (e.g., >30 buckets per metric). Because each bucket behaves like a separate time series, a high-bucket histogram multiplied by multiple label dimensions will trigger severe cardinality issues.</p>
+          </div>
+        </section>
+        <section id="ch5">
+          <h2>Chapter 5: Core Exporters Deep Dive (Node, Blackbox, KSM)</h2>
+          <p>Because Prometheus relies on pull-based HTTP scrapes, application and infrastructure components must expose their metrics in the Prometheus text exposition format. For components that do not natively support this, Exporters are run alongside them to translate local metrics into Prometheus format:</p>
+          <p>• Node Exporter: An agent that runs on Linux hosts to expose hardware and OS-level metrics. It reads data directly from kernel subsystems `/proc` and `/sys`, capturing CPU usage, disk I/O, memory allocations, network traffic, and file descriptor limits. It also features a textfile collector that reads directory files to publish custom local metrics.</p>
+          <p>• Blackbox Exporter: An SRE probing tool. It receives target endpoints from Prometheus and performs active checks over network protocols (HTTP/S, DNS, TCP, ICMP). It returns probe results (latency, response codes, SSL certificate expiration dates) to verify target availability from the outside.</p>
+          <p>• Kube-State-Metrics (KSM): A Kubernetes agent that listens to the Kubernetes API server and generates metrics representing the state of objects: deployment replicas, pod phases, node availability, PVC bounds, and resource quotas. KSM does not measure system performance; it documents the structural state of the orchestrator.</p>
+          <div class="code-block"># Blackbox Exporter configuration module for HTTP probes
+modules:
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: [200, 302]
+      method: GET
+      fail_if_ssl_not_present: true</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Always secure Node Exporters with firewall rules (or network policies in K8s). Node Exporter exposes sensitive system details (kernel parameters, active processes) that should never be accessible from the public internet.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>kube-state-metrics can put significant load on the Kubernetes API server in large clusters. Configure resource caching and limit KSM queries to specific namespaces to prevent API server throttling.</p>
+          </div>
+        </section>
+        <section id="ch6">
+          <h2>Chapter 6: Service Discovery (Kubernetes, DNS, Consul)</h2>
+          <p>In dynamic containerized environments, static IP target configurations are fragile. Prometheus solves this using Service Discovery (SD). The SD manager dynamically queries target provider APIs to maintain a list of active scrapable endpoints. In Kubernetes, the SD engine watches API server resources including Nodes, Pods, Services, Endpoints, and Ingresses. When a Pod is scaled up or down, the SD engine detects the change and updates the scraping schedule in near real-time.</p>
+          <p>For non-Kubernetes environments, Prometheus supports Consul SD, where it queries the Consul catalog for registered services. It also supports DNS SD, querying SRV or A records at regular intervals to resolve target IPs. If no native SD integration exists, File SD reads JSON or YAML files on the local disk. When these files are modified (e.g., by an external automation tool or daemon), Prometheus reloads the target list without requiring a server restart.</p>
+          <div class="code-block"># Kubernetes discovery configuration for service endpoints
+scrape_configs:
+  - job_name: 'kubernetes-endpoints'
+    kubernetes_sd_configs:
+      - role: endpoints
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+        action: keep
+        regex: 'true'</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>When using Kubernetes SD in large clusters (>1000 nodes), Prometheus can consume significant memory and CPU just processing API server watch events. Use namespace filters in `kubernetes_sd_configs` and keep-alive limits to minimize resource usage.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Make sure your Kubernetes cluster role bindings give Prometheus read-only permissions to nodes, services, endpoints, and pods. Missing permissions will cause silent service discovery failures.</p>
+          </div>
+        </section>
+        <section id="ch7">
+          <h2>Chapter 7: Scraping Internals, Relabeling & Metric Modification</h2>
+          <p>Scraping is the process where Prometheus performs an HTTP GET to a target, processes the response, and writes samples. The scraping loop is controlled by the `scrape_interval` and `scrape_timeout`. If the target response time exceeds the timeout, Prometheus discards the write and records the target as down (`up = 0`).</p>
+          <p>Relabeling is a powerful stage that occurs at two distinct phases: before scraping (relabel_configs) and before writing to the TSDB (metric_relabel_configs):</p>
+          <p>1. `relabel_configs`: Modifies the metadata labels discovered by service discovery. It is used to select which targets to scrape, change the target port, or rewrite the internal path.</p>
+          <p>2. `metric_relabel_configs`: Applies rules to the metrics returned by a scrape. It allows SREs to filter out noisy metrics, drop specific labels to reduce cardinality, or rewrite metric names before they are written to disk.</p>
+          <div class="code-block"># Dropping high-cardinality metrics before they enter the TSDB
+scrape_configs:
+  - job_name: 'noisy-service'
+    static_configs:
+      - targets: ['localhost:9090']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '(http_request_duration_seconds_bucket|go_gc_.*)'
+        action: drop</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Use `metric_relabel_configs` to enforce metric quality standards. You can drop developer-level debug metrics or drop client IP labels to keep storage costs under control.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>If you set `scrape_timeout` larger than `scrape_interval`, Prometheus will reject the configuration. A scrape must complete before the next interval begins.</p>
+          </div>
+        </section>
+        <section id="ch8">
+          <h2>Chapter 8: TSDB Engine, Storage Blocks & Compaction Loops</h2>
+          <p>The Prometheus Time Series Database (TSDB) is optimized for high-write, low-read monitoring patterns. It partitions data into 2-hour Blocks on disk. When metrics are scraped, they are written to an active in-memory block called the Head Block. Simultaneously, they are written to a Write-Ahead Log (WAL) on disk for durability.</p>
+          <p>Every 2 hours, the Head Block rolls over, writes its contents to a permanent 2-hour disk block, and creates a new Head Block. The disk block contains a directory with chunk files (compressed raw samples), a metadata file (`meta.json`), and an index file mapped to memory.</p>
+          <p>In the background, a Compaction Loop runs continuously. It merges multiple adjacent 2-hour blocks into larger blocks (typically 24 hours). This reduces disk usage by deduplicating index entries and removing tombstones (samples marked for deletion by retention rules). This consolidation speeds up query performance.</p>
+          <div class="code-block"># TSDB directory layout on disk
+/data/prometheus/
+  ├── 01FPZ6P... (2h block folder)
+  │   ├── chunks/ (000001 raw chunk file)
+  │   ├── index (inverted index)
+  │   ├── meta.json (block metadata)
+  │   └── tombstones (deletion offsets)
+  ├── wal/ (write-ahead log directory)
+  │   ├── 000001 (128MB binary segments)
+  │   └── checkpoint.000000/
+  └── lock (process lock file)</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Ensure Prometheus runs on high-performance local storage (NVMe SSDs). Compaction loops create intense disk write activity. Using network-attached storage like AWS EBS can cause IOPS starvation, leading to query timeouts and dropped scrapes.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Never share the same TSDB directory across multiple running Prometheus instances. The lock file will prevent startup, and manual file modification will corrupt the index.</p>
+          </div>
+        </section>
+        <section id="ch9">
+          <h2>Chapter 9: WAL (Write-Ahead Log) Architecture & Corruption Recovery</h2>
+          <p>The Write-Ahead Log (WAL) is the durability layer of Prometheus. The Head block keeps recent metrics in RAM, which would be lost if the server crashed. To prevent data loss, every sample is appended to the WAL before being acknowledged in memory. The WAL consists of sequential 128 MB binary segment files.</p>
+          <p>During startup, Prometheus replays all WAL segments, recreating the Head block's in-memory index and samples. Once the Head block is flushed to a disk block, older WAL segments are deleted. If the Prometheus host suffers an abrupt shutdown or disk full condition, the active WAL segment may become corrupted, preventing the server from restarting.</p>
+          <p>To recover from WAL corruption, SREs must isolate the corrupted segment. The SRE can use the `prometheus-tool` or delete the corrupted segment, sacrificing the last few minutes of metrics to restore the server immediately.</p>
+          <div class="code-block"># Bash commands to diagnose and recover from a corrupted WAL
+# 1. Identify if Prometheus is in a crash loop:
+kubectl logs statefulset/prometheus-k8s -c prometheus | grep -i "WAL"
+# 2. Recovery: Rename the corrupted WAL directory to force a clean replay
+mv /data/prometheus/wal /data/prometheus/wal.corrupted
+# 3. Restart Prometheus (it will start cleanly and create a new WAL folder)</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Monitor `prometheus_tsdb_wal_replay_duration_seconds` to track startup time. If WAL replay takes too long (e.g. >10 minutes), it indicates slow disk read performance or an excessively large Head block size.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Deleting the entire WAL folder will result in the loss of all metrics scraped since the last 2-hour block write. Only rename/delete the WAL directory as a last resort.</p>
+          </div>
+        </section>
+        <section id="ch10">
+          <h2>Chapter 10: Chunks & Storage Block Lifecycles on Disk</h2>
+          <p>Within each TSDB block, sample values are stored in Chunk files. Prometheus uses Gorilla compression, a double-delta float compression algorithm. Timestamps (usually spaced 15s apart) are stored as double-deltas, requiring only a few bits. Float values are XOR'd against the previous sample value. This reduces the storage footprint to an average of just 1.37 bytes per sample.</p>
+          <p>Historical disk blocks are read-only. Prometheus accesses them using memory-mapping (`mmap`). This OS feature allows the kernel to map the block files directly into virtual memory. Prometheus can query gigabytes of historical data without loading the raw contents into RAM; the OS kernel loads page files on-demand and discards them when memory is needed.</p>
+          <p>Tombstones are used when deleting metrics (via the administrative API). Instead of rewriting large chunk files, Prometheus writes the target offsets to a `tombstones` file. During compaction, the compactor reads these files and excludes deleted samples from the newly created block.</p>
+          <div class="code-block"># Prometheus command-line flags to control block retention and size
+/bin/prometheus \
+  --storage.tsdb.path=/data/prometheus \
+  --storage.tsdb.retention.time=15d \
+  --storage.tsdb.retention.size=45GiB \
+  --storage.tsdb.min-block-duration=2h \
+  --storage.tsdb.max-block-duration=24h</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Always configure both size-based and time-based retention. Size-based retention (`--storage.tsdb.retention.size`) acts as a safety limit to prevent disk full conditions if metrics volume suddenly spikes.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Do not modify the `min-block-duration` and `max-block-duration` flags unless you are an expert. Changing these values can impair the compaction engine and cause fragmented disk blocks.</p>
+          </div>
+        </section>
+        <section id="ch11">
+          <h2>Chapter 11: PromQL (Query Language, Functions, Vectors)</h2>
+          <p>PromQL is a functional query language designed for evaluating time-series data. It works with two primary vector types: Instant Vectors (a single value for each series at a specific timestamp) and Range Vectors (a list of values over a range of time, like `[5m]`).</p>
+          <p>Functions like `rate()`, `irate()`, and `increase()` require a Range Vector as input because they calculate change over time. Aggregation operators like `sum()`, `avg()`, and `count()` operate on Instant Vectors, allowing you to combine metrics across multiple labels.</p>
+          <p>SREs must understand the difference between `rate()` and `irate()`: `rate()` calculates the average rate of change over the entire range window (best for alerting because it smooths spikes), while `irate()` calculates the instant rate of change using only the last two samples in the range window (best for high-resolution dashboards).</p>
+          <div class="code-block"># Calculate CPU utilization rate per container, ignoring low values:
+sum by (container) (rate(container_cpu_usage_seconds_total{container!="POD"}[5m])) * 100 > 80
+
+# Predict disk fill rate over 4 hours based on 1 hour of history:
+predict_linear(node_filesystem_free_bytes{mountpoint="/"}[1h], 14400) < 0</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Avoid using `rate()` with small range windows relative to your scrape interval. Rule of thumb: the range window should be at least 4 times the scrape interval (e.g. `[1m]` for a 15s scrape interval) to prevent empty query results.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Never use the `increase()` function on gauges. `increase()` assumes counter reset logic, which will corrupt calculation results when applied to fluctuating gauge metrics.</p>
+          </div>
+        </section>
+        <section id="ch12">
+          <h2>Chapter 12: Alertmanager Engine (Routing, Grouping, HA Deduplication)</h2>
+          <p>Alertmanager acts as the central notification dispatcher. It receives active firing events from Prometheus and routes them through a hierarchical Routing Tree based on alert label sets. The routing configuration determines who receives the alert and how they are notified.</p>
+          <p>To prevent alert fatigue, Alertmanager performs Grouping. It bundles related alerts matching specific labels into a single notification. The timing is controlled by three parameters: `group_wait` (initial buffering window), `group_interval` (delay between subsequent updates), and `repeat_interval` (time before re-sending resolved or active alerts).</p>
+          <p>For high availability, Alertmanager runs as a cluster using the Gossip Protocol (mesh topology via memberlist). When Prometheus sends duplicate alerts to multiple Alertmanager instances, the replicas communicate over Gossip to deduplicate notifications and coordinate silences, ensuring only one notification is sent.</p>
+          <div class="code-block"># Alertmanager HA mesh startup arguments
+/bin/alertmanager \
+  --config.file=/etc/alertmanager/alertmanager.yaml \
+  --mesh.listen-address=0.0.0.0:9094 \
+  --cluster.peer=alertmanager-peer-1.monitoring.svc:9094 \
+  --cluster.peer=alertmanager-peer-2.monitoring.svc:9094</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Configure inhibition rules to suppress redundant alerts. For example, if a node goes down (`NodeDown`), inhibit all pod-level alerts (`PodDown`) running on that node. This prevents spamming on root-cause incidents.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>If Alertmanager pods lose network connectivity, split-brain behavior can occur. Replicas may fail to coordinate, resulting in duplicate notifications sent to receivers.</p>
+          </div>
+        </section>
+        <section id="ch13">
+          <h2>Chapter 13: Recording Rules & Query Load Offloading</h2>
+          <p>Dashboards often run complex calculations over long time ranges, which can overwhelm the Prometheus query engine. Recording Rules solve this by pre-calculating expensive PromQL expressions in the background and saving the results as a new, read-optimized time series.</p>
+          <p>Recording rules are defined in Prometheus configuration groups and evaluated at regular intervals (usually matching the scrape interval). For example, instead of calculating the p99 API latency across 5,000 pods on every dashboard refresh, a recording rule pre-calculates the rate and saves it. The dashboard can then perform a fast query on the pre-calculated metric.</p>
+          <p>This offloads the query engine, decreases dashboard load times, and saves memory. It also enables longer-term retention of historical trends, as the aggregated series consumes a fraction of the space required by the raw high-cardinality metrics.</p>
+          <div class="code-block"># Recording rule configuration syntax
+groups:
+  - name: custom_rules
+    rules:
+      - record: job:http_inprogress_requests:sum
+        expr: sum by (job) (http_inprogress_requests)
+      - record: instance:node_cpu:ratio
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Create recording rules for all metrics used in high-traffic dashboards or automated alerts. Ensure that recording rule names follow the standard format: `level:metric:operations`.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Do not evaluate too many recording rules at very short intervals. If the evaluation time exceeds the group interval, the query engine will lag, creating gaps in your data.</p>
+          </div>
+        </section>
+        <section id="ch14">
+          <h2>Chapter 14: Hierarchical & Cross-Cluster Federation</h2>
+          <p>Federation allows a Prometheus server to scrape selected metrics from other Prometheus servers. This enables hierarchical and cross-cluster monitoring layouts. In a typical federated architecture, regional Prometheus instances scrape local clusters in detail, while a central Prometheus server scrapes aggregated metrics from the regional instances.</p>
+          <p>The central server pulls data using the `/federate` endpoint, specifying target metrics via query parameters. This keeps the network overhead low, as only critical, pre-aggregated metrics are sent across WAN links.</p>
+          <p>Federation is useful for global capacity planning, multi-cluster dashboarding, and centralized alerting. However, SREs must avoid scraping raw high-cardinality metrics over federation, as this can easily overload the central Prometheus server.</p>
+          <div class="code-block"># Central Prometheus configuration scraping regional instances
+scrape_configs:
+  - job_name: 'federate-east'
+    honor_labels: true
+    metrics_path: '/federate'
+    params:
+      'match[]':
+        - '{__name__=~"job:.*"}'
+        - '{__name__="up"}'
+    static_configs:
+      - targets:
+        - 'prometheus-east.infra.corp:9090'</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Always configure `honor_labels: true` on federated scrape jobs. This tells the central server to preserve the original labels (like `instance` and `job`) set by the downstream server, rather than overwriting them.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Never perform wildcard scrapes like `match[]={__name__=~".+"}` over federation. This pulls all raw metrics across the network, overloading both the source and destination servers.</p>
+          </div>
+        </section>
+        <section id="ch15">
+          <h2>Chapter 15: Remote Write, Remote Read & Thanos Architecture</h2>
+          <p>Prometheus is designed for short-to-medium-term metric storage. For long-term retention, high availability, and global queries, it must be paired with external storage systems. This integration uses two protocols: Remote Write and Remote Read.</p>
+          <p>• Remote Write: Prometheus tails its local WAL and streams incoming samples to an external endpoint (e.g. Thanos, Cortex, Mimir, or VictoriaMetrics) using a serialized Protobuf payload over HTTP POST. The streaming uses an internal queuing system with auto-scaling thread pools.</p>
+          <p>• Thanos Architecture: A popular CNCF framework that extends Prometheus. In a Thanos sidecar setup, a Thanos Sidecar container runs alongside Prometheus. Every 2 hours, it uploads finished TSDB blocks to object storage (like AWS S3). The Thanos Querier then executes global PromQL queries by pulling data from active sidecars (for recent metrics) and the Thanos Store Gateway (for historical object storage data).</p>
+          <div class="code-block"># Prometheus remote write configuration with queue tuning
+remote_write:
+  - url: "http://thanos-receiver.monitoring.svc:19291/api/v1/receive"
+    queue_config:
+      capacity: 10000
+      max_shards: 50
+      min_shards: 5
+      max_samples_per_send: 2000
+      batch_send_deadline: 5s</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>When using Remote Write, monitor queue performance using `prometheus_remote_storage_sent_bytes_total` and `prometheus_remote_storage_highest_timestamp_in_seconds`. A widening gap indicates queue bottlenecks, which can lead to WAL growth and disk space exhaustion.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Remote Write increases the CPU and memory footprint of Prometheus by up to 25%. Ensure you size your Prometheus pods with extra headroom when enabling remote write.</p>
+          </div>
+        </section>
+        <section id="ch16">
+          <h2>Chapter 16: Kubernetes Cluster Observability Blueprint</h2>
+          <p>Monitoring Kubernetes effectively requires a standardized architectural blueprint. The community-standard solution is the Prometheus Operator (often deployed via the `kube-prometheus-stack` Helm chart). The operator uses Custom Resource Definitions (CRDs) to manage Prometheus, Alertmanager, and their configurations declaratively.</p>
+          <p>Key CRDs include:</p>
+          <p>• `Prometheus`: Defines the deployment details of the Prometheus StatefulSet (replicas, storage, resources, remote write).</p>
+          <p>• `ServiceMonitor` & `PodMonitor`: Define how targets are discovered and scraped. Instead of writing raw scrape configs, SREs define monitors that select services and pods using standard Kubernetes label selectors.</p>
+          <p>• `PrometheusRule`: Defines alerting and recording rules. The operator automatically compiles these rules into file formats and mounts them to the Prometheus container, triggering dynamic configuration reloads.</p>
+          <div class="code-block"># ServiceMonitor custom resource example
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: payment-service-monitor
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: payment-api
+  endpoints:
+  - port: metrics
+    interval: 15s
+    path: /metrics</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Enforce namespace limits on your Prometheus Operator. In multi-tenant clusters, configure the operator to discover `ServiceMonitors` only in allowed namespaces to prevent tenant teams from accidentally overloading the central Prometheus instance.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Make sure your `ServiceMonitor` labels match the `serviceMonitorSelector` defined in your `Prometheus` CRD. Mismatched selectors will prevent Prometheus from discovering the configuration.</p>
+          </div>
+        </section>
+        <section id="ch17">
+          <h2>Chapter 17: High Cardinality Diagnostics & Memory Optimization</h2>
+          <p>High cardinality is a common cause of performance degradation in Prometheus. It occurs when a label contains an excessive number of unique values, creating millions of unique series IDs. Because Prometheus buffers index records in RAM, this causes high memory usage and can lead to OOM (Out Of Memory) crashes.</p>
+          <p>To diagnose cardinality issues, use the TSDB Status API (`/api/v1/status/tsdb`). This endpoint returns metrics on index utilization, identifying the labels with the most unique values, the largest label names, and the metrics with the highest series counts.</p>
+          <p>To optimize memory, SREs can drop high-cardinality labels during ingestion using `metric_relabel_configs`, configure scrape limits (`sample_limit`) to restrict targets, and tune the head block parameters to control memory usage.</p>
+          <div class="code-block"># Script to find top cardinality metrics from Prometheus API
+curl -s http://localhost:9090/api/v1/status/tsdb \
+  | jq '.data.topSeries[] | {metric: .name, count: .value}' \
+  | head -n 10</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Implement automated alerts for high cardinality. Alert when the metric `prometheus_tsdb_head_series` exceeds 80% of your tested memory capacity, giving SREs time to locate and remediate the issue before an OOM occurs.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Do not execute large query ranges (e.g. `[30d]`) on high-cardinality metrics. This forces the server to load millions of historical index entries, which can trigger a query-time memory crash.</p>
+          </div>
+        </section>
+        <section id="ch18">
+          <h2>Chapter 18: Horizontal & Vertical Scaling Operations</h2>
+          <p>Scaling Prometheus requires different approaches depending on the bottleneck:</p>
+          <p>• Vertical Scaling: Adding CPU and RAM resources to the Prometheus host or container. Memory consumption scales linearly with the number of active series. As a rule of thumb, allocate 1.5 GB to 2 GB of RAM for every 1 million active series, with additional headroom for query evaluations.</p>
+          <p>• Horizontal Scaling: Partitioning the scrape load across multiple independent Prometheus instances. This is achieved using Hashmod Relabeling. Each Prometheus instance scrapes a subset of targets based on a hash of their address. This allows you to scale metrics collection horizontally without a central coordinator.</p>
+          <div class="code-block"># Scrape config sharding targets using hashmod relabeling
+scrape_configs:
+  - job_name: 'sharded-app-scrape'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__address__]
+        modulus: 4 # Total number of shards
+        target_label: __tmp_hash
+        action: hashmod
+      - source_labels: [__tmp_hash]
+        regex: '0' # Only scrape targets that match shard index 0
+        action: keep</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>When sharding scrapers horizontally, use a central query engine like Thanos Querier or Grafana Mimir to query all shards simultaneously. This provides a unified view of the sharded data.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Horizontal sharding splits metrics across different servers. Queries that aggregate data across shards (e.g. calculating total requests across all pods) must be performed by a central querier.</p>
+          </div>
+        </section>
+        <section id="ch19">
+          <h2>Chapter 19: SRE Incident Recovery Troubleshooting Guide</h2>
+          <p>When troubleshooting Prometheus incidents, SREs typically encounter three main scenarios:</p>
+          <p>1. Crash Loops due to WAL Corruption: This usually occurs after an ungraceful shutdown. SREs can fix this by locating and renaming the corrupted WAL segment on disk.</p>
+          <p>2. Out Of Memory (OOM) Crashes: Triggered by a sudden cardinality spike. SREs can recover the server by increasing memory limits, dropping labels at ingestion, or using the `tsdb analyze` tool to identify and remove the offending metrics.</p>
+          <p>3. Slow Query Performance: Caused by complex expressions or high-cardinality targets. SREs can debug this by checking the query log, configuring query limits, and using recording rules to offload calculation overhead.</p>
+          <div class="code-block"># Command to check query logs for slow queries
+# 1. Enable query logging in prometheus.yaml:
+# global:
+#   query_log_file: /data/query.log
+# 2. Inspect query execution times:
+tail -n 100 /data/query.log | jq 'select(.durationSeconds > 2.0)'</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Configure a 'dead man's switch' alert. This is a simple alert that is always firing (`expr: vector(1)`). If the Alertmanager stops receiving this signal, it indicates that Prometheus is down or unable to evaluate rules.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Do not restart Prometheus while it is writing a Head block to disk (indicated by high disk write I/O). Abruptly stopping the process during a write can corrupt the active disk block.</p>
+          </div>
+        </section>
+        <section id="ch20">
+          <h2>Chapter 20: Production Operation Best Practices</h2>
+          <p>Follow these SRE best practices to ensure reliable production operations:</p>
+          <p>1. Use dedicated local SSD storage. Never run the Prometheus TSDB on network file systems (like NFS or AWS EFS), as they cannot support the transactional I/O required for the WAL and index operations.</p>
+          <p>2. Configure size-based retention limits in addition to time-based retention. This protects the disk from filling up if metrics volume suddenly spikes.</p>
+          <p>3. Use recording rules for all metrics queried by high-traffic dashboards to reduce server load.</p>
+          <p>4. Monitor your monitoring system. Deploy a separate, small 'meta-monitoring' Prometheus instance to scrape your primary Prometheus and Alertmanager infrastructure.</p>
+          <div class="code-block"># Production Prometheus command-line arguments
+/bin/prometheus \
+  --config.file=/etc/prometheus/prometheus.yml \
+  --storage.tsdb.path=/data/prometheus \
+  --storage.tsdb.retention.time=30d \
+  --storage.tsdb.retention.size=180GiB \
+  --storage.tsdb.wal-compression \
+  --web.enable-lifecycle</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Enable the lifecycle API (`--web.enable-lifecycle`). This allows you to reload Prometheus configurations dynamically by sending an HTTP POST request to `/-/reload`, avoiding server downtime.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Enabling WAL compression (`--storage.tsdb.wal-compression`) reduces WAL disk usage by up to 50% but increases CPU usage. Ensure your host has sufficient CPU headroom before enabling this flag.</p>
+          </div>
+        </section>
+        <section id="ch21">
+          <h2>Chapter 21: Prometheus vs Alternatives (VictoriaMetrics, Datadog)</h2>
+          <p>Selecting a monitoring system requires evaluating the trade-offs between self-hosted systems and SaaS platforms:</p>
+          <p>• VictoriaMetrics: A high-performance alternative to Prometheus TSDB. It supports the Prometheus querying API and Remote Write protocol but offers better compression, lower memory usage, and simplified clustering. It can run as a single binary, making it easier to operate at scale.</p>
+          <p>• Datadog: A popular SaaS monitoring platform. It is fully managed, eliminating the operational overhead of hosting your own TSDB. However, it introduces significant network data egress charges and vendor lock-in, and costs can scale rapidly with metric volume.</p>
+          <p>Prometheus remains the industry standard for Kubernetes monitoring due to its deep integration with the CNCF ecosystem and native operator support. SREs often use Prometheus for local metrics collection and forward data to long-term storage platforms for global analysis.</p>
+          <table>
+            <thead>
+              <tr><th>Metric</th><th>Prometheus</th><th>VictoriaMetrics</th><th>Datadog</th>
+              </tr>
+            </thead>
+            <tbody><tr><td>Storage Cost</td><td>Low (Local Disk)</td><td>Very Low (Compressed)</td><td>High (SaaS License)</td></tr><tr><td>Operational Overhead</td><td>Medium (Self-hosted)</td><td>Low (Single Binary)</td><td>Minimal (Managed)</td></tr><tr><td>Kubernetes Integration</td><td>Excellent (Native Operator)</td><td>Very Good</td><td>Good (Agent-based)</td></tr><tr><td>Aggregation Model</td><td>Server-side (PromQL)</td><td>Server-side (MetricsQL)</td><td>Client/SaaS-side</td></tr>
+            </tbody>
+          </table>
+          <div class="code-block"># VictoriaMetrics single-node installation example
+docker run -d -p 8428:8428 -v victoria-storage:/victoria-metrics-data victoriametrics/victoria-metrics:v1.93.0</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Choose VictoriaMetrics if you need a cost-effective, long-term storage solution with low operational overhead. Choose Datadog if your team prefers a managed service and has the budget to support SaaS licensing costs.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>VictoriaMetrics' MetricsQL is highly compatible with PromQL, but some advanced query behaviors may differ. Thoroughly test your alert rules when migrating between engines.</p>
+          </div>
+        </section>
+        <section id="ch22">
+          <h2>Chapter 22: Real-World Startup & Enterprise Architectures</h2>
+          <p>Monitoring architectures scale with the size and complexity of your infrastructure:</p>
+          <p>• Startup Architecture: A single Prometheus instance scraping all targets in a cluster, storing metrics on local SSDs, and displaying dashboards with a local Grafana instance. This is simple, cost-effective, and easy to maintain.</p>
+          <p>• Enterprise Architecture: A multi-cluster, high-availability monitoring pipeline. Each Kubernetes cluster runs a Prometheus instance in Agent Mode (which scrapes targets and immediately streams data via Remote Write, without storing metrics locally). These metrics are sent to a centralized Thanos or Grafana Mimir cluster in a shared services VPC. Thanos aggregates and stores metrics in object storage (AWS S3), while a global Grafana instance queries the Thanos Querier to provide unified dashboards across all environments.</p>
+          <div class="code-block"># Enterprise remote write setup for Prometheus Agent Mode
+/bin/prometheus \
+  --storage.tsdb.path=/data/prometheus \
+  --enable-feature=agent \
+  --config.file=/etc/prometheus/prometheus.yml</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Use Prometheus Agent Mode for edge clusters. It disables local TSDB storage, query APIs, and alerting loops, reducing memory usage by up to 80% and allowing edge instances to run on minimal resources.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Agent Mode cannot evaluate alerting rules locally. All rules must be evaluated on the central Thanos or Mimir cluster, which depends on network connectivity.</p>
+          </div>
+        </section>
+        <section id="ch23">
+          <h2>Chapter 23: SRE Interview Prep & 75 Core Q&A Bank</h2>
+          <p>Here are key technical questions and answers for SRE interviews covering Prometheus architecture, scaling, and troubleshooting:</p>
+          <p>Q1: What is the difference between rate() and irate() in PromQL?
+A1: `rate()` calculates the average per-second rate of change over the entire range window (suitable for alerts). `irate()` calculates the instant rate of change using only the last two samples in the window (suitable for high-resolution charts).</p>
+          <p>Q2: How does Prometheus handle target downtime?
+A2: During every scrape, Prometheus automatically records a metric called `up`. If the scrape succeeds, `up` is set to 1. If the scrape fails, `up` is set to 0, indicating the target is down.</p>
+          <p>Q3: What causes WAL corruption and how do you recover from it?
+A3: WAL corruption is typically caused by ungraceful shutdowns or disk full conditions. SREs can recover by isolating and removing the corrupted WAL segment on disk, or renaming the WAL directory and restarting the server.</p>
+          <p>Q4: What is cardinality explosion and how do you diagnose it?
+A4: Cardinality explosion occurs when a label contains an excessive number of unique values, creating millions of unique series. SREs can diagnose this using the TSDB Status API (`/api/v1/status/tsdb`) to identify the high-cardinality labels.</p>
+          <p>Q5: Why shouldn't you run Prometheus on network-attached file systems (NFS)?
+A5: NFS systems cannot support the high-write transaction rates and low-latency disk writes required by the WAL and index operations, leading to IOPS starvation and performance issues.</p>
+          <div class="code-block"># PromQL to detect target downtime
+up{job="payment-api"} == 0</div>
+          <div class="best-practice">
+            <strong>SRE OPERATIONAL RUNBOOK NOTE</strong>
+            <p>Prepare for interview questions by understanding the internal architecture of the TSDB (Head block, WAL, compaction) and the details of PromQL vector matching.</p>
+          </div>
+          <div class="warning-box">
+            <strong>CRITICAL SRE WARNING</strong>
+            <p>Interview candidates often struggle to explain the difference between histograms and summaries. Ensure you understand their computational trade-offs.</p>
+          </div>
+        </section>
+        <section id="ch24">
+          <h2>Chapter 24: Comprehensive Glossary Reference</h2>
+          <p>• **WAL (Write-Ahead Log)**: A database log file used for crash recovery, where transactions are recorded before being applied to memory.</p>
+          <p>• **TSDB (Time Series Database)**: A database optimized for storing and querying time-series data.</p>
+          <p>• **Scraping**: The process where Prometheus pulls metrics from target HTTP endpoints.</p>
+          <p>• **Cardinality**: The number of unique time series in the database, determined by the combination of metric names and labels.</p>
+          <p>• **Instant Vector**: A set of time-series samples containing a single value for each series at a specific timestamp.</p>
+          <p>• **Range Vector**: A set of time-series samples containing a list of values over a range of time for each series.</p>
+          <p>• **Compaction**: The background process of merging multiple small TSDB blocks into larger, optimized blocks.</p>
+          <p>• **Tombstone**: A database record indicating that a sample has been marked for deletion.</p>
+          <p>• **Pushgateway**: A buffer for short-lived batch metrics that allows push-based collection.</p>
+          <p>• **Service Discovery**: The automated detection of active monitoring targets in dynamic environments.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab Switching
+    function swTab(id, btn) {
+      document.querySelectorAll('.tc').forEach(t => t.classList.remove('on'));
+      document.querySelectorAll('.tb').forEach(t => t.classList.remove('on'));
+      document.getElementById('tab-' + id).classList.add('on');
+      btn.classList.add('on');
+    }
+
+    // Component Metadata
+    const D = {
+      app_pods: {
+        name: 'Application Targets (Pods & Exporters)',
+        color: '#64748b',
+        items: [
+          { l: 'What writes metrics', t: 'Applications instrumented with Prometheus client libraries (Go, Python, Java) exposing metric values on the `/metrics` path. They do not push metrics; they hold them in memory until scraped.' },
+          { l: 'Node Exporter role', t: 'Runs as a DaemonSet to collect physical system metrics (CPU, Memory, Disk, Network) from every host node and expose them as Prometheus gauges/counters.' },
+          { l: 'Kube-State-Metrics', t: 'Scrapes the Kubernetes API to convert cluster state objects (such as pod phases, deployment counts, volume claims) into standard Prometheus metrics.' },
+          { l: 'Production tip', t: 'Keep metric names clean. Use standard counters (e.g. `http_requests_total`) and avoid adding dynamic values like UUIDs as labels to keep cardinality low.' }
+        ]
+      },
+      pushgateway: {
+        name: 'Prometheus Pushgateway',
+        color: '#64748b',
+        items: [
+          { l: 'Batch Job Buffer', t: 'Used strictly for short-lived, ephemeral batch jobs (e.g. Kubernetes CronJobs) that run, execute, and exit before the standard 15s scrape interval occurs.' },
+          { l: 'How it works', t: 'The batch job pushes metrics to Pushgateway via an HTTP POST. Prometheus then scrapes the Pushgateway as a standard persistent target at its leisure.' },
+          { l: 'Production Warning', t: 'Never use Pushgateway as a general metric router for long-running services. If services push metrics without cleaning up, old metric values linger forever.' }
+        ]
+      },
+      operator_controller: {
+        name: 'Prometheus Operator Controller',
+        color: '#14b8a6',
+        items: [
+          { l: 'Configuration lifecycle', t: 'Runs as a Kubernetes deployment that listens for custom resources (ServiceMonitors, PodMonitors, Prometheus) and generates standard Prometheus configuration files.' },
+          { l: 'StatefulSet management', t: 'Deploys and manages the Prometheus Pods as a StatefulSet, automatically mount-binding Persistent Volumes and injecting Thanos sidecars.' },
+          { l: 'Dynamic Updates', t: 'If you create a new ServiceMonitor, the Operator instantly detects it, updates the Prometheus config secret, and triggers a configuration reload (`POST /-/reload`).' }
+        ]
+      },
+      discovery: {
+        name: 'Service Discovery (K8s API)',
+        color: '#14b8a6',
+        items: [
+          { l: 'Automated Target Discovery', t: 'Instead of defining static target IPs, Prometheus polls the Kubernetes API for active Services, Pods, and Endpoints.' },
+          { l: 'How it filters', t: 'Checks annotations and label selectors defined in ServiceMonitors to build the target list. Discards pods that are terminated or unready.' },
+          { l: 'API Load', t: 'In massive clusters, service discovery calls can strain the Kubernetes API Server. Use relabeling configurations to drop unwanted targets early.' }
+        ]
+      },
+      retrieval: {
+        name: 'Retrieval Engine (Scraper)',
+        color: '#3b82f6',
+        items: [
+          { l: 'Pull-Based Ingestion', t: 'Executes concurrent scraping loops. Sends an HTTP GET request to `/metrics` on all targets at regular scrape intervals (default: 15s).' },
+          { l: 'Data compression', t: 'Parses the raw text format returned by endpoints and stores samples (timestamp + value) in memory using Gorilla delta-of-delta compression.' },
+          { l: 'Scrape lag detection', t: 'If a scrape takes longer than `scrape_timeout`, Prometheus drops it. You can track target scrape duration using the `scrape_duration_seconds` metric.' }
+        ]
+      },
+      wal: {
+        name: 'Write-Ahead Log (WAL)',
+        color: '#3b82f6',
+        items: [
+          { l: 'Durability Guarantee', t: 'Writes incoming samples directly to disk segments in `/data/wal` before acknowledging the write. This prevents data loss in the event of an OOM crash or power cut.' },
+          { l: 'Format', t: 'Stored in 128 MB raw binary segments. Deleted sequentially once the in-memory Head block flushes data to permanent TSDB blocks.' },
+          { l: 'Restart Overhead', t: 'On startup, Prometheus must read and replay all WAL segments. If WAL size is large, startup can take 10+ minutes. Sizing memory requests properly is key.' }
+        ]
+      },
+      head_block: {
+        name: 'In-Memory Head Block',
+        color: '#3b82f6',
+        items: [
+          { l: 'Hot memory buffer', t: 'Keeps recently scraped metric samples (typically up to 2 hours) in memory. This allows real-time queries and fast ingestion write speeds.' },
+          { l: 'Index structure', t: 'Builds an inverted index of all metric labels and names in-memory. Memory footprint rises linearly with the number of unique active time series.' },
+          { l: 'Checkpointing', t: 'Every 2 hours, the oldest chunks in the Head block are rolled over, written to disk, and the WAL is trimmed to a checkpoint.' }
+        ]
+      },
+      tsdb_blocks: {
+        name: 'TSDB Blocks (On Storage PV)',
+        color: '#3b82f6',
+        items: [
+          { l: 'Immutable Data Blocks', t: 'Every 2 hours, data from the Head block is flushed to a directory on disk. The directory contains a metadata file (`meta.json`), chunk files, and an index.' },
+          { l: 'Memory Mapping (mmap)', t: 'Prometheus queries old data by memory-mapping (mmapping) the block files. This allows querying gigabytes of history without loading it all into RAM.' },
+          { l: 'Compactor merging', t: 'The compactor runs in the background to merge adjacent 2-hour blocks into larger 24-hour blocks, optimizing index lookups and compression ratios.' }
+        ]
+      },
+      alertmanager: {
+        name: 'Alertmanager StatefulSet',
+        color: '#ef4444',
+        items: [
+          { l: 'Alert routing engine', t: 'Receives alerts fired by Prometheus rules. It does not evaluate rules; it only handles what happens to alerts after they trigger.' },
+          { l: 'Deduplication & Grouping', t: 'Groups alerts with shared labels (e.g. `namespace="prod"`) into a single notification. Silences notifications based on active mute schedules.' },
+          { l: 'High Availability', t: 'Runs as a clustered StatefulSet using memberlist mesh protocol. Replicas sync active silences and alert states to prevent double alerts.' }
+        ]
+      },
+      grafana: {
+        name: 'Grafana & Dashboards',
+        color: '#a855f7',
+        items: [
+          { l: 'PromQL Client', t: 'Connects to Prometheus Server via the HTTP API (`GET /api/v1/query_range`). Sends PromQL expressions and parses returned time-series JSON matrices.' },
+          { l: 'Query optimization', t: 'Render complex graphs using recording rules. Recording rules run pre-calculated expressions and save them as new metrics to speed up dashboard loads.' },
+          { l: 'Auto-refresh behavior', t: 'Avoid setting dashboard auto-refresh intervals under 10 seconds. Short refresh rates on complex dashboards generate high query loads.' }
+        ]
+      }
+    };
+
+    // Component details display handler
+    function sd(id) {
+      const d = D[id];
+      if (!d) return;
+      
+      let h = `
+        <div class="dp-title" style="color: ${d.color}">
+          <div class="dp-dot" style="background-color: ${d.color}; box-shadow: 0 0 12px ${d.color}"></div>
+          <span>${d.name} Specification</span>
+        </div>
+        <div class="dp-grid">
+      `;
+      
+      d.items.forEach(i => {
+        h += `
+          <div class="dp-block">
+            <div class="lbl">${i.l}</div>
+            <div class="txt">${i.t}</div>
+          </div>
+        `;
+      });
+      
+      h += '</div>';
+      
+      const dpEl = document.getElementById('dp');
+      dpEl.innerHTML = h;
+      dpEl.style.borderColor = d.color;
+      dpEl.style.boxShadow = `0 8px 30px -4px ${d.color}25`;
+    }
+
+    // Legend Hover Highlights
+    function highlightPath(type) {
+      const svg = document.getElementById('loki-svg');
+      svg.classList.add('highlight-' + type);
+    }
+
+    // Clear Legend Highlights
+    function clearHighlight() {
+      const svg = document.getElementById('loki-svg');
+      svg.classList.remove('highlight-scrape', 'highlight-push', 'highlight-write', 'highlight-retention', 'highlight-alert', 'highlight-query');
+    }
+  </script>
+
+  <script>
+    // Scroll active link behavior
+    window.addEventListener('DOMContentLoaded', () => {
+      const links = document.querySelectorAll('.toc-link');
+      const sections = document.querySelectorAll('section');
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            links.forEach(l => {
+              if (l.getAttribute('href') === '#' + entry.target.id) {
+                l.classList.add('active');
+              } else {
+                l.classList.remove('active');
+              }
+            });
+          }
+        });
+      }, { rootMargin: '-10% 0px -80% 0px' });
+
+      sections.forEach(s => observer.observe(s));
+    });
+  </script>
+</body>
+</html>
