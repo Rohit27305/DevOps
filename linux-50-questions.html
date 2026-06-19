@@ -1,0 +1,2409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Linux Mastery — 50 Real-World Questions</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0D1117;
+    --surface:   #161B22;
+    --surface2:  #1C2128;
+    --border:    #30363D;
+    --border2:   #21262D;
+    --green:     #3FB950;
+    --green-dim: #238636;
+    --blue:      #58A6FF;
+    --amber:     #D29922;
+    --red:       #F85149;
+    --purple:    #BC8CFF;
+    --cyan:      #39C5CF;
+    --text:      #E6EDF3;
+    --muted:     #8B949E;
+    --muted2:    #484F58;
+    --prompt:    #3FB950;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── SIDEBAR ── */
+  aside {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0; left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+  }
+
+  aside::-webkit-scrollbar { width: 4px; }
+  aside::-webkit-scrollbar-track { background: transparent; }
+  aside::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .sidebar-header {
+    padding: 20px 18px 16px;
+    border-bottom: 1px solid var(--border2);
+    position: sticky; top: 0;
+    background: var(--surface);
+    z-index: 1;
+  }
+
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--green);
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  .logo span { color: var(--muted); }
+
+  .sidebar-title {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+
+  /* search */
+  .search-wrap {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border2);
+    position: sticky; top: 73px;
+    background: var(--surface);
+  }
+
+  .search-wrap input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 7px 10px;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .search-wrap input::placeholder { color: var(--muted2); }
+  .search-wrap input:focus { border-color: var(--green-dim); }
+
+  /* nav */
+  .nav-section { padding: 10px 0 6px; }
+
+  .nav-cat {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted2);
+    padding: 0 16px;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 16px;
+    font-size: 12.5px;
+    color: var(--muted);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: all .15s;
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .nav-item:hover { color: var(--text); background: var(--surface2); border-left-color: var(--muted2); }
+  .nav-item.active { color: var(--green); border-left-color: var(--green); background: rgba(63,185,80,.07); }
+
+  .nav-item .num {
+    color: var(--muted2);
+    font-size: 10px;
+    min-width: 22px;
+  }
+
+  .nav-item.active .num { color: var(--green-dim); }
+
+  .progress-bar-wrap {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border2);
+    margin-top: auto;
+    position: sticky;
+    bottom: 0;
+    background: var(--surface);
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 6px;
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-dim), var(--green));
+    border-radius: 3px;
+    transition: width .4s ease;
+    width: 0%;
+  }
+
+  /* ── MAIN ── */
+  main {
+    margin-left: 260px;
+    flex: 1;
+    padding: 0 40px 80px;
+    max-width: 960px;
+  }
+
+  .hero {
+    padding: 52px 0 40px;
+    border-bottom: 1px solid var(--border2);
+    margin-bottom: 48px;
+  }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--green);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .hero-eyebrow::before {
+    content: '$ ';
+    color: var(--muted2);
+  }
+
+  .hero h1 {
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--green);
+    position: relative;
+  }
+
+  .hero p {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.7;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 24px;
+    margin-top: 24px;
+  }
+
+  .meta-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    padding: 5px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+
+  .meta-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+
+  /* ── CATEGORY HEADER ── */
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 48px 0 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .cat-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 4px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .cat-badge.basic    { background: rgba(63,185,80,.15);  color: var(--green);  }
+  .cat-badge.inter    { background: rgba(88,166,255,.15); color: var(--blue);   }
+  .cat-badge.advanced { background: rgba(188,140,255,.15);color: var(--purple); }
+  .cat-badge.expert   { background: rgba(210,153,34,.15); color: var(--amber);  }
+
+  .cat-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .cat-count {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-left: auto;
+  }
+
+  /* ── QUESTION CARD ── */
+  .q-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    transition: border-color .2s;
+    overflow: hidden;
+  }
+
+  .q-card:hover { border-color: var(--border); }
+  .q-card.open  { border-color: var(--green-dim); }
+
+  .q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .q-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted2);
+    min-width: 28px;
+    padding-top: 2px;
+  }
+
+  .q-card.open .q-number { color: var(--green-dim); }
+
+  .q-text {
+    font-size: 14.5px;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+    line-height: 1.5;
+  }
+
+  .q-cmd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+    background: rgba(57,197,207,.08);
+    border: 1px solid rgba(57,197,207,.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    align-self: center;
+  }
+
+  .q-chevron {
+    color: var(--muted2);
+    font-size: 16px;
+    transition: transform .25s;
+    padding-top: 2px;
+    align-self: center;
+  }
+
+  .q-card.open .q-chevron { transform: rotate(180deg); color: var(--green); }
+
+  /* answer body */
+  .q-body {
+    display: none;
+    padding: 0 18px 20px 60px;
+    border-top: 1px solid var(--border2);
+  }
+
+  .q-card.open .q-body { display: block; }
+
+  .q-body p {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.75;
+    margin-top: 14px;
+    margin-bottom: 10px;
+  }
+
+  .q-body p strong { color: var(--text); font-weight: 600; }
+
+  /* terminal block */
+  .terminal {
+    background: #0A0E14;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    overflow: hidden;
+    margin: 12px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+  }
+
+  .terminal-bar {
+    background: #1A1F27;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .terminal-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  .td-r { background: #FF5F57; }
+  .td-y { background: #FEBC2E; }
+  .td-g { background: #28C840; }
+
+  .terminal-label {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--muted2);
+    letter-spacing: 0.08em;
+  }
+
+  .terminal-body {
+    padding: 14px 16px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+
+  .terminal-body::-webkit-scrollbar { height: 4px; }
+  .terminal-body::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .t-prompt { color: var(--green); }
+  .t-cmd    { color: var(--text); }
+  .t-flag   { color: var(--blue); }
+  .t-path   { color: var(--amber); }
+  .t-out    { color: var(--muted); }
+  .t-comment{ color: var(--muted2); font-style: italic; }
+  .t-error  { color: var(--red); }
+  .t-highlight { color: var(--cyan); }
+
+  /* tip box */
+  .tip-box {
+    display: flex;
+    gap: 10px;
+    background: rgba(88,166,255,.06);
+    border: 1px solid rgba(88,166,255,.18);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-top: 12px;
+  }
+
+  .tip-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  .tip-box p {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .tip-box.warn {
+    background: rgba(210,153,34,.06);
+    border-color: rgba(210,153,34,.2);
+  }
+
+  .tip-box.good {
+    background: rgba(63,185,80,.06);
+    border-color: rgba(63,185,80,.2);
+  }
+
+  /* tags */
+  .q-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+  }
+
+  .q-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border2);
+  }
+
+  /* ── UTILITY ── */
+  .hidden { display: none !important; }
+
+  .scroll-top {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--green-dim);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 38px; height: 38px;
+    font-size: 18px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    transition: background .2s;
+    box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  }
+
+  .scroll-top:hover { background: var(--green); }
+  .scroll-top.show { display: flex; }
+
+  /* responsive */
+  @media (max-width: 900px) {
+    aside { width: 220px; min-width: 220px; }
+    main  { margin-left: 220px; padding: 0 20px 60px; }
+  }
+
+  @media (max-width: 680px) {
+    aside { display: none; }
+    main  { margin-left: 0; padding: 0 16px 60px; }
+    .hero h1 { font-size: 26px; }
+  }
+
+  /* blink cursor */
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+  .cursor { animation: blink 1s infinite; color: var(--green); }
+</style>
+</head>
+<body>
+
+<!-- ────────── SIDEBAR ────────── -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">rishu<span>@</span>devops<span>:~#</span> <span class="cursor">▋</span></div>
+    <div class="sidebar-title">Linux Mastery · 50 Questions</div>
+  </div>
+
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="/ search commands..." autocomplete="off"/>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-cat">Basic · Q 1–15</div>
+    <a class="nav-item" href="#q1"><span class="num">01</span> ls — List files</a>
+    <a class="nav-item" href="#q2"><span class="num">02</span> pwd &amp; cd</a>
+    <a class="nav-item" href="#q3"><span class="num">03</span> cat &amp; less</a>
+    <a class="nav-item" href="#q4"><span class="num">04</span> mkdir &amp; rmdir</a>
+    <a class="nav-item" href="#q5"><span class="num">05</span> cp &amp; mv</a>
+    <a class="nav-item" href="#q6"><span class="num">06</span> rm — Delete</a>
+    <a class="nav-item" href="#q7"><span class="num">07</span> chmod &amp; chown</a>
+    <a class="nav-item" href="#q8"><span class="num">08</span> grep — Search</a>
+    <a class="nav-item" href="#q9"><span class="num">09</span> find — Locate</a>
+    <a class="nav-item" href="#q10"><span class="num">10</span> echo &amp; printf</a>
+    <a class="nav-item" href="#q11"><span class="num">11</span> man &amp; --help</a>
+    <a class="nav-item" href="#q12"><span class="num">12</span> head &amp; tail</a>
+    <a class="nav-item" href="#q13"><span class="num">13</span> wc — Word count</a>
+    <a class="nav-item" href="#q14"><span class="num">14</span> sort &amp; uniq</a>
+    <a class="nav-item" href="#q15"><span class="num">15</span> Pipes &amp; redirect</a>
+
+    <div class="nav-cat" style="margin-top:10px">Intermediate · Q 16–30</div>
+    <a class="nav-item" href="#q16"><span class="num">16</span> ps — Processes</a>
+    <a class="nav-item" href="#q17"><span class="num">17</span> kill &amp; signals</a>
+    <a class="nav-item" href="#q18"><span class="num">18</span> top &amp; htop</a>
+    <a class="nav-item" href="#q19"><span class="num">19</span> df &amp; du</a>
+    <a class="nav-item" href="#q20"><span class="num">20</span> tar — Archives</a>
+    <a class="nav-item" href="#q21"><span class="num">21</span> ssh — Remote</a>
+    <a class="nav-item" href="#q22"><span class="num">22</span> curl &amp; wget</a>
+    <a class="nav-item" href="#q23"><span class="num">23</span> systemctl</a>
+    <a class="nav-item" href="#q24"><span class="num">24</span> journalctl</a>
+    <a class="nav-item" href="#q25"><span class="num">25</span> env &amp; export</a>
+    <a class="nav-item" href="#q26"><span class="num">26</span> cron &amp; crontab</a>
+    <a class="nav-item" href="#q27"><span class="num">27</span> sed — Stream edit</a>
+    <a class="nav-item" href="#q28"><span class="num">28</span> awk — Field parse</a>
+    <a class="nav-item" href="#q29"><span class="num">29</span> xargs</a>
+    <a class="nav-item" href="#q30"><span class="num">30</span> lsof — Open files</a>
+
+    <div class="nav-cat" style="margin-top:10px">Advanced · Q 31–43</div>
+    <a class="nav-item" href="#q31"><span class="num">31</span> ss &amp; netstat</a>
+    <a class="nav-item" href="#q32"><span class="num">32</span> iptables</a>
+    <a class="nav-item" href="#q33"><span class="num">33</span> tcpdump</a>
+    <a class="nav-item" href="#q34"><span class="num">34</span> strace &amp; ltrace</a>
+    <a class="nav-item" href="#q35"><span class="num">35</span> lvm — Volumes</a>
+    <a class="nav-item" href="#q36"><span class="num">36</span> mount &amp; fstab</a>
+    <a class="nav-item" href="#q37"><span class="num">37</span> sysctl</a>
+    <a class="nav-item" href="#q38"><span class="num">38</span> ulimit</a>
+    <a class="nav-item" href="#q39"><span class="num">39</span> /proc filesystem</a>
+    <a class="nav-item" href="#q40"><span class="num">40</span> Namespaces</a>
+    <a class="nav-item" href="#q41"><span class="num">41</span> cgroups</a>
+    <a class="nav-item" href="#q42"><span class="num">42</span> rsync</a>
+    <a class="nav-item" href="#q43"><span class="num">43</span> netplan &amp; nmcli</a>
+
+    <div class="nav-cat" style="margin-top:10px">Expert DevOps · Q 44–50</div>
+    <a class="nav-item" href="#q44"><span class="num">44</span> perf — Profiling</a>
+    <a class="nav-item" href="#q45"><span class="num">45</span> Inode exhaustion</a>
+    <a class="nav-item" href="#q46"><span class="num">46</span> Swap management</a>
+    <a class="nav-item" href="#q47"><span class="num">47</span> Kernel modules</a>
+    <a class="nav-item" href="#q48"><span class="num">48</span> logrotate</a>
+    <a class="nav-item" href="#q49"><span class="num">49</span> nmap &amp; firewall</a>
+    <a class="nav-item" href="#q50"><span class="num">50</span> Load avg deep dive</a>
+  </nav>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-label"><span>Progress</span><span id="progressText">0 / 50</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+</aside>
+
+<!-- ────────── MAIN ────────── -->
+<main id="mainContent">
+  <div class="hero">
+    <div class="hero-eyebrow">cat linux-mastery.sh | bash</div>
+    <h1>50 Linux Questions<br/>for <em>DevOps Engineers</em></h1>
+    <p>Real-world scenarios from CI/CD pipelines to production firefighting. Each question includes command syntax, live examples, and the reasoning behind every flag.</p>
+    <div class="hero-meta">
+      <div class="meta-pill"><span class="dot" style="background:var(--green)"></span>50 Questions</div>
+      <div class="meta-pill"><span class="dot" style="background:var(--blue)"></span>DevOps Focused</div>
+      <div class="meta-pill"><span class="dot" style="background:var(--amber)"></span>Basic → Expert</div>
+    </div>
+  </div>
+
+  <!-- ══════════ BASIC ══════════ -->
+  <div class="category-header" id="section-basic">
+    <span class="cat-badge basic">Basic</span>
+    <span class="cat-title">Filesystem & Navigation</span>
+    <span class="cat-count">Q 01–15</span>
+  </div>
+
+  <!-- Q1 -->
+  <div class="q-card" id="q1">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">01</span>
+      <span class="q-text">Your team deployed a new app to <code>/opt/myapp</code>. How do you quickly see all files including hidden configs, file sizes in human-readable format, and sort them by modification time?</span>
+      <span class="q-cmd">ls</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>ls</strong> lists directory contents. By itself it's basic — but combining flags makes it a powerful audit tool.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-prompt">$</span> <span class="t-cmd">ls</span> <span class="t-flag">-lahtr</span> <span class="t-path">/opt/myapp</span>
+<span class="t-out">total 64K
+drwxr-xr-x 3 root   root   4.0K Jun 10 09:00 ../
+-rw-r--r-- 1 app    app     312 Jun 10 09:01 .env            <span class="t-comment"># hidden config</span>
+-rw-r--r-- 1 app    app    1.2K Jun 15 14:22 config.yaml
+drwxr-xr-x 4 app    app    4.0K Jun 18 10:47 logs/
+-rwxr-xr-x 1 app    app    28K  Jun 19 08:31 server           <span class="t-comment"># newest first (with -r)</span>
+drwxr-xr-x 5 app    app    4.0K Jun 19 08:31 ./</span></div>
+      </div>
+      <p>Flag breakdown: <strong>-l</strong> long format (permissions, owner, size), <strong>-a</strong> show hidden files (dotfiles like <code>.env</code>), <strong>-h</strong> human-readable sizes (K/M/G), <strong>-t</strong> sort by modification time, <strong>-r</strong> reverse so newest appears at the bottom (easiest to see in a terminal).</p>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>In DevOps: use <code>ls -laht | head -20</code> after a deploy to instantly see what changed. Pair with <code>stat filename</code> to get nanosecond-precision timestamps for deployment audits.</p></div>
+      <div class="q-tags"><span class="q-tag">filesystem</span><span class="q-tag">audit</span><span class="q-tag">deploy</span></div>
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="q-card" id="q2">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">02</span>
+      <span class="q-text">You're SSH'd into a production server. How do you find out exactly where you are in the filesystem, and navigate to the app's log directory three levels deep without typing the full path repeatedly?</span>
+      <span class="q-cmd">pwd · cd</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>pwd</strong> (print working directory) and <strong>cd</strong> (change directory) are navigation basics, but knowing the shortcuts saves minutes on live incidents.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-prompt">$</span> <span class="t-cmd">pwd</span>
+<span class="t-out">/home/ubuntu</span>
+
+<span class="t-prompt">$</span> <span class="t-cmd">cd</span> <span class="t-path">/var/log/nginx/access</span>       <span class="t-comment"># absolute path</span>
+<span class="t-prompt">$</span> <span class="t-cmd">cd</span> <span class="t-path">../../</span>                         <span class="t-comment"># go up 2 levels → /var/log</span>
+<span class="t-prompt">$</span> <span class="t-cmd">cd</span> <span class="t-path">-</span>                            <span class="t-comment"># jump back to previous dir</span>
+<span class="t-prompt">$</span> <span class="t-cmd">cd</span> <span class="t-path">~</span>                            <span class="t-comment"># go home always</span>
+<span class="t-prompt">$</span> <span class="t-cmd">pushd</span> <span class="t-path">/etc/nginx</span>               <span class="t-comment"># save current dir onto stack</span>
+<span class="t-prompt">$</span> <span class="t-cmd">popd</span>                             <span class="t-comment"># return to saved dir</span></div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><p><code>cd -</code> is a lifesaver during incidents — it toggles between your last two directories. <code>pushd/popd</code> lets you maintain a directory stack while jumping around multiple config locations.</p></div>
+      <div class="q-tags"><span class="q-tag">navigation</span><span class="q-tag">incident-response</span></div>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="q-card" id="q3">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">03</span>
+      <span class="q-text">A config file has 2,000 lines. How do you read it without opening an editor, and navigate it efficiently? When does <code>cat</code> get you in trouble on production?</span>
+      <span class="q-cmd">cat · less</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>cat</strong> dumps a file to stdout instantly. <strong>less</strong> is a pager — it loads the file lazily, essential for large files or log inspection.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-prompt">$</span> <span class="t-cmd">cat</span> <span class="t-path">/etc/nginx/nginx.conf</span>       <span class="t-comment"># fine for small files</span>
+<span class="t-prompt">$</span> <span class="t-cmd">less</span> <span class="t-flag">+G</span> <span class="t-path">/var/log/app.log</span>       <span class="t-comment"># open at end (like tail)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">less</span> <span class="t-flag">-N</span> <span class="t-path">config.yaml</span>             <span class="t-comment"># show line numbers</span>
+
+<span class="t-comment"># Inside less:</span>
+<span class="t-out">  /pattern   → search forward
+  n          → next match
+  G          → go to end
+  g          → go to beginning
+  q          → quit</span>
+
+<span class="t-comment"># ⚠️ This can crash a terminal or flood a shared session:</span>
+<span class="t-prompt">$</span> <span class="t-cmd">cat</span> <span class="t-path">/var/log/access.log</span>         <span class="t-comment"># 8GB file → disaster</span></div>
+      </div>
+      <div class="tip-box warn"><div class="tip-icon">⚠️</div><p>Never <code>cat</code> a binary file or a file larger than a few MB in a shared terminal session. It can flood stdout with garbage characters that break your terminal — use <code>file myfile</code> first to check the type, then <code>less</code>.</p></div>
+      <div class="q-tags"><span class="q-tag">logs</span><span class="q-tag">config-inspection</span><span class="q-tag">pager</span></div>
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="q-card" id="q4">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">04</span>
+      <span class="q-text">In your CI pipeline script, you need to create a nested directory structure <code>/deploy/v1.2.3/configs/</code> in one command, and later clean up an empty artifacts folder. How?</span>
+      <span class="q-cmd">mkdir · rmdir</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>mkdir</strong> creates directories. The <strong>-p</strong> flag is critical in scripts — it creates parent directories and doesn't fail if the directory already exists.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-prompt">$</span> <span class="t-cmd">mkdir</span> <span class="t-flag">-p</span> <span class="t-path">/deploy/v1.2.3/configs</span>   <span class="t-comment"># create full tree, safe to re-run</span>
+<span class="t-prompt">$</span> <span class="t-cmd">mkdir</span> <span class="t-flag">-p</span> <span class="t-path">build/{assets,logs,tmp}</span>  <span class="t-comment"># brace expansion — create 3 dirs</span>
+
+<span class="t-prompt">$</span> <span class="t-cmd">rmdir</span> <span class="t-path">artifacts/</span>               <span class="t-comment"># only works if empty</span>
+<span class="t-prompt">$</span> <span class="t-cmd">rmdir</span> <span class="t-flag">-p</span> <span class="t-path">a/b/c/</span>                 <span class="t-comment"># remove c, then b, then a if all empty</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>Brace expansion <code>mkdir -p src/{components,hooks,utils}</code> is extremely useful in pipeline bootstrapping. Always use <code>-p</code> in scripts to make them idempotent (safe to re-run).</p></div>
+      <div class="q-tags"><span class="q-tag">ci-cd</span><span class="q-tag">scripting</span><span class="q-tag">idempotent</span></div>
+    </div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="q-card" id="q5">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">05</span>
+      <span class="q-text">Before a risky deployment, you want to back up <code>/etc/nginx/</code> entirely. After the deploy fails, you need to restore it. How do you copy directories recursively and move files atomically?</span>
+      <span class="q-cmd">cp · mv</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>cp</strong> copies files/directories. <strong>mv</strong> moves or renames — crucially, on the same filesystem it's an atomic rename (instant, no data copy).</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Backup before deploy</span>
+<span class="t-prompt">$</span> <span class="t-cmd">cp</span> <span class="t-flag">-a</span> <span class="t-path">/etc/nginx</span> <span class="t-path">/etc/nginx.bak.$(date +%Y%m%d)</span>
+<span class="t-comment"># -a = archive mode: recursive + preserve permissions/timestamps/symlinks</span>
+
+<span class="t-comment"># Restore atomically (zero-downtime swap)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">mv</span> <span class="t-path">/etc/nginx</span> <span class="t-path">/etc/nginx.broken</span>
+<span class="t-prompt">$</span> <span class="t-cmd">mv</span> <span class="t-path">/etc/nginx.bak.20240619</span> <span class="t-path">/etc/nginx</span>
+
+<span class="t-comment"># Copy only newer files (incremental)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">cp</span> <span class="t-flag">-u</span> <span class="t-path">src/*</span> <span class="t-path">dest/</span></div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><p>The <code>mv</code> atomic rename trick is used in zero-downtime deploys: write to <code>app.new</code>, then <code>mv app.new app</code> — readers always see a complete file, never a partial write. On different filesystems, <code>mv</code> becomes a copy+delete and loses atomicity.</p></div>
+      <div class="q-tags"><span class="q-tag">backup</span><span class="q-tag">atomic-deploy</span><span class="q-tag">zero-downtime</span></div>
+    </div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="q-card" id="q6">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">06</span>
+      <span class="q-text">A cleanup script needs to delete all <code>.tmp</code> files older than 7 days in <code>/tmp</code>. How do you do it safely without accidentally removing the wrong files?</span>
+      <span class="q-cmd">rm · find</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>rm</strong> is permanent — no trash, no undo. The safe pattern for bulk deletes: always dry-run with <code>find</code> first, then pipe to delete.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Step 1: dry-run — see what WOULD be deleted</span>
+<span class="t-prompt">$</span> <span class="t-cmd">find</span> <span class="t-path">/tmp</span> <span class="t-flag">-name</span> <span class="t-highlight">"*.tmp"</span> <span class="t-flag">-mtime +7</span> <span class="t-flag">-type f</span>
+<span class="t-out">/tmp/build_cache_abc.tmp
+/tmp/session_old.tmp</span>
+
+<span class="t-comment"># Step 2: actually delete</span>
+<span class="t-prompt">$</span> <span class="t-cmd">find</span> <span class="t-path">/tmp</span> <span class="t-flag">-name</span> <span class="t-highlight">"*.tmp"</span> <span class="t-flag">-mtime +7</span> <span class="t-flag">-type f</span> <span class="t-flag">-delete</span>
+
+<span class="t-comment"># Remove a directory tree (use with extreme caution)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">rm</span> <span class="t-flag">-rf</span> <span class="t-path">/tmp/build_artifacts/</span></div>
+      </div>
+      <div class="tip-box warn"><div class="tip-icon">⚠️</div><p>Never <code>rm -rf /</code> or <code>rm -rf $VAR/</code> if <code>$VAR</code> might be empty. Always quote variables: <code>rm -rf "${DIR}/"</code>. Consider <code>set -u</code> at the top of scripts to error on unset variables.</p></div>
+      <div class="q-tags"><span class="q-tag">cleanup</span><span class="q-tag">cron</span><span class="q-tag">safe-delete</span></div>
+    </div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="q-card" id="q7">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">07</span>
+      <span class="q-text">Your app binary needs to be executable by the app user only, config files readable by group but not others, and a script needs SUID. How do you manage Linux permissions?</span>
+      <span class="q-cmd">chmod · chown</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p>Linux permissions: every file has owner/group/others with read(4), write(2), execute(1) bits. <strong>chmod</strong> changes permissions, <strong>chown</strong> changes owner.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># App binary: rwx for owner, nothing for group/others</span>
+<span class="t-prompt">$</span> <span class="t-cmd">chmod</span> <span class="t-highlight">700</span> <span class="t-path">/opt/myapp/server</span>
+
+<span class="t-comment"># Config: rw-r----- (owner rw, group r, others none)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">chmod</span> <span class="t-highlight">640</span> <span class="t-path">/opt/myapp/.env</span>
+
+<span class="t-comment"># Symbolic mode (easier to read)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">chmod</span> <span class="t-flag">u+x,g-w,o=</span> <span class="t-path">script.sh</span>
+
+<span class="t-comment"># Change owner to app:appgroup recursively</span>
+<span class="t-prompt">$</span> <span class="t-cmd">chown</span> <span class="t-flag">-R</span> <span class="t-highlight">app:app</span> <span class="t-path">/opt/myapp/</span>
+
+<span class="t-comment"># Verify</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ls -la</span> <span class="t-path">/opt/myapp/</span>
+<span class="t-out">-rwx------  app  app  server
+-rw-r-----  app  app  .env</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>Quick mnemonic: <strong>7=rwx, 6=rw-, 5=r-x, 4=r--</strong>. The digits are owner/group/others. For secrets like <code>.env</code> or SSL keys: always <code>600</code> (only owner reads/writes).</p></div>
+      <div class="q-tags"><span class="q-tag">security</span><span class="q-tag">permissions</span><span class="q-tag">secrets</span></div>
+    </div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="q-card" id="q8">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">08</span>
+      <span class="q-text">Production logs are showing 500 errors. You need to find all lines containing "ERROR" in the last hour's logs, case-insensitively, and exclude health-check noise. How do you grep effectively?</span>
+      <span class="q-cmd">grep</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>grep</strong> searches text using patterns (basic regex by default). It's one of the most-used commands in log analysis and incident response.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Case-insensitive search</span>
+<span class="t-prompt">$</span> <span class="t-cmd">grep</span> <span class="t-flag">-i</span> <span class="t-highlight">"error"</span> <span class="t-path">app.log</span>
+
+<span class="t-comment"># Exclude health-check noise, show line numbers</span>
+<span class="t-prompt">$</span> <span class="t-cmd">grep</span> <span class="t-flag">-in</span> <span class="t-highlight">"error"</span> <span class="t-path">app.log</span> | <span class="t-cmd">grep</span> <span class="t-flag">-v</span> <span class="t-highlight">"healthcheck"</span>
+
+<span class="t-comment"># Search recursively across all log files</span>
+<span class="t-prompt">$</span> <span class="t-cmd">grep</span> <span class="t-flag">-r</span> <span class="t-highlight">"OutOfMemory"</span> <span class="t-path">/var/log/</span>
+
+<span class="t-comment"># Show 3 lines before and after for context</span>
+<span class="t-prompt">$</span> <span class="t-cmd">grep</span> <span class="t-flag">-C 3</span> <span class="t-highlight">"NullPointerException"</span> <span class="t-path">app.log</span>
+
+<span class="t-comment"># Count occurrences</span>
+<span class="t-prompt">$</span> <span class="t-cmd">grep</span> <span class="t-flag">-c</span> <span class="t-highlight">"500"</span> <span class="t-path">access.log</span>
+<span class="t-out">342</span>
+
+<span class="t-comment"># Extended regex: match ERROR or WARN</span>
+<span class="t-prompt">$</span> <span class="t-cmd">grep</span> <span class="t-flag">-E</span> <span class="t-highlight">"ERROR|WARN"</span> <span class="t-path">app.log</span></div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><p>Use <code>grep -v</code> to invert (exclude). Flags: <code>-A N</code> after, <code>-B N</code> before, <code>-C N</code> context. For binary logs, add <code>-a</code> to force text mode. <code>grep -l</code> returns only filenames with matches — great for scripting.</p></div>
+      <div class="q-tags"><span class="q-tag">log-analysis</span><span class="q-tag">incident-response</span><span class="q-tag">regex</span></div>
+    </div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="q-card" id="q9">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">09</span>
+      <span class="q-text">A security audit requires finding all SUID binaries on the system and all files modified in the last 24 hours under <code>/etc</code>. How do you use <code>find</code> for this?</span>
+      <span class="q-cmd">find</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>find</strong> traverses the filesystem with rich filtering: by name, type, permissions, timestamps, size, owner, and more — all combinable with AND/OR logic.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Find all SUID binaries (security audit)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">find</span> <span class="t-path">/</span> <span class="t-flag">-perm /4000</span> <span class="t-flag">-type f</span> 2>/dev/null
+<span class="t-out">/usr/bin/sudo
+/usr/bin/passwd
+/usr/bin/su</span>
+
+<span class="t-comment"># Files modified in /etc in last 24h</span>
+<span class="t-prompt">$</span> <span class="t-cmd">find</span> <span class="t-path">/etc</span> <span class="t-flag">-mtime -1</span> <span class="t-flag">-type f</span>
+
+<span class="t-comment"># Find large files >100MB (disk cleanup)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">find</span> <span class="t-path">/var</span> <span class="t-flag">-size +100M</span> <span class="t-flag">-type f</span> <span class="t-flag">-ls</span>
+
+<span class="t-comment"># Execute action: compress old logs</span>
+<span class="t-prompt">$</span> <span class="t-cmd">find</span> <span class="t-path">/var/log</span> <span class="t-flag">-name</span> <span class="t-highlight">"*.log"</span> <span class="t-flag">-mtime +30</span> <span class="t-flag">-exec gzip {} \;</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p><code>-mtime -1</code> means "modified less than 1 day ago". <code>+1</code> means "more than 1 day ago". Always redirect stderr <code>2>/dev/null</code> to suppress permission denied messages on system-wide finds.</p></div>
+      <div class="q-tags"><span class="q-tag">security-audit</span><span class="q-tag">suid</span><span class="q-tag">disk-management</span></div>
+    </div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="q-card" id="q10">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">10</span>
+      <span class="q-text">In a deploy script, you need to print a colored status message and write a multi-line config snippet to a file without opening an editor. How do you use echo and heredocs?</span>
+      <span class="q-cmd">echo · heredoc</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>echo</strong> prints text. Heredocs (<code>&lt;&lt;EOF</code>) write multi-line content inline in scripts — essential for generating configs on the fly.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Colored output in CI/CD scripts</span>
+<span class="t-prompt">$</span> <span class="t-cmd">echo</span> <span class="t-flag">-e</span> <span class="t-highlight">"\033[32m✔ Deploy successful\033[0m"</span>
+<span class="t-out"><span style="color:var(--green)">✔ Deploy successful</span></span>
+
+<span class="t-comment"># Write nginx config from a script (heredoc)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">cat</span> > <span class="t-path">/etc/nginx/conf.d/app.conf</span> <<EOF
+server {
+    listen 80;
+    server_name myapp.com;
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+    }
+}
+EOF
+
+<span class="t-comment"># Append without overwrite</span>
+<span class="t-prompt">$</span> <span class="t-cmd">echo</span> <span class="t-highlight">"APP_VERSION=1.2.3"</span> >> <span class="t-path">.env</span></div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><p>Use <code>&lt;&lt;'EOF'</code> (quoted) to prevent variable expansion inside heredocs — useful when writing scripts that contain <code>$variables</code> meant for another context (like a Kubernetes manifest). <code>&lt;&lt;-EOF</code> strips leading tabs for clean indentation.</p></div>
+      <div class="q-tags"><span class="q-tag">scripting</span><span class="q-tag">config-gen</span><span class="q-tag">ci-cd</span></div>
+    </div>
+  </div>
+
+  <!-- Q11 -->
+  <div class="q-card" id="q11">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">11</span>
+      <span class="q-text">You're on a minimal cloud instance with no internet. How do you look up what a command does, find all flags for <code>tar</code>, and search for commands related to "network"?</span>
+      <span class="q-cmd">man · --help · apropos</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p>Linux has a built-in documentation system. Knowing how to navigate it means you're never truly without a reference, even in airgapped environments.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Full manual (navigate with / to search, q to quit)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">man</span> tar
+
+<span class="t-comment"># Quick flag summary</span>
+<span class="t-prompt">$</span> tar <span class="t-flag">--help</span> | <span class="t-cmd">less</span>
+
+<span class="t-comment"># Search man pages by keyword</span>
+<span class="t-prompt">$</span> <span class="t-cmd">apropos</span> <span class="t-highlight">network</span>
+<span class="t-out">ifconfig (8)     - configure a network interface
+ip (8)           - show/manipulate routing, devices
+netstat (8)      - print network connections</span>
+
+<span class="t-comment"># Open specific section (e.g. system calls vs commands)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">man</span> <span class="t-highlight">2</span> open       <span class="t-comment"># section 2 = system calls</span>
+<span class="t-prompt">$</span> <span class="t-cmd">man</span> <span class="t-highlight">5</span> crontab    <span class="t-comment"># section 5 = file formats</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>Man page sections: 1=user commands, 2=syscalls, 3=library functions, 5=file formats, 8=sysadmin commands. <code>tldr tar</code> (if installed) gives practical examples — great complement to the full man page.</p></div>
+      <div class="q-tags"><span class="q-tag">documentation</span><span class="q-tag">offline</span><span class="q-tag">reference</span></div>
+    </div>
+  </div>
+
+  <!-- Q12 -->
+  <div class="q-card" id="q12">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">12</span>
+      <span class="q-text">You want to watch live errors streaming in from an app log, and also grab just the last 50 lines of a rotated log file. How do you use head and tail for real-time monitoring?</span>
+      <span class="q-cmd">head · tail</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>tail -f</strong> is the go-to for live log monitoring — it blocks and streams new lines as they appear. <strong>head</strong> shows the beginning of files.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Live log stream (Ctrl+C to stop)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tail</span> <span class="t-flag">-f</span> <span class="t-path">/var/log/nginx/error.log</span>
+
+<span class="t-comment"># Follow AND filter (show only 500 errors live)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tail</span> <span class="t-flag">-f</span> <span class="t-path">app.log</span> | <span class="t-cmd">grep</span> <span class="t-flag">--line-buffered</span> <span class="t-highlight">"ERROR"</span>
+
+<span class="t-comment"># Follow even if file is rotated (Docker logs)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tail</span> <span class="t-flag">-F</span> <span class="t-path">/var/log/app.log</span>   <span class="t-comment"># capital F reopens if rotated</span>
+
+<span class="t-comment"># Last 50 lines of compressed log</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tail</span> <span class="t-flag">-n 50</span> <span class="t-path">app.log.1</span>
+
+<span class="t-comment"># Show first 10 lines of all files in dir</span>
+<span class="t-prompt">$</span> <span class="t-cmd">head</span> <span class="t-path">/etc/nginx/conf.d/*.conf</span></div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><p>Use <strong>-F</strong> (capital) instead of <strong>-f</strong> when following logs managed by logrotate — <code>-F</code> reopens the file by name when it detects the inode changes, ensuring you keep watching even after rotation.</p></div>
+      <div class="q-tags"><span class="q-tag">monitoring</span><span class="q-tag">log-tailing</span><span class="q-tag">logrotate</span></div>
+    </div>
+  </div>
+
+  <!-- Q13 -->
+  <div class="q-card" id="q13">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">13</span>
+      <span class="q-text">In a post-deploy sanity check, you need to count how many HTTP 500 errors occurred in today's access log, and how many unique IPs are in it. What's your one-liner?</span>
+      <span class="q-cmd">wc · cut · sort</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>wc</strong> counts words/lines/bytes. Combine it with pipes to build quick log analytics without any external tools.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Count 500 errors</span>
+<span class="t-prompt">$</span> <span class="t-cmd">grep</span> <span class="t-highlight">" 500 "</span> <span class="t-path">access.log</span> | <span class="t-cmd">wc</span> <span class="t-flag">-l</span>
+<span class="t-out">47</span>
+
+<span class="t-comment"># Unique IPs (field 1 in nginx access log)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">cut</span> <span class="t-flag">-d' ' -f1</span> <span class="t-path">access.log</span> | <span class="t-cmd">sort</span> <span class="t-flag">-u</span> | <span class="t-cmd">wc</span> <span class="t-flag">-l</span>
+<span class="t-out">1203</span>
+
+<span class="t-comment"># Top 10 IPs by request count</span>
+<span class="t-prompt">$</span> <span class="t-cmd">cut</span> <span class="t-flag">-d' ' -f1</span> <span class="t-path">access.log</span> | <span class="t-cmd">sort</span> | <span class="t-cmd">uniq</span> <span class="t-flag">-c</span> | <span class="t-cmd">sort</span> <span class="t-flag">-rn</span> | <span class="t-cmd">head</span> <span class="t-flag">-10</span>
+<span class="t-out">   8921 203.0.113.42
+   3441 198.51.100.7
+    892 192.168.1.1</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>This pattern — cut → sort → uniq -c → sort -rn → head — is a classic DevOps one-liner for finding top offenders (IPs, endpoints, error codes) in any structured log without needing ELK or Datadog.</p></div>
+      <div class="q-tags"><span class="q-tag">log-analytics</span><span class="q-tag">access-log</span><span class="q-tag">one-liner</span></div>
+    </div>
+  </div>
+
+  <!-- Q14 -->
+  <div class="q-card" id="q14">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">14</span>
+      <span class="q-text">You have a list of deployed microservice versions from two sources that might overlap. How do you combine them, remove duplicates, and sort by version number?</span>
+      <span class="q-cmd">sort · uniq · comm</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>sort</strong> and <strong>uniq</strong> are typically used together: sort groups identical lines, then uniq collapses them. <strong>comm</strong> compares two sorted files.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Combine, deduplicate, sort</span>
+<span class="t-prompt">$</span> <span class="t-cmd">cat</span> <span class="t-path">source1.txt source2.txt</span> | <span class="t-cmd">sort</span> <span class="t-flag">-u</span>
+
+<span class="t-comment"># Sort by version number (numeric, 2nd field)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">sort</span> <span class="t-flag">-t. -k1,1n -k2,2n -k3,3n</span> <span class="t-path">versions.txt</span>
+<span class="t-out">1.2.0
+1.10.1
+2.0.0</span>
+
+<span class="t-comment"># Lines only in source1 (set difference)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">comm</span> <span class="t-flag">-23</span> <span class="t-path">source1_sorted.txt source2_sorted.txt</span>
+
+<span class="t-comment"># Show duplicates only</span>
+<span class="t-prompt">$</span> <span class="t-cmd">sort</span> <span class="t-path">combined.txt</span> | <span class="t-cmd">uniq</span> <span class="t-flag">-d</span></div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><p><code>sort -V</code> (version sort) handles version strings naturally: <code>1.2.10</code> sorts after <code>1.2.9</code> correctly, which numeric sort gets wrong. Use it for any version-string comparison in release pipelines.</p></div>
+      <div class="q-tags"><span class="q-tag">data-processing</span><span class="q-tag">versioning</span><span class="q-tag">pipeline</span></div>
+    </div>
+  </div>
+
+  <!-- Q15 -->
+  <div class="q-card" id="q15">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">15</span>
+      <span class="q-text">Explain stdin, stdout, stderr and how to redirect them. How do you capture both output and errors from a CI build command into separate files while also showing it on screen?</span>
+      <span class="q-cmd">pipes · redirect</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p>Every process has 3 file descriptors: <strong>stdin(0)</strong>, <strong>stdout(1)</strong>, <strong>stderr(2)</strong>. Mastering redirection is foundational for CI scripts and log capture.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Separate stdout and stderr</span>
+<span class="t-prompt">$</span> <span class="t-cmd">make build</span> >build.log 2>build.err
+
+<span class="t-comment"># Merge stderr into stdout</span>
+<span class="t-prompt">$</span> <span class="t-cmd">npm run build</span> >all.log <span class="t-highlight">2>&1</span>
+
+<span class="t-comment"># Show on screen AND save (tee)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">make build</span> <span class="t-highlight">2>&1</span> | <span class="t-cmd">tee</span> build.log
+
+<span class="t-comment"># Discard output (suppress noise)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">some_noisy_cmd</span> > /dev/null 2>&1
+
+<span class="t-comment"># Process substitution (compare two command outputs)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">diff</span> <span class="t-highlight">&lt;(ls dir1/) &lt;(ls dir2/)</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p><code>tee</code> is essential in CI pipelines: it streams output to the terminal in real-time (so GitHub Actions shows live logs) while simultaneously writing to a file. Use <code>tee -a</code> to append.</p></div>
+      <div class="q-tags"><span class="q-tag">redirection</span><span class="q-tag">ci-cd</span><span class="q-tag">pipes</span><span class="q-tag">tee</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════ INTERMEDIATE ══════════ -->
+  <div class="category-header" id="section-inter">
+    <span class="cat-badge inter">Intermediate</span>
+    <span class="cat-title">Processes, Services & Networking</span>
+    <span class="cat-count">Q 16–30</span>
+  </div>
+
+  <!-- Q16 -->
+  <div class="q-card" id="q16">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">16</span>
+      <span class="q-text">Your app is consuming 100% CPU. How do you find all related processes, see their full command lines, and understand the process hierarchy (parent/child)?</span>
+      <span class="q-cmd">ps</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>ps</strong> (process status) shows a snapshot of running processes. Unlike <code>top</code>, it's scriptable and works well in pipelines.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Show all processes, full format</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ps</span> <span class="t-flag">aux</span>
+<span class="t-out">USER    PID  %CPU %MEM    VSZ   RSS  STAT  COMMAND
+app    1234  99.5  2.1  512M  85M   R     node /opt/app/server.js</span>
+
+<span class="t-comment"># Process tree (parent/child relationships)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ps</span> <span class="t-flag">auxf</span>
+<span class="t-out">root        1   0.0  systemd
+└─ app   1234  99.5  node server.js
+   └─ app 1235   0.0  node worker.js</span>
+
+<span class="t-comment"># Find process by name</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ps</span> <span class="t-flag">aux</span> | <span class="t-cmd">grep</span> <span class="t-highlight">nginx</span>
+
+<span class="t-comment"># Custom output: PID, CPU, MEM, command</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ps</span> <span class="t-flag">-eo pid,pcpu,pmem,comm</span> | <span class="t-cmd">sort</span> <span class="t-flag">-k2 -rn</span> | <span class="t-cmd">head</span></div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><p><code>pstree -p</code> gives a cleaner tree view. <code>pgrep nginx</code> returns just PIDs. <code>pidof nginx</code> also works. In containers, remember <code>ps</code> shows only the container's process namespace by default.</p></div>
+      <div class="q-tags"><span class="q-tag">process-management</span><span class="q-tag">cpu-debug</span><span class="q-tag">monitoring</span></div>
+    </div>
+  </div>
+
+  <!-- Q17 -->
+  <div class="q-card" id="q17">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">17</span>
+      <span class="q-text">A runaway worker process is consuming all memory. How do you kill it gracefully first, then forcefully if it doesn't respond? What's the difference between signals?</span>
+      <span class="q-cmd">kill · signals</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p>Signals are asynchronous messages to processes. Different signals trigger different behaviors — choosing the right one matters for clean shutdowns.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Graceful shutdown (SIGTERM=15) — app can clean up</span>
+<span class="t-prompt">$</span> <span class="t-cmd">kill</span> <span class="t-flag">-15</span> 1234         <span class="t-comment"># or: kill 1234 (default is TERM)</span>
+
+<span class="t-comment"># Force kill (SIGKILL=9) — cannot be caught or ignored</span>
+<span class="t-prompt">$</span> <span class="t-cmd">kill</span> <span class="t-flag">-9</span> 1234
+
+<span class="t-comment"># Kill by name (all matching processes)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">pkill</span> <span class="t-flag">-f</span> <span class="t-highlight">"node server"</span>
+
+<span class="t-comment"># Reload config without restart (SIGHUP)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">kill</span> <span class="t-flag">-HUP</span> $(cat /var/run/nginx.pid)
+
+<span class="t-comment"># Common signals:</span>
+<span class="t-out">  SIGTERM (15) → graceful shutdown (default kill)
+  SIGKILL  (9) → immediate, unblockable
+  SIGHUP   (1) → reload config
+  SIGINT   (2) → like Ctrl+C
+  SIGUSR1/2   → user-defined (nginx: reopen logs)</span></div>
+      </div>
+      <div class="tip-box warn"><div class="tip-icon">⚠️</div><p>Never jump straight to <code>kill -9</code>. It bypasses cleanup handlers — the process can't flush buffers, release locks, or save state. Always try SIGTERM first, wait 5–10 seconds, then escalate to SIGKILL.</p></div>
+      <div class="q-tags"><span class="q-tag">process-management</span><span class="q-tag">signals</span><span class="q-tag">graceful-shutdown</span></div>
+    </div>
+  </div>
+
+  <!-- Q18 -->
+  <div class="q-card" id="q18">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">18</span>
+      <span class="q-text">Production instance is sluggish. How do you quickly identify which process is eating CPU/memory in real time, and what does load average actually mean?</span>
+      <span class="q-cmd">top · htop</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>top</strong> is the classic interactive process monitor. <strong>htop</strong> (if available) adds colors, mouse support, and easier killing. Understanding load average is crucial for capacity decisions.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-prompt">$</span> <span class="t-cmd">top</span>
+<span class="t-out">load average: 3.42, 2.91, 2.15    <span class="t-comment">← 1min, 5min, 15min</span>
+Tasks: 142 total,   2 running
+%Cpu: 89.2 us,  4.1 sy,  0.0 ni,  6.3 id
+
+  PID  USER  %CPU %MEM  COMMAND
+ 1234   app  88.1  3.2  node
+  892  root   2.1  0.4  containerd</span>
+
+<span class="t-comment"># Useful top keypresses:</span>
+<span class="t-out">  P → sort by CPU
+  M → sort by memory
+  k → kill selected PID
+  1 → show per-CPU breakdown
+  q → quit</span>
+
+<span class="t-comment"># Non-interactive snapshot (for scripts)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">top</span> <span class="t-flag">-bn1</span> | <span class="t-cmd">head</span> <span class="t-flag">-20</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>Load average = average number of processes wanting CPU. On a <strong>4-core</strong> machine: load 4.0 = 100% utilized, load &gt;4 = overloaded. Check <code>nproc</code> for core count. A load average <em>lower than</em> nproc with high CPU% per process usually means one thread is the bottleneck — not total saturation.</p></div>
+      <div class="q-tags"><span class="q-tag">performance</span><span class="q-tag">load-average</span><span class="q-tag">incident-response</span></div>
+    </div>
+  </div>
+
+  <!-- Q19 -->
+  <div class="q-card" id="q19">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">19</span>
+      <span class="q-text">Disk alert fires at 95% full on a prod server. How do you find which filesystem is full, and then drill down to find the largest directories consuming space?</span>
+      <span class="q-cmd">df · du</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>df</strong> shows filesystem-level disk usage. <strong>du</strong> shows directory/file sizes — together they're the standard disk firefighting toolkit.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Which filesystems are full?</span>
+<span class="t-prompt">$</span> <span class="t-cmd">df</span> <span class="t-flag">-h</span>
+<span class="t-out">Filesystem      Size  Used Avail Use% Mounted on
+/dev/xvda1       50G   48G  2.0G  96% /
+/dev/xvdb        20G  1.2G   19G   7% /data</span>
+
+<span class="t-comment"># Top 10 largest directories in /var</span>
+<span class="t-prompt">$</span> <span class="t-cmd">du</span> <span class="t-flag">-sh</span> <span class="t-path">/var/*</span> | <span class="t-cmd">sort</span> <span class="t-flag">-rh</span> | <span class="t-cmd">head</span> <span class="t-flag">-10</span>
+<span class="t-out">38G  /var/log
+4.5G /var/lib
+800M /var/cache</span>
+
+<span class="t-comment"># Drill deeper into /var/log</span>
+<span class="t-prompt">$</span> <span class="t-cmd">du</span> <span class="t-flag">-sh</span> <span class="t-path">/var/log/*</span> | <span class="t-cmd">sort</span> <span class="t-flag">-rh</span> | <span class="t-cmd">head</span>
+<span class="t-out">35G  /var/log/app.log   <span class="t-comment">← found it!</span></span></div>
+      </div>
+      <div class="tip-box warn"><div class="tip-icon">⚠️</div><p>A disk can show 100% full but <code>du</code> doesn't add up — this often means a deleted file is still held open by a running process. Find it with <code>lsof | grep deleted</code> and restart the holding process to release the space.</p></div>
+      <div class="q-tags"><span class="q-tag">disk-management</span><span class="q-tag">incident-response</span><span class="q-tag">storage</span></div>
+    </div>
+  </div>
+
+  <!-- Q20 -->
+  <div class="q-card" id="q20">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">20</span>
+      <span class="q-text">Your CI pipeline needs to create a compressed archive of build artifacts, then on the deployment server extract only specific files from it without unpacking everything. How do you wield tar?</span>
+      <span class="q-cmd">tar</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>tar</strong> (tape archive) bundles files. With compression flags it's the standard format for Linux build artifacts, backups, and container layer tarballs.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Create gzipped archive</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tar</span> <span class="t-flag">-czf</span> <span class="t-path">artifacts-v1.2.tar.gz</span> <span class="t-path">./dist</span>
+<span class="t-comment">#     c=create z=gzip f=filename</span>
+
+<span class="t-comment"># List contents without extracting</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tar</span> <span class="t-flag">-tzf</span> <span class="t-path">artifacts-v1.2.tar.gz</span>
+<span class="t-out">dist/index.html
+dist/assets/main.js
+dist/config/app.yaml</span>
+
+<span class="t-comment"># Extract only config files</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tar</span> <span class="t-flag">-xzf</span> <span class="t-path">artifacts-v1.2.tar.gz</span> <span class="t-highlight">dist/config/</span>
+
+<span class="t-comment"># Extract to specific directory</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tar</span> <span class="t-flag">-xzf</span> <span class="t-path">artifacts-v1.2.tar.gz</span> <span class="t-flag">-C</span> <span class="t-path">/opt/deploy/</span>
+
+<span class="t-comment"># Use bzip2 (smaller, slower) or xz (smallest)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tar</span> <span class="t-flag">-cJf</span> archive.tar.xz dist/    <span class="t-comment"># J = xz</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>Memory aid: <strong>czf</strong> = Create Zip File, <strong>xzf</strong> = eXtract Zip File, <strong>tzf</strong> = lisT Zip File. Always add <strong>v</strong> flag while debugging (verbose), drop it in CI scripts to reduce noise.</p></div>
+      <div class="q-tags"><span class="q-tag">ci-cd</span><span class="q-tag">artifacts</span><span class="q-tag">archiving</span></div>
+    </div>
+  </div>
+
+  <!-- Q21 -->
+  <div class="q-card" id="q21">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">21</span>
+      <span class="q-text">You need to SSH into a bastion host, then jump from there to a private instance that has no public IP. How do you configure SSH to do this transparently in one command?</span>
+      <span class="q-cmd">ssh · ProxyJump</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>ssh</strong> with jump hosts and <code>~/.ssh/config</code> aliases are essential for managing cloud infrastructure with private networking.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># One-liner jump host</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ssh</span> <span class="t-flag">-J ubuntu@bastion.myco.com</span> <span class="t-highlight">ubuntu@10.0.1.50</span>
+
+<span class="t-comment"># ~/.ssh/config (the clean way)</span>
+<span class="t-out">Host bastion
+    HostName bastion.myco.com
+    User ubuntu
+    IdentityFile ~/.ssh/id_rsa
+
+Host private-app
+    HostName 10.0.1.50
+    User ubuntu
+    ProxyJump bastion
+    IdentityFile ~/.ssh/id_rsa</span>
+
+<span class="t-comment"># Now just:</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ssh</span> <span class="t-highlight">private-app</span>
+
+<span class="t-comment"># Copy file through bastion to private host</span>
+<span class="t-prompt">$</span> <span class="t-cmd">scp</span> <span class="t-flag">-J bastion</span> <span class="t-path">app.tar.gz</span> <span class="t-highlight">ubuntu@10.0.1.50:/opt/</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>Add <code>ServerAliveInterval 60</code> and <code>ServerAliveCountMax 3</code> to your SSH config to prevent long-running sessions (like deploys) from being dropped by NAT timeouts on cloud providers.</p></div>
+      <div class="q-tags"><span class="q-tag">ssh</span><span class="q-tag">bastion</span><span class="q-tag">private-networking</span><span class="q-tag">aws</span></div>
+    </div>
+  </div>
+
+  <!-- Q22 -->
+  <div class="q-card" id="q22">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">22</span>
+      <span class="q-text">You need to check if an external API is reachable from a server, download a file with resume support, and post JSON to a webhook — all from the terminal. When do you use curl vs wget?</span>
+      <span class="q-cmd">curl · wget</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>curl</strong> is a full HTTP client (headers, methods, auth, streaming). <strong>wget</strong> is focused on downloading files with retry/resume. Both are essential DevOps tools.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Check API health + show status code</span>
+<span class="t-prompt">$</span> <span class="t-cmd">curl</span> <span class="t-flag">-o /dev/null -s -w "%{http_code}\n"</span> <span class="t-highlight">https://api.myapp.com/health</span>
+<span class="t-out">200</span>
+
+<span class="t-comment"># POST JSON to webhook</span>
+<span class="t-prompt">$</span> <span class="t-cmd">curl</span> <span class="t-flag">-X POST</span> <span class="t-flag">-H "Content-Type: application/json"</span> \
+       <span class="t-flag">-d '{"event":"deploy","version":"1.2.3"}'</span> \
+       <span class="t-highlight">https://hooks.slack.com/services/xxx</span>
+
+<span class="t-comment"># Download with resume (wget)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">wget</span> <span class="t-flag">-c</span> <span class="t-highlight">https://releases.hashicorp.com/terraform/1.7.0/tf.zip</span>
+
+<span class="t-comment"># Follow redirects, fail on HTTP errors</span>
+<span class="t-prompt">$</span> <span class="t-cmd">curl</span> <span class="t-flag">-fsSL</span> <span class="t-highlight">https://get.docker.com</span> | bash</div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><p><code>curl -fsSL</code> flags: <code>-f</code> fail on error (non-2xx), <code>-s</code> silent (no progress), <code>-S</code> show errors, <code>-L</code> follow redirects. This combo is the safe standard for piping install scripts. Use <code>curl -I URL</code> to fetch headers only (fast health check).</p></div>
+      <div class="q-tags"><span class="q-tag">http</span><span class="q-tag">api-testing</span><span class="q-tag">webhook</span><span class="q-tag">downloading</span></div>
+    </div>
+  </div>
+
+  <!-- Q23 -->
+  <div class="q-card" id="q23">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">23</span>
+      <span class="q-text">After deploying your app as a systemd service, it crashes on startup. How do you check its status, view logs, enable auto-start on boot, and reload the config without a restart?</span>
+      <span class="q-cmd">systemctl</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>systemctl</strong> is the control interface for systemd — the init system on all modern Linux distros. It manages service lifecycle, dependencies, and boot targets.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Check status with recent logs</span>
+<span class="t-prompt">$</span> <span class="t-cmd">systemctl status</span> <span class="t-highlight">myapp</span>
+<span class="t-out">● myapp.service - My Application
+   Loaded: loaded (/etc/systemd/system/myapp.service; enabled)
+   Active: failed (Result: exit-code) since ...
+  Process: 1234 ExecStart=/opt/myapp/server (code=exited, status=1)
+Jun 19 10:00:01 server myapp[1234]: Error: cannot bind to port 80</span>
+
+<span class="t-comment"># Enable on boot + start now</span>
+<span class="t-prompt">$</span> <span class="t-cmd">systemctl enable --now</span> myapp
+
+<span class="t-comment"># Reload unit file after editing</span>
+<span class="t-prompt">$</span> <span class="t-cmd">systemctl daemon-reload</span>
+<span class="t-prompt">$</span> <span class="t-cmd">systemctl restart</span> myapp
+
+<span class="t-comment"># Reload app config (if supported via SIGHUP)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">systemctl reload</span> nginx
+
+<span class="t-comment"># List all failed services</span>
+<span class="t-prompt">$</span> <span class="t-cmd">systemctl --failed</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>After editing a <code>.service</code> file, you <strong>must</strong> run <code>systemctl daemon-reload</code> before the changes take effect — systemd caches unit files in memory. Skipping this is a common source of confusion.</p></div>
+      <div class="q-tags"><span class="q-tag">systemd</span><span class="q-tag">services</span><span class="q-tag">boot</span><span class="q-tag">deploy</span></div>
+    </div>
+  </div>
+
+  <!-- Q24 -->
+  <div class="q-card" id="q24">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">24</span>
+      <span class="q-text">A service crashed at 3am. How do you view its logs from that specific time window, filter by severity, and export them to a file for a post-mortem report?</span>
+      <span class="q-cmd">journalctl</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>journalctl</strong> queries the systemd journal — a structured, indexed log store that survives logrotate and supports time-based, unit-based, and priority filtering.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Logs for a specific time window</span>
+<span class="t-prompt">$</span> <span class="t-cmd">journalctl</span> <span class="t-flag">-u myapp</span> <span class="t-flag">--since "2024-06-19 03:00:00"</span> <span class="t-flag">--until "2024-06-19 03:30:00"</span>
+
+<span class="t-comment"># Only errors and above (emerg,alert,crit,err)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">journalctl</span> <span class="t-flag">-u myapp</span> <span class="t-flag">-p err</span>
+
+<span class="t-comment"># Follow live (like tail -f)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">journalctl</span> <span class="t-flag">-u myapp -f</span>
+
+<span class="t-comment"># Export as plain text for post-mortem</span>
+<span class="t-prompt">$</span> <span class="t-cmd">journalctl</span> <span class="t-flag">-u myapp</span> <span class="t-flag">--since "2024-06-19 03:00"</span> <span class="t-flag">--no-pager</span> > postmortem-logs.txt
+
+<span class="t-comment"># How much disk journal is using</span>
+<span class="t-prompt">$</span> <span class="t-cmd">journalctl</span> <span class="t-flag">--disk-usage</span>
+<span class="t-out">Archived and active journals take up 2.3G</span></div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><p>Priority levels: <code>0</code>=emerg, <code>1</code>=alert, <code>2</code>=crit, <code>3</code>=err, <code>4</code>=warning, <code>5</code>=notice, <code>6</code>=info, <code>7</code>=debug. Use <code>-p 0..3</code> to see everything critical and above. Set <code>SystemMaxUse=500M</code> in <code>/etc/systemd/journald.conf</code> to cap disk usage.</p></div>
+      <div class="q-tags"><span class="q-tag">logging</span><span class="q-tag">post-mortem</span><span class="q-tag">systemd</span><span class="q-tag">incident</span></div>
+    </div>
+  </div>
+
+  <!-- Q25 -->
+  <div class="q-card" id="q25">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">25</span>
+      <span class="q-text">Your app reads database credentials from environment variables. How do you set them for the current session, persist them, and pass them into a process without exposing them in <code>ps aux</code>?</span>
+      <span class="q-cmd">env · export</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p>Environment variables are the standard way to configure applications in containerized and 12-factor architectures. Handling them securely matters.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Set and export to child processes</span>
+<span class="t-prompt">$</span> <span class="t-cmd">export</span> DB_PASSWORD="s3cr3t"
+<span class="t-prompt">$</span> <span class="t-cmd">export</span> DB_HOST="db.internal"
+
+<span class="t-comment"># Pass inline without polluting shell env</span>
+<span class="t-prompt">$</span> DB_PASSWORD="s3cr3t" <span class="t-highlight">node server.js</span>
+
+<span class="t-comment"># Load from .env file</span>
+<span class="t-prompt">$</span> <span class="t-cmd">set -a</span>; <span class="t-cmd">source</span> <span class="t-path">.env</span>; <span class="t-cmd">set +a</span>
+<span class="t-comment"># OR with env prefix tool:</span>
+<span class="t-prompt">$</span> <span class="t-cmd">env</span> $(cat .env | xargs) node server.js
+
+<span class="t-comment"># View all current env vars</span>
+<span class="t-prompt">$</span> <span class="t-cmd">env</span> | <span class="t-cmd">sort</span>
+<span class="t-prompt">$</span> <span class="t-cmd">printenv</span> DB_HOST</div>
+      </div>
+      <div class="tip-box warn"><div class="tip-icon">⚠️</div><p>Environment variables show up in <code>/proc/PID/environ</code> — readable by root. Never pass secrets as command-line arguments (they appear in <code>ps aux</code> to all users). Use env vars, files with restricted permissions, or secret managers (Vault, AWS SSM).</p></div>
+      <div class="q-tags"><span class="q-tag">secrets</span><span class="q-tag">12-factor</span><span class="q-tag">environment</span><span class="q-tag">security</span></div>
+    </div>
+  </div>
+
+  <!-- Q26 -->
+  <div class="q-card" id="q26">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">26</span>
+      <span class="q-text">You need to schedule a database backup script to run at 2:30am every Sunday, and a log rotation job every 15 minutes on weekdays. How do you set up cron correctly?</span>
+      <span class="q-cmd">cron · crontab</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>cron</strong> is the time-based job scheduler. <strong>crontab</strong> manages per-user schedules. Understanding the 5-field syntax and gotchas prevents midnight surprises.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-prompt">$</span> <span class="t-cmd">crontab</span> <span class="t-flag">-e</span>   <span class="t-comment"># edit current user's crontab</span>
+
+<span class="t-comment"># Format: MIN HOUR DAY MONTH WEEKDAY command</span>
+<span class="t-out"># ┌───── minute (0-59)
+# │ ┌─── hour (0-23)
+# │ │ ┌─ day of month (1-31)
+# │ │ │ ┌ month (1-12)
+# │ │ │ │ ┌ weekday (0=Sun)
+# │ │ │ │ │</span>
+<span class="t-highlight">30 2 * * 0</span> /opt/scripts/db-backup.sh >> /var/log/backup.log 2>&1
+<span class="t-highlight">*/15 * * * 1-5</span> /opt/scripts/rotate-logs.sh
+
+<span class="t-comment"># View current crontab</span>
+<span class="t-prompt">$</span> <span class="t-cmd">crontab</span> <span class="t-flag">-l</span>
+
+<span class="t-comment"># List another user's crontab</span>
+<span class="t-prompt">$</span> <span class="t-cmd">crontab</span> <span class="t-flag">-u app -l</span></div>
+      </div>
+      <div class="tip-box warn"><div class="tip-icon">⚠️</div><p>Cron runs in a minimal environment — <code>PATH</code> doesn't include <code>/usr/local/bin</code>. Always use full paths in cron scripts (<code>/usr/bin/python3</code> not <code>python3</code>). Always redirect stdout and stderr to a log file, or cron will email you on every run (or silently fail).</p></div>
+      <div class="q-tags"><span class="q-tag">scheduling</span><span class="q-tag">automation</span><span class="q-tag">backup</span></div>
+    </div>
+  </div>
+
+  <!-- Q27 -->
+  <div class="q-card" id="q27">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">27</span>
+      <span class="q-text">A config file has the old database host hardcoded in 200 places. How do you replace all occurrences in-place with <code>sed</code>? How do you also delete all comment lines starting with #?</span>
+      <span class="q-cmd">sed</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>sed</strong> (stream editor) processes text line-by-line with substitution, deletion, and insertion commands. It's the go-to for scripted config file manipulation.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Replace all occurrences in-place (-i)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">sed</span> <span class="t-flag">-i</span> <span class="t-highlight">'s/old-db.internal/new-db.internal/g'</span> <span class="t-path">config.yaml</span>
+
+<span class="t-comment"># Backup original before editing (safe practice)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">sed</span> <span class="t-flag">-i.bak</span> <span class="t-highlight">'s/localhost/10.0.1.5/g'</span> <span class="t-path">app.conf</span>
+<span class="t-comment"># Creates config.conf.bak automatically</span>
+
+<span class="t-comment"># Delete comment lines and blank lines</span>
+<span class="t-prompt">$</span> <span class="t-cmd">sed</span> <span class="t-flag">-i</span> <span class="t-highlight">'/^#/d; /^$/d'</span> <span class="t-path">config.ini</span>
+
+<span class="t-comment"># Replace only on lines containing "database"</span>
+<span class="t-prompt">$</span> <span class="t-cmd">sed</span> <span class="t-flag">-i</span> <span class="t-highlight">'/database/s/5432/5433/'</span> <span class="t-path">config.yaml</span>
+
+<span class="t-comment"># Preview changes without modifying (dry-run)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">sed</span> <span class="t-highlight">'s/old/new/g'</span> <span class="t-path">config.yaml</span> | <span class="t-cmd">diff</span> <span class="t-path">config.yaml -</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>Always do a dry-run first (omit <code>-i</code>). Use <code>-i.bak</code> in production to auto-create backups. For multi-file replacements: <code>find . -name "*.yaml" -exec sed -i 's/old/new/g' {} \;</code></p></div>
+      <div class="q-tags"><span class="q-tag">config-management</span><span class="q-tag">text-processing</span><span class="q-tag">scripting</span></div>
+    </div>
+  </div>
+
+  <!-- Q28 -->
+  <div class="q-card" id="q28">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">28</span>
+      <span class="q-text">You have a space-delimited access log and need to sum the total bytes transferred, compute the average response time, and print a report of the top 5 endpoints. How do you use awk?</span>
+      <span class="q-cmd">awk</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>awk</strong> is a full text-processing language. It splits each line into fields and lets you perform calculations, aggregations, and conditional logic.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Nginx log: IP - - [date] "METHOD /path HTTP" STATUS BYTES TIME</span>
+<span class="t-comment"># Sum total bytes ($10) and compute average response time ($NF)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">awk</span> <span class="t-highlight">'{bytes+=$10; time+=$NF; n++} END {print "Total:", bytes/1024/1024 "MB", "Avg time:", time/n "s"}'</span> <span class="t-path">access.log</span>
+<span class="t-out">Total: 2341.5MB Avg time: 0.042s</span>
+
+<span class="t-comment"># Count requests per endpoint, sort, show top 5</span>
+<span class="t-prompt">$</span> <span class="t-cmd">awk</span> <span class="t-highlight">'{print $7}'</span> <span class="t-path">access.log</span> | <span class="t-cmd">sort</span> | <span class="t-cmd">uniq</span> <span class="t-flag">-c</span> | <span class="t-cmd">sort</span> <span class="t-flag">-rn</span> | <span class="t-cmd">head</span> <span class="t-flag">-5</span>
+
+<span class="t-comment"># Print only 500 errors with timestamp and IP</span>
+<span class="t-prompt">$</span> <span class="t-cmd">awk</span> <span class="t-highlight">'$9 == "500" {print $4, $1, $7}'</span> <span class="t-path">access.log</span>
+
+<span class="t-comment"># Process CSV with custom delimiter</span>
+<span class="t-prompt">$</span> <span class="t-cmd">awk</span> <span class="t-flag">-F','</span> <span class="t-highlight">'{print $2, $5}'</span> <span class="t-path">data.csv</span></div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><p>Key awk variables: <code>$0</code>=whole line, <code>$1</code>...<code>$N</code>=fields, <code>NF</code>=number of fields (so <code>$NF</code>=last field), <code>NR</code>=line number. <code>BEGIN{}</code> runs before processing, <code>END{}</code> after all lines.</p></div>
+      <div class="q-tags"><span class="q-tag">log-analytics</span><span class="q-tag">data-processing</span><span class="q-tag">reporting</span></div>
+    </div>
+  </div>
+
+  <!-- Q29 -->
+  <div class="q-card" id="q29">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">29</span>
+      <span class="q-text">You found 500 stale Docker images using <code>docker images -q</code>. How do you pipe them into <code>docker rmi</code> using xargs? What happens when the list is empty or the command fails on one item?</span>
+      <span class="q-cmd">xargs</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>xargs</strong> reads items from stdin and passes them as arguments to a command — bridging the gap between piped output and commands that don't read stdin.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Remove stale docker images (safe with -r)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">docker images</span> <span class="t-flag">-q</span> <span class="t-highlight">--filter "dangling=true"</span> | <span class="t-cmd">xargs</span> <span class="t-flag">-r</span> docker rmi
+<span class="t-comment"># -r = do nothing if stdin is empty (GNU xargs)</span>
+
+<span class="t-comment"># Handle failures gracefully (continue on error)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">docker images</span> <span class="t-flag">-q</span> | <span class="t-cmd">xargs</span> <span class="t-flag">-I{}</span> sh -c 'docker rmi {} || true'
+
+<span class="t-comment"># Parallel execution (4 workers)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">cat</span> urls.txt | <span class="t-cmd">xargs</span> <span class="t-flag">-P 4 -I{}</span> curl <span class="t-flag">-o /dev/null -s</span> <span class="t-highlight">{}</span>
+
+<span class="t-comment"># Preview what would run (dry-run)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">docker images</span> <span class="t-flag">-q</span> | <span class="t-cmd">xargs</span> <span class="t-flag">-r echo</span> docker rmi</div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p><code>xargs -P N</code> runs N processes in parallel — great for bulk operations like downloading, compressing, or testing multiple endpoints. Always test with <code>echo</code> first: prefix the real command with <code>echo</code> to see what would execute.</p></div>
+      <div class="q-tags"><span class="q-tag">docker</span><span class="q-tag">bulk-operations</span><span class="q-tag">parallel</span><span class="q-tag">scripting</span></div>
+    </div>
+  </div>
+
+  <!-- Q30 -->
+  <div class="q-card" id="q30">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">30</span>
+      <span class="q-text">Port 8080 seems to be in use but you can't find the process with ps. How do you find which process has a specific port or file open, and detect if a log file is being held by a dead process?</span>
+      <span class="q-cmd">lsof</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>lsof</strong> (list open files) shows every file — including sockets, pipes, and device files — opened by every process. It's indispensable for port conflicts and disk-full mysteries.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Who's using port 8080?</span>
+<span class="t-prompt">$</span> <span class="t-cmd">lsof</span> <span class="t-flag">-i :8080</span>
+<span class="t-out">COMMAND  PID  USER   FD   TYPE  NODE NAME
+node    1234   app   23u  IPv4  TCP  *:8080 (LISTEN)</span>
+
+<span class="t-comment"># Files held open by deleted processes (disk-full mystery)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">lsof</span> | <span class="t-cmd">grep</span> <span class="t-highlight">" deleted"</span>
+<span class="t-out">app    1234  /var/log/app.log (deleted)   <span class="t-comment">← 38GB still held</span></span>
+
+<span class="t-comment"># All files opened by a process</span>
+<span class="t-prompt">$</span> <span class="t-cmd">lsof</span> <span class="t-flag">-p</span> 1234
+
+<span class="t-comment"># All network connections by process</span>
+<span class="t-prompt">$</span> <span class="t-cmd">lsof</span> <span class="t-flag">-i -n -P</span> | <span class="t-cmd">grep</span> LISTEN</div>
+      </div>
+      <div class="tip-box warn"><div class="tip-icon">⚠️</div><p>When <code>df -h</code> shows 100% but <code>du</code> doesn't account for all the space, a deleted file is still open. The fix: find the PID holding it with <code>lsof | grep deleted</code>, then restart that process. The space is freed immediately when the last file descriptor is closed.</p></div>
+      <div class="q-tags"><span class="q-tag">port-conflict</span><span class="q-tag">disk-full</span><span class="q-tag">file-descriptors</span><span class="q-tag">debugging</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════ ADVANCED ══════════ -->
+  <div class="category-header" id="section-advanced">
+    <span class="cat-badge advanced">Advanced</span>
+    <span class="cat-title">Networking, Storage & System Internals</span>
+    <span class="cat-count">Q 31–43</span>
+  </div>
+
+  <!-- Q31 -->
+  <div class="q-card" id="q31">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">31</span>
+      <span class="q-text">Your app can't connect to a database. How do you verify network connectivity, check which ports are listening, and see all established connections to the DB server?</span>
+      <span class="q-cmd">ss · netstat</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>ss</strong> (socket statistics) is the modern replacement for <code>netstat</code> — faster, more detailed, and available without the deprecated net-tools package.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># All listening ports with process names</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ss</span> <span class="t-flag">-tlnp</span>
+<span class="t-out">State   Recv-Q  Send-Q  Local Address:Port   Peer Address:Port  Process
+LISTEN  0       128     0.0.0.0:80            0.0.0.0:*          users:(("nginx",pid=892))
+LISTEN  0       128     0.0.0.0:5432          0.0.0.0:*          users:(("postgres"))</span>
+
+<span class="t-comment"># Connections TO db host on port 5432</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ss</span> <span class="t-flag">-tnp</span> <span class="t-flag">dst 10.0.1.10:5432</span>
+
+<span class="t-comment"># Count connections per state</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ss</span> <span class="t-flag">-tan</span> | <span class="t-cmd">awk</span> <span class="t-highlight">'{print $1}'</span> | <span class="t-cmd">sort</span> | <span class="t-cmd">uniq</span> <span class="t-flag">-c</span>
+<span class="t-out">   342 ESTABLISHED
+    12 TIME_WAIT
+     1 LISTEN</span>
+
+<span class="t-comment"># Test TCP reachability</span>
+<span class="t-prompt">$</span> <span class="t-cmd">nc</span> <span class="t-flag">-zv</span> 10.0.1.10 5432
+<span class="t-out">Connection to 10.0.1.10 5432 port [tcp/postgresql] succeeded!</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>A high <code>TIME_WAIT</code> count means connections are being rapidly opened and closed — common with connection poolers. Tune with <code>net.ipv4.tcp_tw_reuse=1</code> via sysctl. A growing <code>CLOSE_WAIT</code> count often means a bug in the app — it's not closing connections properly.</p></div>
+      <div class="q-tags"><span class="q-tag">networking</span><span class="q-tag">tcp</span><span class="q-tag">connectivity</span><span class="q-tag">debugging</span></div>
+    </div>
+  </div>
+
+  <!-- Q32 -->
+  <div class="q-card" id="q32">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">32</span>
+      <span class="q-text">You need to block all traffic except SSH and HTTPS on a server, allow traffic only from a specific CIDR to port 5432, and persist these rules across reboots. How do you use iptables?</span>
+      <span class="q-cmd">iptables</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>iptables</strong> is the Linux kernel packet filtering firewall. Understanding chains (INPUT/OUTPUT/FORWARD) and rule ordering is critical for security hardening.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># View current rules</span>
+<span class="t-prompt">$</span> <span class="t-cmd">iptables</span> <span class="t-flag">-L -n -v --line-numbers</span>
+
+<span class="t-comment"># Allow established connections (essential first!)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">iptables</span> <span class="t-flag">-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT</span>
+
+<span class="t-comment"># Allow SSH and HTTPS</span>
+<span class="t-prompt">$</span> <span class="t-cmd">iptables</span> <span class="t-flag">-A INPUT -p tcp --dport 22 -j ACCEPT</span>
+<span class="t-prompt">$</span> <span class="t-cmd">iptables</span> <span class="t-flag">-A INPUT -p tcp --dport 443 -j ACCEPT</span>
+
+<span class="t-comment"># Allow DB access from specific CIDR only</span>
+<span class="t-prompt">$</span> <span class="t-cmd">iptables</span> <span class="t-flag">-A INPUT -s 10.0.0.0/24 -p tcp --dport 5432 -j ACCEPT</span>
+
+<span class="t-comment"># Drop everything else</span>
+<span class="t-prompt">$</span> <span class="t-cmd">iptables</span> <span class="t-flag">-P INPUT DROP</span>
+
+<span class="t-comment"># Persist rules</span>
+<span class="t-prompt">$</span> <span class="t-cmd">iptables-save</span> > <span class="t-path">/etc/iptables/rules.v4</span></div>
+      </div>
+      <div class="tip-box warn"><div class="tip-icon">⚠️</div><p>Always add the ESTABLISHED rule <strong>first</strong> and allow SSH <strong>before</strong> setting the default DROP policy. Setting <code>-P INPUT DROP</code> without allowing SSH first will lock you out of the server. Test in a screen session with a time-based cron to reset rules if you go silent.</p></div>
+      <div class="q-tags"><span class="q-tag">firewall</span><span class="q-tag">security-hardening</span><span class="q-tag">networking</span></div>
+    </div>
+  </div>
+
+  <!-- Q33 -->
+  <div class="q-card" id="q33">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">33</span>
+      <span class="q-text">Requests between two services are timing out intermittently. How do you capture actual network packets between them to see what's happening at the TCP level?</span>
+      <span class="q-cmd">tcpdump</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>tcpdump</strong> captures network packets in real time. It's the terminal-based equivalent of Wireshark and essential for diagnosing intermittent network issues.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Capture traffic between this server and DB (10.0.1.10)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tcpdump</span> <span class="t-flag">-i eth0</span> <span class="t-highlight">host 10.0.1.10 and port 5432</span>
+
+<span class="t-comment"># Capture to file for Wireshark analysis</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tcpdump</span> <span class="t-flag">-i eth0 -w /tmp/capture.pcap</span> <span class="t-highlight">host 10.0.1.10</span>
+
+<span class="t-comment"># See RST packets (connection resets = timeout clue)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tcpdump</span> <span class="t-flag">-i eth0 -nn</span> <span class="t-highlight">'tcp[tcpflags] & tcp-rst != 0'</span>
+
+<span class="t-comment"># Capture HTTP traffic (port 80) and show payload</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tcpdump</span> <span class="t-flag">-i eth0 -A</span> <span class="t-highlight">port 80 and host 10.0.1.5</span>
+
+<span class="t-comment"># Limit capture size</span>
+<span class="t-prompt">$</span> <span class="t-cmd">tcpdump</span> <span class="t-flag">-i eth0 -c 1000 -w</span> <span class="t-path">capture.pcap</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>Look for <code>RST</code> (connection reset) and <code>FIN</code> flags in captures — RST usually means a firewall or the remote process actively rejecting; FIN is a clean close. A capture with <code>SYN</code> packets but no <code>SYN-ACK</code> response confirms the host is unreachable or filtered.</p></div>
+      <div class="q-tags"><span class="q-tag">networking</span><span class="q-tag">packet-capture</span><span class="q-tag">tcp-debugging</span></div>
+    </div>
+  </div>
+
+  <!-- Q34 -->
+  <div class="q-card" id="q34">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">34</span>
+      <span class="q-text">A process is hanging and you don't know why. How do you trace every system call it makes in real time to understand what it's waiting on?</span>
+      <span class="q-cmd">strace</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>strace</strong> intercepts and logs system calls (the interface between userspace code and the Linux kernel). It reveals file I/O, network ops, memory allocation — everything the process is actually doing.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Attach to a running process</span>
+<span class="t-prompt">$</span> <span class="t-cmd">strace</span> <span class="t-flag">-p</span> 1234
+<span class="t-out">epoll_wait(5, [], 512, 4999)            <span class="t-comment">← waiting on event loop</span>
+read(8, "", 4096)                        <span class="t-comment">← reading from socket 8</span>
+write(1, "data\n", 5)                    <span class="t-comment">← writing to stdout</span></span>
+
+<span class="t-comment"># Show only specific syscalls (file opens)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">strace</span> <span class="t-flag">-p 1234 -e trace=open,read,write</span>
+
+<span class="t-comment"># Trace with timestamps and output summary</span>
+<span class="t-prompt">$</span> <span class="t-cmd">strace</span> <span class="t-flag">-Ttt -p</span> 1234 <span class="t-flag">-o</span> <span class="t-path">strace.log</span>
+
+<span class="t-comment"># Count syscall frequency (performance analysis)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">strace</span> <span class="t-flag">-c</span> <span class="t-highlight">python app.py</span>
+<span class="t-out">% time     calls  syscall
+ 89.23      4521  read
+  5.12       203  write
+  3.21        89  futex</span></div>
+      </div>
+      <div class="tip-box warn"><div class="tip-icon">⚠️</div><p>strace has ~5-10x performance overhead. Never use <code>-c</code> on production traffic for more than a few seconds. For minimal-overhead profiling of running production processes, use <code>perf stat -p PID</code> instead.</p></div>
+      <div class="q-tags"><span class="q-tag">debugging</span><span class="q-tag">syscalls</span><span class="q-tag">performance</span><span class="q-tag">hanging-process</span></div>
+    </div>
+  </div>
+
+  <!-- Q35 -->
+  <div class="q-card" id="q35">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">35</span>
+      <span class="q-text">Your EC2 instance is running out of disk. You need to extend the root volume without downtime. How do you use LVM to manage logical volumes and resize them online?</span>
+      <span class="q-cmd">lvm · pvs · vgs · lvs</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>LVM</strong> (Logical Volume Manager) adds an abstraction layer over physical disks, allowing resizing, snapshots, and spanning volumes without partition fiddling.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Check current state</span>
+<span class="t-prompt">$</span> <span class="t-cmd">pvs</span>    <span class="t-comment"># physical volumes</span>
+<span class="t-prompt">$</span> <span class="t-cmd">vgs</span>    <span class="t-comment"># volume groups</span>
+<span class="t-prompt">$</span> <span class="t-cmd">lvs</span>    <span class="t-comment"># logical volumes</span>
+<span class="t-out">  LV     VG      Attr  LSize  Pool  Used%
+  root   ubuntu  -wi-ao 29.00g        98%</span>
+
+<span class="t-comment"># After resizing EBS in AWS console:</span>
+<span class="t-comment"># 1. Notify kernel of new disk size</span>
+<span class="t-prompt">$</span> <span class="t-cmd">growpart</span> /dev/xvda 1
+
+<span class="t-comment"># 2. Extend physical volume</span>
+<span class="t-prompt">$</span> <span class="t-cmd">pvresize</span> /dev/xvda1
+
+<span class="t-comment"># 3. Extend logical volume (all free space)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">lvextend</span> <span class="t-flag">-l +100%FREE</span> /dev/ubuntu/root
+
+<span class="t-comment"># 4. Expand filesystem (ext4 online)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">resize2fs</span> /dev/ubuntu/root
+<span class="t-comment"># For XFS: xfs_growfs /</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>LVM snapshots (<code>lvcreate -L5G -s -n snap /dev/vg/data</code>) are invaluable for pre-migration backups — they're nearly instant and storage-efficient. On AWS/GCP, prefer EBS snapshots at the infrastructure layer, but LVM gives you in-instance flexibility.</p></div>
+      <div class="q-tags"><span class="q-tag">storage</span><span class="q-tag">lvm</span><span class="q-tag">aws-ebs</span><span class="q-tag">online-resize</span></div>
+    </div>
+  </div>
+
+  <!-- Q36 -->
+  <div class="q-card" id="q36">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">36</span>
+      <span class="q-text">You've added a new data disk to a server. How do you format it, mount it to <code>/data</code>, and ensure it auto-mounts on reboot with the correct options?</span>
+      <span class="q-cmd">mount · fstab</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>mount</strong> attaches filesystems. <strong>/etc/fstab</strong> defines persistent mounts. Getting fstab wrong can prevent a server from booting — always use UUIDs, not device names.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Format new disk with ext4</span>
+<span class="t-prompt">$</span> <span class="t-cmd">mkfs.ext4</span> <span class="t-path">/dev/xvdb</span>
+
+<span class="t-comment"># Get UUID (stable across reboots)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">blkid</span> /dev/xvdb
+<span class="t-out">/dev/xvdb: UUID="a1b2c3d4-..." TYPE="ext4"</span>
+
+<span class="t-comment"># Temporary mount to verify</span>
+<span class="t-prompt">$</span> <span class="t-cmd">mkdir</span> <span class="t-path">/data</span>
+<span class="t-prompt">$</span> <span class="t-cmd">mount</span> /dev/xvdb /data
+
+<span class="t-comment"># Add to /etc/fstab (use UUID not device name)</span>
+<span class="t-prompt">$</span> echo "UUID=a1b2c3d4-...  /data  ext4  defaults,nofail  0  2" >> /etc/fstab
+
+<span class="t-comment"># Test fstab without rebooting</span>
+<span class="t-prompt">$</span> <span class="t-cmd">mount</span> <span class="t-flag">-a</span>   <span class="t-comment"># errors here = would fail on boot</span>
+<span class="t-prompt">$</span> <span class="t-cmd">df</span> <span class="t-flag">-h</span> /data</div>
+      </div>
+      <div class="tip-box warn"><div class="tip-icon">⚠️</div><p>Always use <code>nofail</code> in fstab for non-root non-critical mounts — if the disk fails, the server still boots. Without it, a missing disk causes the server to drop into emergency mode and become unbootable. Always run <code>mount -a</code> to validate before rebooting.</p></div>
+      <div class="q-tags"><span class="q-tag">storage</span><span class="q-tag">fstab</span><span class="q-tag">filesystem</span><span class="q-tag">disk-setup</span></div>
+    </div>
+  </div>
+
+  <!-- Q37 -->
+  <div class="q-card" id="q37">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">37</span>
+      <span class="q-text">Your high-traffic server needs kernel network tuning: increase the connection backlog, enable TCP fast reuse, and raise file descriptor limits for a high-concurrency app. How do you use sysctl?</span>
+      <span class="q-cmd">sysctl</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>sysctl</strong> reads and writes kernel parameters at runtime via the <code>/proc/sys/</code> virtual filesystem. Critical for production performance tuning.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># View current value</span>
+<span class="t-prompt">$</span> <span class="t-cmd">sysctl</span> net.core.somaxconn
+<span class="t-out">net.core.somaxconn = 128</span>
+
+<span class="t-comment"># Apply immediately (not persistent)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">sysctl</span> <span class="t-flag">-w</span> net.core.somaxconn=65536
+<span class="t-prompt">$</span> <span class="t-cmd">sysctl</span> <span class="t-flag">-w</span> net.ipv4.tcp_tw_reuse=1
+<span class="t-prompt">$</span> <span class="t-cmd">sysctl</span> <span class="t-flag">-w</span> fs.file-max=1000000
+
+<span class="t-comment"># Persist across reboots (add to file)</span>
+<span class="t-prompt">$</span> cat >> <span class="t-path">/etc/sysctl.d/99-devops.conf</span> <<EOF
+net.core.somaxconn = 65536
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.ip_local_port_range = 1024 65535
+fs.file-max = 1000000
+EOF
+
+<span class="t-comment"># Apply persisted config now</span>
+<span class="t-prompt">$</span> <span class="t-cmd">sysctl</span> <span class="t-flag">-p /etc/sysctl.d/99-devops.conf</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>Key parameters for high-concurrency: <code>somaxconn</code>=connection backlog, <code>tcp_tw_reuse</code>=faster port reuse, <code>ip_local_port_range</code>=more ephemeral ports, <code>fs.file-max</code>=system-wide fd limit. Also set <code>DefaultLimitNOFILE</code> in <code>/etc/systemd/system.conf</code> for per-service limits.</p></div>
+      <div class="q-tags"><span class="q-tag">kernel-tuning</span><span class="q-tag">performance</span><span class="q-tag">high-concurrency</span><span class="q-tag">networking</span></div>
+    </div>
+  </div>
+
+  <!-- Q38 -->
+  <div class="q-card" id="q38">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">38</span>
+      <span class="q-text">Your Node.js app hits "too many open files" in production. How do you diagnose, set higher limits for the process, and make them permanent via systemd?</span>
+      <span class="q-cmd">ulimit</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>ulimit</strong> controls per-process resource limits (file descriptors, max processes, stack size). The soft limit can be raised by the user up to the hard limit.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Check current limits</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ulimit</span> <span class="t-flag">-a</span>
+<span class="t-out">open files                      (-n) 1024   <span class="t-comment">← too low!</span></span>
+
+<span class="t-comment"># See limits for a running process</span>
+<span class="t-prompt">$</span> cat <span class="t-path">/proc/1234/limits</span>
+<span class="t-out">Limit                Soft Limit  Hard Limit
+Max open files       1024        4096</span>
+
+<span class="t-comment"># Raise for current session only</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ulimit</span> <span class="t-flag">-n</span> 65536
+
+<span class="t-comment"># Permanent via /etc/security/limits.conf</span>
+<span class="t-out">app  soft  nofile  65536
+app  hard  nofile  65536</span>
+
+<span class="t-comment"># For systemd services (preferred)</span>
+<span class="t-comment"># In /etc/systemd/system/myapp.service:</span>
+<span class="t-out">[Service]
+LimitNOFILE=65536</span>
+<span class="t-prompt">$</span> <span class="t-cmd">systemctl daemon-reload && systemctl restart myapp</span></div>
+      </div>
+      <div class="tip-box><div class="tip-icon">💡</div><p">For systemd-managed services, <code>limits.conf</code> is often ignored — use <code>LimitNOFILE=</code> in the unit file instead. Verify it was applied with <code>cat /proc/$(pgrep node)/limits</code> after restart.</p></div>
+      <div class="q-tags"><span class="q-tag">file-descriptors</span><span class="q-tag">limits</span><span class="q-tag">systemd</span><span class="q-tag">node-js</span></div>
+    </div>
+  </div>
+
+  <!-- Q39 -->
+  <div class="q-card" id="q39">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">39</span>
+      <span class="q-text">Without any external tools, how do you check memory usage breakdown, CPU info, and network interface statistics directly from the /proc virtual filesystem?</span>
+      <span class="q-cmd">/proc filesystem</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><code>/proc</code> is a virtual filesystem that exposes kernel internals as files. It's the source of truth behind <code>top</code>, <code>ps</code>, and most monitoring tools.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Memory breakdown</span>
+<span class="t-prompt">$</span> cat <span class="t-path">/proc/meminfo</span>
+<span class="t-out">MemTotal:       16383332 kB
+MemFree:          341208 kB
+MemAvailable:    8234112 kB   <span class="t-comment">← what matters for apps</span>
+Cached:          6123456 kB
+SwapUsed:              0 kB</span>
+
+<span class="t-comment"># CPU model and count</span>
+<span class="t-prompt">$</span> <span class="t-cmd">grep</span> <span class="t-highlight">"model name"</span> <span class="t-path">/proc/cpuinfo</span> | <span class="t-cmd">head</span> -1
+<span class="t-prompt">$</span> <span class="t-cmd">nproc</span>
+
+<span class="t-comment"># Network interface stats</span>
+<span class="t-prompt">$</span> cat <span class="t-path">/proc/net/dev</span>
+<span class="t-out">eth0: 1234567890 bytes received, 987654321 bytes sent</span>
+
+<span class="t-comment"># Uptime and load</span>
+<span class="t-prompt">$</span> cat <span class="t-path">/proc/uptime</span>
+<span class="t-out">432012.34 3412341.23</span>   <span class="t-comment"># seconds up, idle time</span>
+
+<span class="t-comment"># Per-process memory map</span>
+<span class="t-prompt">$</span> cat <span class="t-path">/proc/1234/status</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p><code>MemAvailable</code> (not <code>MemFree</code>) is the real free memory metric — it includes reclaimable page cache. Monitoring tools and OOM killer use MemAvailable. On a busy server with 95% MemFree=0 but high MemAvailable, the system is healthy — it's using cache aggressively.</p></div>
+      <div class="q-tags"><span class="q-tag">kernel</span><span class="q-tag">memory</span><span class="q-tag">monitoring</span><span class="q-tag">low-level</span></div>
+    </div>
+  </div>
+
+  <!-- Q40 -->
+  <div class="q-card" id="q40">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">40</span>
+      <span class="q-text">Explain Linux namespaces and how Docker uses them. How do you manually create a new network namespace and test network isolation between processes?</span>
+      <span class="q-cmd">ip netns · unshare</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>Namespaces</strong> are the Linux kernel feature that makes containers possible. They isolate: PID, network, mount, UTS (hostname), IPC, and user namespaces.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Create a new network namespace</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ip netns add</span> <span class="t-highlight">isolated</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ip netns list</span>
+<span class="t-out">isolated</span>
+
+<span class="t-comment"># Run command inside the namespace (no network)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ip netns exec isolated</span> <span class="t-highlight">ip addr</span>
+<span class="t-out">1: lo: &lt;LOOPBACK&gt; mtu 65536   <span class="t-comment">← only loopback!</span></span>
+
+<span class="t-comment"># Connect namespaces with veth pair (like Docker)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ip link add</span> veth0 <span class="t-flag">type veth peer name</span> veth1
+<span class="t-prompt">$</span> <span class="t-cmd">ip link set</span> veth1 <span class="t-flag">netns</span> isolated
+
+<span class="t-comment"># See what namespaces a container/process uses</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ls</span> <span class="t-flag">-la</span> <span class="t-path">/proc/1234/ns/</span>
+<span class="t-out">net -> net:[4026531992]
+pid -> pid:[4026531836]</span></div>
+      </div>
+      <div class="tip-box><div class="tip-icon">💡</div><p>Docker containers are just Linux processes with isolated namespaces + cgroups (resource limits). <code>docker inspect</code> shows the network namespace ID; you can enter it with <code>nsenter -t PID --net</code> to debug container networking without exec-ing into the container.</p></div>
+      <div class="q-tags"><span class="q-tag">containers</span><span class="q-tag">docker</span><span class="q-tag">namespaces</span><span class="q-tag">networking</span></div>
+    </div>
+  </div>
+
+  <!-- Q41 -->
+  <div class="q-card" id="q41">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">41</span>
+      <span class="q-text">A container is using too much CPU, starving other services. How do you use cgroups to limit its CPU and memory without restarting it?</span>
+      <span class="q-cmd">cgroups · cgset</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>cgroups</strong> (control groups) limit, account, and isolate resource usage (CPU, memory, I/O). Docker, Kubernetes, and systemd all use cgroups under the hood.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Check cgroup for a running Docker container</span>
+<span class="t-prompt">$</span> <span class="t-cmd">cat</span> <span class="t-path">/proc/1234/cgroup</span>
+<span class="t-out">12:cpu:/docker/abc123...
+11:memory:/docker/abc123...</span>
+
+<span class="t-comment"># Limit container CPU (50% of 1 core) live</span>
+<span class="t-prompt">$</span> <span class="t-cmd">docker update</span> <span class="t-flag">--cpus="0.5"</span> mycontainer
+
+<span class="t-comment"># Limit memory + enforce OOM kill on breach</span>
+<span class="t-prompt">$</span> <span class="t-cmd">docker update</span> <span class="t-flag">--memory="512m" --memory-swap="512m"</span> mycontainer
+
+<span class="t-comment"># Direct cgroup v2 manipulation</span>
+<span class="t-prompt">$</span> echo 50000 > <span class="t-path">/sys/fs/cgroup/cpu/docker/abc123.../cpu.cfs_quota_us</span>
+<span class="t-comment"># 50000/100000 = 50% of one CPU</span>
+
+<span class="t-comment"># systemd slice limits</span>
+<span class="t-prompt">$</span> <span class="t-cmd">systemctl set-property</span> myapp.service <span class="t-highlight">CPUQuota=50%</span></div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>cgroup v2 (unified hierarchy) is the modern standard, now default on Ubuntu 22.04+. In v2, resource files are at <code>/sys/fs/cgroup/</code> without subsystem subdirs. Check your version with <code>stat -f --format="%T" /sys/fs/cgroup/</code> — <code>cgroup2fs</code> = v2.</p></div>
+      <div class="q-tags"><span class="q-tag">containers</span><span class="q-tag">cgroups</span><span class="q-tag">resource-limits</span><span class="q-tag">docker</span></div>
+    </div>
+  </div>
+
+  <!-- Q42 -->
+  <div class="q-card" id="q42">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">42</span>
+      <span class="q-text">You need to sync 100GB of data from one server to another, resume if interrupted, delete files on the destination that no longer exist at source, and exclude the <code>tmp/</code> directory. How do you use rsync?</span>
+      <span class="q-cmd">rsync</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>rsync</strong> is a fast, delta-transfer file sync tool. It transfers only changed blocks over SSH, handles interruptions gracefully, and is far faster than <code>scp</code> for large syncs.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Full featured sync</span>
+<span class="t-prompt">$</span> <span class="t-cmd">rsync</span> <span class="t-flag">-avz --progress --delete --exclude='tmp/'</span> \
+       <span class="t-path">/data/</span> <span class="t-highlight">ubuntu@dest-server:/data/</span>
+
+<span class="t-comment"># Flag breakdown:</span>
+<span class="t-out">  -a    = archive (recursive + preserve perms/timestamps/links)
+  -v    = verbose
+  -z    = compress in transit
+  --progress = show per-file progress
+  --delete   = remove dest files not in source
+  --exclude  = skip matched paths</span>
+
+<span class="t-comment"># Dry-run first!</span>
+<span class="t-prompt">$</span> <span class="t-cmd">rsync</span> <span class="t-flag">-avzn --delete</span> <span class="t-path">/data/</span> <span class="t-highlight">ubuntu@dest:/data/</span>
+<span class="t-comment"># -n = dry run (shows what would happen)</span>
+
+<span class="t-comment"># Limit bandwidth to avoid saturating link</span>
+<span class="t-prompt">$</span> <span class="t-cmd">rsync</span> <span class="t-flag">-avz --bwlimit=50000</span> <span class="t-path">/data/</span> <span class="t-highlight">dest:/data/</span>
+<span class="t-comment"># 50000 KB/s = ~50 MB/s</span></div>
+      </div>
+      <div class="tip-box warn"><div class="tip-icon">⚠️</div><p>Trailing slash matters! <code>rsync src/ dest/</code> copies the <em>contents</em> of src into dest. <code>rsync src dest/</code> (no trailing slash) copies the src <em>directory itself</em> into dest, creating <code>dest/src/</code>. Always dry-run first with <code>-n</code>.</p></div>
+      <div class="q-tags"><span class="q-tag">data-sync</span><span class="q-tag">migration</span><span class="q-tag">backup</span><span class="q-tag">ssh</span></div>
+    </div>
+  </div>
+
+  <!-- Q43 -->
+  <div class="q-card" id="q43">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">43</span>
+      <span class="q-text">After a cloud VM migration, a server's network interface was renamed from <code>eth0</code> to <code>ens5</code>. How do you reconfigure the network using netplan (Ubuntu) or nmcli (RHEL/CentOS)?</span>
+      <span class="q-cmd">netplan · nmcli</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p>Modern Linux network configuration varies by distro: Ubuntu uses <strong>netplan</strong>, RHEL/CentOS uses <strong>NetworkManager</strong> via <strong>nmcli</strong>. Both ultimately configure the kernel via <code>ip</code>.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment">── Ubuntu: netplan ──</span>
+<span class="t-comment"># /etc/netplan/00-installer-config.yaml</span>
+<span class="t-out">network:
+  version: 2
+  ethernets:
+    ens5:
+      dhcp4: false
+      addresses: [10.0.1.50/24]
+      gateway4: 10.0.1.1
+      nameservers:
+        addresses: [8.8.8.8]</span>
+<span class="t-prompt">$</span> <span class="t-cmd">netplan apply</span>
+
+<span class="t-comment">── RHEL/CentOS: nmcli ──</span>
+<span class="t-prompt">$</span> <span class="t-cmd">nmcli con add</span> type ethernet ifname ens5 con-name prod-eth
+<span class="t-prompt">$</span> <span class="t-cmd">nmcli con mod</span> prod-eth ipv4.addresses 10.0.1.50/24 ipv4.gateway 10.0.1.1
+<span class="t-prompt">$</span> <span class="t-cmd">nmcli con mod</span> prod-eth ipv4.method manual
+<span class="t-prompt">$</span> <span class="t-cmd">nmcli con up</span> prod-eth
+
+<span class="t-comment"># Universal: show all interfaces</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ip addr show</span>
+<span class="t-prompt">$</span> <span class="t-cmd">ip route show</span></div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><p>Interface renaming (eth0 → ens5/enp3s0) is driven by udev's predictable naming. In cloud VMs, this can break scripts that hardcode interface names. Use <code>ip link show</code> to find the real name, or use <code>$(ip route | grep default | awk '{print $5}')</code> to get the default route interface dynamically.</p></div>
+      <div class="q-tags"><span class="q-tag">networking</span><span class="q-tag">netplan</span><span class="q-tag">nmcli</span><span class="q-tag">cloud-migration</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════ EXPERT ══════════ -->
+  <div class="category-header" id="section-expert">
+    <span class="cat-badge expert">Expert DevOps</span>
+    <span class="cat-title">Production Profiling, Kernel & Operations</span>
+    <span class="cat-count">Q 44–50</span>
+  </div>
+
+  <!-- Q44 -->
+  <div class="q-card" id="q44">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">44</span>
+      <span class="q-text">CPU is high but strace shows no obvious syscall bottleneck. How do you use <code>perf</code> to profile CPU usage at the function level with minimal production overhead?</span>
+      <span class="q-cmd">perf</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>perf</strong> is a Linux profiling toolset using hardware performance counters and kernel tracepoints. It samples at the function level with ~1-5% overhead — safe for production.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Record 30s CPU profile for a process</span>
+<span class="t-prompt">$</span> <span class="t-cmd">perf record</span> <span class="t-flag">-g -p 1234 -- sleep 30</span>
+
+<span class="t-comment"># View top functions by CPU time</span>
+<span class="t-prompt">$</span> <span class="t-cmd">perf report</span>
+<span class="t-out">Overhead  Symbol
+   42.3%  [k] __softirqentry_text_start
+   18.7%  [.] JSON::Parser::parse
+    9.1%  [.] malloc
+    6.2%  [k] tcp_sendmsg</span>
+
+<span class="t-comment"># Quick stats (no recording)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">perf stat</span> <span class="t-flag">-p</span> 1234 <span class="t-flag">-- sleep 5</span>
+<span class="t-out">  3,421,234      cache-misses     (26.3% miss rate)
+  4,523,111      branch-misses
+        0.543 seconds idle</span>
+
+<span class="t-comment"># Generate flamegraph (with Brendan Gregg's scripts)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">perf script</span> | ./stackcollapse-perf.pl | ./flamegraph.pl > flame.svg</div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>Flamegraphs are the gold standard for CPU profiling visualization. The width of each box = time spent in that function (including callees). A wide flat-top plateau means a hot loop. Brendan Gregg's <a href="https://github.com/brendangregg/FlameGraph" style="color:var(--blue)">FlameGraph</a> scripts generate SVG flamegraphs from perf output.</p></div>
+      <div class="q-tags"><span class="q-tag">profiling</span><span class="q-tag">performance</span><span class="q-tag">flamegraph</span><span class="q-tag">cpu-analysis</span></div>
+    </div>
+  </div>
+
+  <!-- Q45 -->
+  <div class="q-card" id="q45">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">45</span>
+      <span class="q-text">Disk shows 100% full but du shows barely any usage. Alternatively, "no space left on device" errors happen even though disk is only 60% full. How do you diagnose inode exhaustion?</span>
+      <span class="q-cmd">df -i · find</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p>Every file consumes an <strong>inode</strong> (metadata entry). A filesystem can run out of inodes before running out of space — common with apps that create millions of small files (like PHP sessions, Node.js cache, or log files).</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Check inode usage (not block usage)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">df</span> <span class="t-flag">-i</span>
+<span class="t-out">Filesystem      Inodes  IUsed  IFree IUse% Mounted on
+/dev/xvda1     6553600 6553600     0  100% /     <span class="t-comment">← inode exhausted!</span></span>
+
+<span class="t-comment"># Find directory with most files (inode hogs)</span>
+<span class="t-prompt">$</span> for dir in /*; do
+    echo "$dir: $(find $dir -maxdepth 4 2>/dev/null | wc -l)"
+  done | <span class="t-cmd">sort</span> <span class="t-flag">-t: -k2 -rn</span> | <span class="t-cmd">head</span> -10
+<span class="t-out">/var/spool/postfix: 4231234   <span class="t-comment">← mail queue explosion!</span></span>
+
+<span class="t-comment"># Count files in a directory tree</span>
+<span class="t-prompt">$</span> <span class="t-cmd">find</span> <span class="t-path">/var/cache/php/sessions</span> <span class="t-flag">-type f</span> | <span class="t-cmd">wc -l</span>
+<span class="t-out">6543210</span></div>
+      </div>
+      <div class="tip-box warn"><div class="tip-icon">⚠️</div><p>You cannot add inodes to an existing ext4 filesystem — <code>mkfs.ext4</code> must be called with <code>-i bytes-per-inode</code> at format time. For dynamic workloads creating millions of small files, use XFS or btrfs which allocate inodes dynamically. Alternatively, mount a tmpfs for ephemeral small-file workloads.</p></div>
+      <div class="q-tags"><span class="q-tag">inodes</span><span class="q-tag">filesystem</span><span class="q-tag">disk-full</span><span class="q-tag">debugging</span></div>
+    </div>
+  </div>
+
+  <!-- Q46 -->
+  <div class="q-card" id="q46">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">46</span>
+      <span class="q-text">Production server is sluggish and you suspect it's swapping heavily. How do you confirm swap usage per process, add a swap file dynamically without rebooting, and tune swappiness?</span>
+      <span class="q-cmd">swapon · swapoff · /proc</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>Swap</strong> is disk-backed virtual memory. Heavy swapping (thrashing) causes orders-of-magnitude latency spikes. Managing it properly is critical on memory-constrained instances.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Check swap usage (system-wide)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">free</span> <span class="t-flag">-h</span>
+<span class="t-out">              total   used    free   available
+Swap:         2.0G    1.8G   200M</span>   <span class="t-comment">← nearly full!</span>
+
+<span class="t-comment"># Per-process swap usage</span>
+<span class="t-prompt">$</span> for pid in /proc/[0-9]*; do
+    swap=$(awk '/VmSwap/{print $2}' $pid/status 2>/dev/null)
+    [ "$swap" -gt 1024 ] && echo "$pid: ${swap}kB"
+  done | <span class="t-cmd">sort</span> <span class="t-flag">-t: -k2 -rn</span>
+
+<span class="t-comment"># Add 2GB swapfile dynamically</span>
+<span class="t-prompt">$</span> <span class="t-cmd">fallocate</span> <span class="t-flag">-l 2G</span> <span class="t-path">/swapfile</span>
+<span class="t-prompt">$</span> <span class="t-cmd">chmod 600</span> /swapfile
+<span class="t-prompt">$</span> <span class="t-cmd">mkswap</span> /swapfile
+<span class="t-prompt">$</span> <span class="t-cmd">swapon</span> /swapfile
+
+<span class="t-comment"># Reduce swap eagerness (cloud DBs: set 1-10)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">sysctl</span> <span class="t-flag">-w</span> vm.swappiness=10</div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p><code>vm.swappiness=0</code> means the kernel avoids swapping unless absolutely necessary (OOM imminent). <code>vm.swappiness=60</code> is the default (balance). For database servers: set 1–10. For Kubernetes nodes: some guides recommend 0, but recent kernels need at least <code>1</code> to prevent OOM kills on system daemons.</p></div>
+      <div class="q-tags"><span class="q-tag">memory</span><span class="q-tag">swap</span><span class="q-tag">performance</span><span class="q-tag">kernel-tuning</span></div>
+    </div>
+  </div>
+
+  <!-- Q47 -->
+  <div class="q-card" id="q47">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">47</span>
+      <span class="q-text">You need to load a kernel module to enable VXLAN for container networking, verify it loaded successfully, and ensure it persists across reboots. How do you manage kernel modules?</span>
+      <span class="q-cmd">modprobe · lsmod · modinfo</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>Kernel modules</strong> are loadable pieces of kernel code (drivers, filesystem support, network protocols). Managing them is essential for Kubernetes networking (VXLAN, overlay) and storage (NFS, iSCSI).</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Load module immediately</span>
+<span class="t-prompt">$</span> <span class="t-cmd">modprobe</span> vxlan
+<span class="t-prompt">$</span> <span class="t-cmd">modprobe</span> br_netfilter   <span class="t-comment"># required for Kubernetes</span>
+<span class="t-prompt">$</span> <span class="t-cmd">modprobe</span> overlay         <span class="t-comment"># required for containerd</span>
+
+<span class="t-comment"># Verify it's loaded</span>
+<span class="t-prompt">$</span> <span class="t-cmd">lsmod</span> | <span class="t-cmd">grep</span> vxlan
+<span class="t-out">vxlan                  73728  0</span>
+
+<span class="t-comment"># Module info and parameters</span>
+<span class="t-prompt">$</span> <span class="t-cmd">modinfo</span> vxlan | <span class="t-cmd">grep</span> <span class="t-flag">-E</span> <span class="t-highlight">"file:|description:"</span>
+
+<span class="t-comment"># Persist across reboots</span>
+<span class="t-prompt">$</span> cat > <span class="t-path">/etc/modules-load.d/k8s.conf</span> <<EOF
+vxlan
+br_netfilter
+overlay
+EOF
+
+<span class="t-comment"># Remove a module (if no dependencies)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">modprobe</span> <span class="t-flag">-r</span> vxlan</div>
+      </div>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>Kubernetes CNI plugins like Flannel (VXLAN mode) and Calico (IPIP/VXLAN) require specific kernel modules. The canonical Kubernetes pre-flight check: verify <code>br_netfilter</code> and <code>overlay</code> are loaded, plus <code>net.bridge.bridge-nf-call-iptables=1</code> via sysctl.</p></div>
+      <div class="q-tags"><span class="q-tag">kernel</span><span class="q-tag">kubernetes</span><span class="q-tag">networking</span><span class="q-tag">modules</span></div>
+    </div>
+  </div>
+
+  <!-- Q48 -->
+  <div class="q-card" id="q48">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">48</span>
+      <span class="q-text">Your app generates 500MB of logs per day and the disk would fill in a week. How do you configure logrotate to compress, rotate, and retain only 14 days of logs automatically?</span>
+      <span class="q-cmd">logrotate</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>logrotate</strong> is the standard Linux log management daemon. It compresses, rotates, and purges old logs on a schedule, keeping disk usage bounded.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Create /etc/logrotate.d/myapp</span>
+<span class="t-out">/var/log/myapp/*.log {
+    daily           <span class="t-comment"># rotate every day</span>
+    rotate 14       <span class="t-comment"># keep 14 rotated files</span>
+    compress        <span class="t-comment"># gzip rotated files</span>
+    delaycompress   <span class="t-comment"># compress yesterday's, not today's</span>
+    missingok       <span class="t-comment"># no error if log missing</span>
+    notifempty      <span class="t-comment"># don't rotate empty files</span>
+    create 640 app app  <span class="t-comment"># create new log with perms</span>
+    postrotate
+        systemctl kill -s USR1 myapp  <span class="t-comment"># signal app to reopen logs</span>
+    endscript
+}</span>
+
+<span class="t-comment"># Test config without actually rotating</span>
+<span class="t-prompt">$</span> <span class="t-cmd">logrotate</span> <span class="t-flag">-d</span> <span class="t-path">/etc/logrotate.d/myapp</span>
+
+<span class="t-comment"># Force rotation now</span>
+<span class="t-prompt">$</span> <span class="t-cmd">logrotate</span> <span class="t-flag">-f</span> <span class="t-path">/etc/logrotate.d/myapp</span></div>
+      </div>
+      <div class="tip-box"><div class="tip-icon">💡</div><p><code>delaycompress</code> + <code>postrotate</code> signal is the correct pattern for apps that keep log files open: on rotation, the old file stays open (uncompressed) so the app finishes writing; the signal tells the app to open the new file; compression happens the next day.</p></div>
+      <div class="q-tags"><span class="q-tag">log-management</span><span class="q-tag">disk-management</span><span class="q-tag">automation</span></div>
+    </div>
+  </div>
+
+  <!-- Q49 -->
+  <div class="q-card" id="q49">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">49</span>
+      <span class="q-text">Before opening a server to production traffic, you need to security-scan it: discover open ports, detect the OS and service versions, and check for unexpected listening services.</span>
+      <span class="q-cmd">nmap</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p><strong>nmap</strong> (Network Mapper) is the industry-standard port scanner and security auditing tool. Running it on your own infrastructure before go-live is standard DevSecOps practice.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Fast scan: open ports only</span>
+<span class="t-prompt">$</span> <span class="t-cmd">nmap</span> <span class="t-flag">-F</span> 10.0.1.50
+<span class="t-out">PORT     STATE  SERVICE
+22/tcp   open   ssh
+80/tcp   open   http
+8080/tcp open   http-proxy  <span class="t-comment">← unexpected!</span></span>
+
+<span class="t-comment"># Full port scan + version detection + OS detect</span>
+<span class="t-prompt">$</span> <span class="t-cmd">nmap</span> <span class="t-flag">-sV -O -p-</span> 10.0.1.50
+
+<span class="t-comment"># Scan entire subnet for SSH</span>
+<span class="t-prompt">$</span> <span class="t-cmd">nmap</span> <span class="t-flag">-p 22</span> 10.0.1.0/24 <span class="t-flag">--open</span>
+
+<span class="t-comment"># Check for common vulnerabilities (NSE scripts)</span>
+<span class="t-prompt">$</span> <span class="t-cmd">nmap</span> <span class="t-flag">--script vuln</span> 10.0.1.50
+
+<span class="t-comment"># Quick connectivity test alternative</span>
+<span class="t-prompt">$</span> <span class="t-cmd">nc</span> <span class="t-flag">-zv</span> 10.0.1.50 443 2>&1</div>
+      </div>
+      <div class="tip-box warn"><div class="tip-icon">⚠️</div><p>Only run nmap against infrastructure you own or have explicit permission to scan. Port scanning unauthorized systems is illegal in many jurisdictions. In cloud environments, some providers detect and flag aggressive scanning — use <code>-T2</code> or <code>-T1</code> timing to scan more slowly and reduce noise.</p></div>
+      <div class="q-tags"><span class="q-tag">security</span><span class="q-tag">port-scanning</span><span class="q-tag">devsecops</span><span class="q-tag">audit</span></div>
+    </div>
+  </div>
+
+  <!-- Q50 -->
+  <div class="q-card" id="q50">
+    <div class="q-header" onclick="toggle(this)">
+      <span class="q-number">50</span>
+      <span class="q-text">An on-call alert fires: "load average 45 on a 4-core machine." Walk through the complete incident response process to diagnose whether it's CPU-bound, I/O-bound, a runaway process, or a fork bomb.</span>
+      <span class="q-cmd">uptime · vmstat · iostat · dmesg</span>
+      <span class="q-chevron">▾</span>
+    </div>
+    <div class="q-body">
+      <p>High load average is a symptom, not a cause. The diagnosis is a structured elimination process — this is the workflow that separates experienced SREs from beginners.</p>
+      <div class="terminal">
+        <div class="terminal-bar"><div class="terminal-dot td-r"></div><div class="terminal-dot td-y"></div><div class="terminal-dot td-g"></div><div class="terminal-label">bash</div></div>
+        <div class="terminal-body"><span class="t-comment"># Step 1: Confirm load and trend</span>
+<span class="t-prompt">$</span> <span class="t-cmd">uptime</span>
+<span class="t-out"> 14:32  up 3 days,  load average: 45.2, 38.1, 21.3
+                                  ^1min  ^5min  ^15min → RISING FAST</span>
+
+<span class="t-comment"># Step 2: Is CPU saturated or I/O wait?</span>
+<span class="t-prompt">$</span> <span class="t-cmd">vmstat</span> 1 5
+<span class="t-out">procs  ---cpu---  ---io---
+ r  b  us sy id wa  bi  bo
+45  2  12  3 82  3   0   0   <span class="t-comment">← 45 runnable! id=82% → not CPU-bound, r queue!</span>
+ 0  8   2  1  5 92   0 9821  <span class="t-comment">← b=blocked on I/O, wa=92% → DISK I/O STORM</span></span>
+
+<span class="t-comment"># Step 3: What's doing the I/O?</span>
+<span class="t-prompt">$</span> <span class="t-cmd">iostat</span> <span class="t-flag">-x 1 3</span>
+<span class="t-out">Device    r/s   w/s  %util
+xvda      0.0  8921  100.0  <span class="t-comment">← disk saturated!</span></span>
+
+<span class="t-comment"># Step 4: Which process?</span>
+<span class="t-prompt">$</span> <span class="t-cmd">iotop</span> <span class="t-flag">-o -b -n 3</span>
+<span class="t-out">1234 app   99.99%  /var/log/app.log  <span class="t-comment">← logging every row!</span></span>
+
+<span class="t-comment"># Step 5: Check for kernel-level clues</span>
+<span class="t-prompt">$</span> <span class="t-cmd">dmesg</span> <span class="t-flag">-T</span> | <span class="t-cmd">tail</span> <span class="t-flag">-20</span>
+<span class="t-out">[Jun 19 14:30] EXT4-fs error: journal abort
+[Jun 19 14:31] OOM: Kill process 1234 (app)</span></div>
+      </div>
+      <p><strong>The diagnostic ladder:</strong> <code>uptime</code> (is load high?) → <code>vmstat</code> (<code>wa</code> % high = I/O; <code>us</code> high = CPU; many <code>b</code> = blocked) → <code>iostat -x</code> (which disk?) → <code>iotop</code> (which process?) → <code>dmesg</code> (kernel errors). For CPU-bound: use <code>top</code> then <code>perf</code>. For runaway process growth: <code>ps auxf</code> + check <code>ulimit</code>.</p>
+      <div class="tip-box good"><div class="tip-icon">💡</div><p>vmstat's <code>b</code> column = processes blocked waiting for I/O. A high <code>b</code> with <code>wa</code> (CPU I/O wait) close to 100% is a classic disk saturation signature. If <code>us+sy</code> is high but <code>wa</code> is low, you have a true CPU bottleneck. If everything is low but load is high, look for zombie processes or sleeping-but-uninterruptible processes (D state in <code>ps</code>).</p></div>
+      <div class="q-tags"><span class="q-tag">incident-response</span><span class="q-tag">load-average</span><span class="q-tag">io-debugging</span><span class="q-tag">sre</span></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Scroll to top -->
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+  // ── Toggle accordion ──
+  let openCount = 0;
+  function toggle(header) {
+    const card = header.parentElement;
+    const wasOpen = card.classList.contains('open');
+    card.classList.toggle('open');
+    openCount += wasOpen ? -1 : 1;
+    updateProgress();
+    updateNav(card.id);
+  }
+
+  // ── Progress bar ──
+  const totalQ = 50;
+  function updateProgress() {
+    const pct = Math.round((openCount / totalQ) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent = openCount + ' / ' + totalQ;
+  }
+
+  // ── Active nav item ──
+  function updateNav(id) {
+    document.querySelectorAll('.nav-item').forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+    });
+  }
+
+  // ── Scroll spy ──
+  const cards = document.querySelectorAll('.q-card');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        document.querySelectorAll('.nav-item').forEach(a => {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id);
+        });
+      }
+    });
+  }, { threshold: 0.4 });
+  cards.forEach(c => observer.observe(c));
+
+  // ── Search ──
+  document.getElementById('searchInput').addEventListener('input', function() {
+    const q = this.value.toLowerCase().trim();
+    cards.forEach(card => {
+      const text = card.innerText.toLowerCase();
+      card.style.display = (!q || text.includes(q)) ? '' : 'none';
+    });
+  });
+
+  // ── Scroll to top button ──
+  window.addEventListener('scroll', () => {
+    document.getElementById('scrollTop').classList.toggle('show', window.scrollY > 400);
+  });
+</script>
+</body>
+</html>
