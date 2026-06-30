@@ -1,0 +1,3174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Complete Docker &amp; Container Engineering Handbook</title>
+<style>
+  :root {
+    --bg: #0B0E14;
+    --panel: #11151D;
+    --panel-2: #161B25;
+    --border: #232A38;
+    --text: #DCE3ED;
+    --text-dim: #8893A6;
+    --text-faint: #5C6679;
+    --accent: #4FD1C5;
+    --accent-2: #5B8DEF;
+    --accent-soft: rgba(79,209,197,0.12);
+    --code-bg: #0D1117;
+    --code-text: #C8D1DE;
+    --warn-bg: #2A2310;
+    --warn-border: #C9A227;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    --mono: 'SF Mono', 'JetBrains Mono', Consolas, 'Courier New', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  /* ===== Layout shell ===== */
+  .shell { display: flex; min-height: 100vh; }
+  .toc {
+    width: 300px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+    padding: 28px 0 60px 0;
+  }
+  .toc-title {
+    font-family: var(--serif);
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: 0 24px 18px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .toc-list { list-style: none; margin: 0; padding: 0 0 0 0; }
+  .toc-h1 { margin-top: 4px; }
+  .toc-h1 > a {
+    display: block;
+    padding: 9px 24px;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  .toc-h1 > a:hover { background: var(--panel-2); border-left-color: var(--accent); color: var(--accent); }
+  .toc-sub { list-style: none; margin: 0; padding: 0 0 6px 0; }
+  .toc-sub li a {
+    display: block;
+    padding: 5px 24px 5px 38px;
+    color: var(--text-dim);
+    font-size: 12.5px;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .toc-sub li a:hover { color: var(--accent-2); border-left-color: var(--accent-2); }
+
+  .main { flex: 1; min-width: 0; }
+  .content {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 64px 56px 140px 56px;
+  }
+
+  /* ===== Cover ===== */
+  .cover {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 120px 56px 90px 56px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cover .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 22px;
+  }
+  .cover h1.title {
+    font-family: var(--serif);
+    font-size: 52px;
+    line-height: 1.12;
+    font-weight: 400;
+    color: #fff;
+    margin: 0 0 22px 0;
+    letter-spacing: -0.01em;
+  }
+  .cover .subtitle {
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 620px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+  }
+  .cover .meta-row {
+    display: flex;
+    gap: 36px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+    padding-top: 28px;
+    margin-top: 10px;
+  }
+  .cover .meta-item .label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+  }
+  .cover .meta-item .value { font-size: 14px; color: var(--text); }
+
+  /* ===== Typography ===== */
+  h1 {
+    font-family: var(--serif);
+    font-size: 34px;
+    font-weight: 400;
+    color: #fff;
+    letter-spacing: -0.01em;
+    margin: 0 0 28px 0;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--accent);
+    scroll-margin-top: 24px;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-size: 23px;
+    font-weight: 400;
+    color: #fff;
+    margin: 46px 0 16px 0;
+    padding-left: 14px;
+    border-left: 3px solid var(--accent-2);
+    scroll-margin-top: 24px;
+  }
+  h3 {
+    font-size: 16.5px;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 30px 0 12px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    scroll-margin-top: 24px;
+  }
+  h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 20px 0 8px 0;
+  }
+  p { color: var(--text); margin: 0 0 14px 0; font-size: 15.5px; }
+  p:last-child { margin-bottom: 0; }
+
+  ul.tight, ol.tight { margin: 0 0 6px 0; padding-left: 22px; }
+  ul.tight + ul.tight, ol.tight + ol.tight,
+  ul.tight + ol.tight, ol.tight + ul.tight { margin-top: -6px; }
+  ul.tight li, ol.tight li { color: var(--text); font-size: 15px; margin-bottom: 6px; line-height: 1.55; }
+  ul.tight li::marker { color: var(--accent); }
+  ol.tight li::marker { color: var(--accent-2); font-weight: 700; }
+
+  strong, b { color: #fff; }
+
+  /* ===== Code blocks ===== */
+  pre.code-block, pre.ascii-diagram {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 16px 0 22px 0;
+    position: relative;
+  }
+  pre.code-block::before {
+    content: "●  ●  ●";
+    display: block;
+    color: #333d4d;
+    font-size: 10px;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+  }
+  pre.code-block code, pre.ascii-diagram code {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--code-text);
+    white-space: pre;
+    background: none;
+  }
+  pre.ascii-diagram code { color: #7C8DA6; font-size: 12.3px; }
+  pre.ascii-diagram { background: #0A0D13; }
+
+  /* ===== Info box ===== */
+  .info-box {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    border-left: 4px solid var(--warn-border);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 18px 0 22px 0;
+    font-size: 14.5px;
+    color: #E8D896;
+    line-height: 1.6;
+  }
+
+  /* ===== Tables ===== */
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 26px 0;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  table.data-table th {
+    background: linear-gradient(135deg, var(--accent-2), #3D6FD6);
+    color: #fff;
+    text-align: left;
+    padding: 11px 16px;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+  }
+  table.data-table td {
+    padding: 11px 16px;
+    border-top: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--text-dim);
+    line-height: 1.55;
+  }
+  table.data-table td.col-term {
+    color: var(--accent);
+    font-weight: 600;
+    font-family: var(--mono);
+    font-size: 13px;
+    white-space: nowrap;
+    background: var(--panel-2);
+  }
+  table.data-table tr:nth-child(even) td:not(.col-term) { background: var(--panel); }
+  table.data-table.three-col td.col-term { white-space: normal; }
+
+  /* ===== Page break (visual divider only) ===== */
+  .page-break { height: 1px; margin: 56px 0; background: none; }
+
+  /* ===== Scrollbar ===== */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #2A3140; border-radius: 6px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3A4356; }
+
+  /* ===== Mobile ===== */
+  @media (max-width: 920px) {
+    .toc { position: static; width: 100%; height: auto; max-height: 70vh; }
+    .shell { flex-direction: column; }
+    .content { padding: 36px 22px 100px 22px; }
+    .cover { padding: 60px 22px 50px 22px; }
+    .cover h1.title { font-size: 34px; }
+    h1 { font-size: 26px; }
+    h2 { font-size: 19px; }
+  }
+
+  /* Back to top */
+  .back-to-top {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #06201D;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    text-decoration: none;
+    box-shadow: 0 4px 18px rgba(79,209,197,0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+    z-index: 50;
+  }
+  .back-to-top.show { opacity: 1; pointer-events: auto; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="eyebrow">Engineering Reference &middot; Container Systems</div>
+  <h1 class="title">The Complete Docker &amp; Container Engineering Handbook</h1>
+  <div class="subtitle">A deep, production-grade reference covering Docker's architecture, Linux kernel internals, networking, storage, security, Kubernetes integration, troubleshooting, and command reference — written for engineers who want to understand the "why," not just the "how."</div>
+  <div class="meta-row">
+    <div class="meta-item"><div class="label">Scope</div><div class="value">20 Chapters &middot; Beginner to Advanced</div></div>
+    <div class="meta-item"><div class="label">Format</div><div class="value">Reference + Troubleshooting Manual</div></div>
+    <div class="meta-item"><div class="label">Includes</div><div class="value">CLI Cheat Sheet, Glossary, Interview Prep</div></div>
+  </div>
+</div>
+
+<div class="shell">
+  <nav class="toc" id="toc"><div class="toc-title">Contents</div><ul class="toc-list">
+<li class="toc-h1"><a href="#1-container-fundamentals">1. Container Fundamentals</a><ul class="toc-sub">
+<li><a href="#1-1-what-are-containers">1.1 What Are Containers?</a></li>
+<li><a href="#1-2-why-were-containers-created">1.2 Why Were Containers Created?</a></li>
+<li><a href="#1-3-problems-docker-specifically-solves">1.3 Problems Docker Specifically Solves</a></li>
+<li><a href="#1-4-containers-vs-virtual-machines">1.4 Containers vs Virtual Machines</a></li>
+<li><a href="#1-5-oci-standards">1.5 OCI Standards</a></li>
+<li><a href="#1-6-container-lifecycle">1.6 Container Lifecycle</a></li>
+<li><a href="#1-7-docker-architecture-overview">1.7 Docker Architecture Overview</a></li>
+<li><a href="#1-8-container-runtime-comparison">1.8 Container Runtime Comparison</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#2-docker-architecture-deep-dive">2. Docker Architecture Deep Dive</a><ul class="toc-sub">
+<li><a href="#2-1-docker-client-cli">2.1 Docker Client (CLI)</a></li>
+<li><a href="#2-2-docker-rest-api">2.2 Docker REST API</a></li>
+<li><a href="#2-3-docker-daemon-dockerd">2.3 Docker Daemon (dockerd)</a></li>
+<li><a href="#2-4-containerd">2.4 containerd</a></li>
+<li><a href="#2-5-runc">2.5 runc</a></li>
+<li><a href="#2-6-buildkit">2.6 BuildKit</a></li>
+<li><a href="#2-7-docker-hub-and-registries">2.7 Docker Hub and Registries</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#3-linux-internals-behind-docker">3. Linux Internals Behind Docker</a><ul class="toc-sub">
+<li><a href="#3-1-linux-namespaces">3.1 Linux Namespaces</a></li>
+<li><a href="#3-2-control-groups-cgroups">3.2 Control Groups (cgroups)</a></li>
+<li><a href="#3-3-union-filesystems-and-overlayfs">3.3 Union Filesystems and OverlayFS</a></li>
+<li><a href="#3-4-linux-capabilities">3.4 Linux Capabilities</a></li>
+<li><a href="#3-5-seccomp">3.5 seccomp</a></li>
+<li><a href="#3-6-apparmor-and-selinux">3.6 AppArmor and SELinux</a></li>
+<li><a href="#3-7-user-namespaces-rootless-docker">3.7 User Namespaces (Rootless Docker)</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#4-docker-images-deep-dive">4. Docker Images Deep Dive</a><ul class="toc-sub">
+<li><a href="#4-1-what-is-a-docker-image">4.1 What Is a Docker Image?</a></li>
+<li><a href="#4-2-image-layers">4.2 Image Layers</a></li>
+<li><a href="#4-3-image-manifest">4.3 Image Manifest</a></li>
+<li><a href="#4-4-multi-stage-builds">4.4 Multi-Stage Builds</a></li>
+<li><a href="#4-5-multi-architecture-images">4.5 Multi-Architecture Images</a></li>
+<li><a href="#4-6-build-cache">4.6 Build Cache</a></li>
+<li><a href="#4-7-image-optimization">4.7 Image Optimization</a></li>
+<li><a href="#4-8-image-signing-with-docker-content-trust">4.8 Image Signing with Docker Content Trust</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#5-dockerfile-deep-dive">5. Dockerfile Deep Dive</a><ul class="toc-sub">
+<li><a href="#5-1-from">5.1 FROM</a></li>
+<li><a href="#5-2-run">5.2 RUN</a></li>
+<li><a href="#5-3-cmd-vs-entrypoint">5.3 CMD vs ENTRYPOINT</a></li>
+<li><a href="#5-4-copy-vs-add">5.4 COPY vs ADD</a></li>
+<li><a href="#5-5-workdir">5.5 WORKDIR</a></li>
+<li><a href="#5-6-user">5.6 USER</a></li>
+<li><a href="#5-7-env-and-arg">5.7 ENV and ARG</a></li>
+<li><a href="#5-8-expose-healthcheck-label-volume-stopsignal">5.8 EXPOSE, HEALTHCHECK, LABEL, VOLUME, STOPSIGNAL</a></li>
+<li><a href="#5-9-production-dockerfile-example">5.9 Production Dockerfile Example</a></li>
+<li><a href="#5-10-dockerignore">5.10 .dockerignore</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#6-container-lifecycle">6. Container Lifecycle</a><ul class="toc-sub">
+<li><a href="#6-1-container-state-transitions">6.1 Container State Transitions</a></li>
+<li><a href="#6-2-restart-policies">6.2 Restart Policies</a></li>
+<li><a href="#6-3-container-export-and-import">6.3 Container Export and Import</a></li>
+<li><a href="#6-4-container-resource-limits">6.4 Container Resource Limits</a></li>
+<li><a href="#6-5-exec-and-debugging">6.5 Exec and Debugging</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#7-docker-networking">7. Docker Networking</a><ul class="toc-sub">
+<li><a href="#7-1-networking-architecture-overview">7.1 Networking Architecture Overview</a></li>
+<li><a href="#7-2-network-drivers">7.2 Network Drivers</a></li>
+<li><a href="#7-3-embedded-dns-and-service-discovery">7.3 Embedded DNS and Service Discovery</a></li>
+<li><a href="#7-4-port-publishing">7.4 Port Publishing</a></li>
+<li><a href="#7-5-network-troubleshooting">7.5 Network Troubleshooting</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#8-docker-storage">8. Docker Storage</a><ul class="toc-sub">
+<li><a href="#8-1-storage-options-overview">8.1 Storage Options Overview</a></li>
+<li><a href="#8-2-named-volumes">8.2 Named Volumes</a></li>
+<li><a href="#8-3-bind-mounts">8.3 Bind Mounts</a></li>
+<li><a href="#8-4-tmpfs-mounts">8.4 tmpfs Mounts</a></li>
+<li><a href="#8-5-storage-drivers">8.5 Storage Drivers</a></li>
+<li><a href="#8-6-volume-drivers">8.6 Volume Drivers</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#9-docker-compose">9. Docker Compose</a><ul class="toc-sub">
+<li><a href="#9-1-compose-architecture">9.1 Compose Architecture</a></li>
+<li><a href="#9-2-complete-compose-yaml-reference">9.2 Complete compose.yaml Reference</a></li>
+<li><a href="#9-3-compose-commands">9.3 Compose Commands</a></li>
+<li><a href="#9-4-compose-profiles">9.4 Compose Profiles</a></li>
+<li><a href="#9-5-compose-override-files">9.5 Compose Override Files</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#10-docker-registry">10. Docker Registry</a><ul class="toc-sub">
+<li><a href="#10-1-registry-architecture">10.1 Registry Architecture</a></li>
+<li><a href="#10-2-registry-authentication">10.2 Registry Authentication</a></li>
+<li><a href="#10-3-image-tagging-and-pushing">10.3 Image Tagging and Pushing</a></li>
+<li><a href="#10-4-self-hosted-registry-harbor">10.4 Self-Hosted Registry (Harbor)</a></li>
+<li><a href="#10-5-image-lifecycle-management">10.5 Image Lifecycle Management</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#11-docker-security">11. Docker Security</a><ul class="toc-sub">
+<li><a href="#11-1-security-threat-model">11.1 Security Threat Model</a></li>
+<li><a href="#11-2-rootless-docker">11.2 Rootless Docker</a></li>
+<li><a href="#11-3-image-vulnerability-scanning">11.3 Image Vulnerability Scanning</a></li>
+<li><a href="#11-4-docker-bench-for-security">11.4 Docker Bench for Security</a></li>
+<li><a href="#11-5-security-hardening-checklist">11.5 Security Hardening Checklist</a></li>
+<li><a href="#11-6-secrets-management">11.6 Secrets Management</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#12-performance-optimization">12. Performance & Optimization</a><ul class="toc-sub">
+<li><a href="#12-1-build-performance">12.1 Build Performance</a></li>
+<li><a href="#12-2-image-size-optimization">12.2 Image Size Optimization</a></li>
+<li><a href="#12-3-runtime-performance">12.3 Runtime Performance</a></li>
+<li><a href="#12-4-logging-driver-configuration">12.4 Logging Driver Configuration</a></li>
+<li><a href="#12-5-resource-monitoring">12.5 Resource Monitoring</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#13-docker-in-kubernetes">13. Docker in Kubernetes</a><ul class="toc-sub">
+<li><a href="#13-1-why-kubernetes-deprecated-dockershim">13.1 Why Kubernetes Deprecated Dockershim</a></li>
+<li><a href="#13-2-container-runtime-interface-cri">13.2 Container Runtime Interface (CRI)</a></li>
+<li><a href="#13-3-building-for-kubernetes">13.3 Building for Kubernetes</a></li>
+<li><a href="#13-4-debugging-containers-in-kubernetes">13.4 Debugging Containers in Kubernetes</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#14-production-best-practices">14. Production Best Practices</a><ul class="toc-sub">
+<li><a href="#14-1-image-versioning-and-tagging-strategy">14.1 Image Versioning and Tagging Strategy</a></li>
+<li><a href="#14-2-health-checks">14.2 Health Checks</a></li>
+<li><a href="#14-3-logging-best-practices">14.3 Logging Best Practices</a></li>
+<li><a href="#14-4-ci-cd-integration">14.4 CI/CD Integration</a></li>
+<li><a href="#14-5-monitoring-with-prometheus">14.5 Monitoring with Prometheus</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#15-troubleshooting-guide">15. Troubleshooting Guide</a><ul class="toc-sub">
+<li><a href="#15-1-container-crash-restart-loops">15.1 Container Crash / Restart Loops</a></li>
+<li><a href="#15-2-oomkilled-out-of-memory">15.2 OOMKilled (Out of Memory)</a></li>
+<li><a href="#15-3-permission-issues">15.3 Permission Issues</a></li>
+<li><a href="#15-4-networking-issues">15.4 Networking Issues</a></li>
+<li><a href="#15-5-storage-and-disk-exhaustion">15.5 Storage and Disk Exhaustion</a></li>
+<li><a href="#15-6-docker-daemon-failures">15.6 Docker Daemon Failures</a></li>
+<li><a href="#15-7-build-failures">15.7 Build Failures</a></li>
+<li><a href="#15-8-performance-bottleneck-diagnosis">15.8 Performance Bottleneck Diagnosis</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#16-docker-commands-reference">16. Docker Commands Reference</a><ul class="toc-sub">
+<li><a href="#16-1-image-management">16.1 Image Management</a></li>
+<li><a href="#16-2-container-management">16.2 Container Management</a></li>
+<li><a href="#16-3-volume-commands">16.3 Volume Commands</a></li>
+<li><a href="#16-4-network-commands">16.4 Network Commands</a></li>
+<li><a href="#16-5-system-commands">16.5 System Commands</a></li>
+<li><a href="#16-6-buildx-commands-multi-platform">16.6 Buildx Commands (Multi-Platform)</a></li>
+<li><a href="#16-7-context-commands">16.7 Context Commands</a></li>
+<li><a href="#16-8-manifest-commands">16.8 Manifest Commands</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#17-real-world-production-architectures">17. Real-World Production Architectures</a><ul class="toc-sub">
+<li><a href="#17-1-single-host-production">17.1 Single-Host Production</a></li>
+<li><a href="#17-2-docker-compose-production">17.2 Docker Compose Production</a></li>
+<li><a href="#17-3-microservices-platform">17.3 Microservices Platform</a></li>
+<li><a href="#17-4-ci-cd-pipeline-architecture">17.4 CI/CD Pipeline Architecture</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#18-docker-vs-alternatives">18. Docker vs Alternatives</a><ul class="toc-sub">
+<li><a href="#18-1-podman-deep-dive">18.1 Podman Deep Dive</a></li>
+<li><a href="#18-2-docker-swarm-vs-kubernetes">18.2 Docker Swarm vs Kubernetes</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#19-interview-preparation">19. Interview Preparation</a><ul class="toc-sub">
+<li><a href="#19-1-top-docker-interview-questions">19.1 Top Docker Interview Questions</a></li>
+<li><a href="#19-2-security-questions">19.2 Security Questions</a></li>
+</ul></li>
+<li class="toc-h1"><a href="#20-comprehensive-glossary">20. Comprehensive Glossary</a><ul class="toc-sub">
+<li><a href="#core-container-terms">Core Container Terms</a></li>
+<li><a href="#docker-architecture-terms">Docker Architecture Terms</a></li>
+<li><a href="#linux-kernel-terms">Linux Kernel Terms</a></li>
+<li><a href="#networking-terms">Networking Terms</a></li>
+<li><a href="#storage-terms">Storage Terms</a></li>
+<li><a href="#operations-compose-terms">Operations / Compose Terms</a></li>
+<li><a href="#security-terms">Security Terms</a></li>
+</ul></li>
+</ul></nav>
+
+  <div class="main">
+    <div class="content">
+      <div class="page-break"></div>
+<h1 id="1-container-fundamentals">1. Container Fundamentals</h1>
+<h2 id="1-1-what-are-containers">1.1 What Are Containers?</h2>
+<p>A container is a standard unit of software that packages application code together with all its dependencies — libraries, runtime, configuration files, and environment variables — so that it runs quickly and reliably across different computing environments. Containers are not virtual machines: they do not include a full OS kernel. Instead, they share the host kernel and use Linux kernel features (namespaces and cgroups) to provide isolation.</p>
+<p>Formally, a container is a running instance of a container image. An image is an immutable, layered filesystem built from a Dockerfile. When you start a container, the container runtime creates a new writable layer on top of the image and sets up isolated namespaces so the process tree, network interfaces, filesystem mounts, and user IDs inside the container are distinct from the host.</p>
+<h2 id="1-2-why-were-containers-created">1.2 Why Were Containers Created?</h2>
+<p>The core problem containers solve is the classic 'works on my machine' failure. Before containers, deploying software meant either shipping the entire OS (VMs) or trusting that the target environment matched the development environment. This led to:</p>
+<ul class="tight"><li>Dependency conflicts: Application A needs Python 2.7, Application B needs Python 3.9. On bare metal they clash.</li></ul>
+<ul class="tight"><li>Configuration drift: Servers configured manually diverge over time. What runs on staging fails in production.</li></ul>
+<ul class="tight"><li>Slow provisioning: VM images are gigabytes; spinning one up takes minutes.</li></ul>
+<ul class="tight"><li>Resource waste: A VM running one microservice dedicates an entire kernel, init system, and full OS to that one process.</li></ul>
+<ul class="tight"><li>Immutability problems: No way to guarantee what's actually installed in the target environment.</li></ul>
+<p>Containers address all of these by making the environment part of the artifact. The Docker image IS the deployment unit. It includes the exact binary, its libraries, its configuration — sealed and versioned. Run it anywhere with a compatible kernel and it behaves identically.</p>
+<h2 id="1-3-problems-docker-specifically-solves">1.3 Problems Docker Specifically Solves</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Problem</th><th>How Docker Solves It</th></tr>
+<tr><td class="col-term">Dependency isolation</td><td>Each container has its own filesystem, library versions, and runtime. No conflicts between applications on the same host.</td></tr>
+<tr><td class="col-term">Reproducibility</td><td>Images are built from Dockerfiles — code. The same Dockerfile always produces the same image. No snowflake servers.</td></tr>
+<tr><td class="col-term">Portability</td><td>Docker image runs on your laptop, CI server, and production cloud identically (same kernel ABI required).</td></tr>
+<tr><td class="col-term">Fast startup</td><td>Containers start in milliseconds. No full OS boot. Process starts directly.</td></tr>
+<tr><td class="col-term">Density</td><td>Pack 50+ containers on a host that previously ran 5 VMs, because there's no per-container kernel overhead.</td></tr>
+<tr><td class="col-term">Immutable infrastructure</td><td>Never patch containers in place. Build a new image, roll it out, destroy the old one.</td></tr>
+<tr><td class="col-term">Microservices enablement</td><td>Each service packaged independently. Deploy, scale, and update each service without affecting others.</td></tr>
+<tr><td class="col-term">Dev/Prod parity</td><td>Docker Compose replicates the production topology on developer laptops exactly.</td></tr>
+</tbody></table>
+<h2 id="1-4-containers-vs-virtual-machines">1.4 Containers vs Virtual Machines</h2>
+<p>Understanding the architectural difference is crucial for making correct production decisions.</p>
+<pre class="ascii-diagram"><code>  VIRTUAL MACHINES                      CONTAINERS
+  ┌─────────────────────────────┐       ┌─────────────────────────────┐
+  │  App A   │  App B  │  App C │       │  App A   │  App B  │  App C │
+  ├──────────┼─────────┼────────┤       ├──────────┼─────────┼────────┤
+  │Guest OS  │Guest OS │Guest OS│       │Libs/Deps │Libs/Deps│Libs/Dep│
+  ├──────────┴─────────┴────────┤       ├──────────┴─────────┴────────┤
+  │         Hypervisor          │       │     Container Runtime       │
+  ├─────────────────────────────┤       ├─────────────────────────────┤
+  │         Host OS             │       │          Host OS            │
+  ├─────────────────────────────┤       ├─────────────────────────────┤
+  │      Physical Hardware      │       │      Physical Hardware      │
+  └─────────────────────────────┘       └─────────────────────────────┘
+  Each VM: full kernel + OS              Each container: shared kernel
+  Size: gigabytes                        Size: megabytes
+  Startup: minutes                       Startup: milliseconds</code></pre>
+<table class="data-table three-col"><tbody>
+<tr class="header-row"><th>Dimension</th><th>Virtual Machine</th><th>Container</th></tr>
+<tr><td class="col-term">Kernel</td><td>Each VM has its own kernel. Full isolation.</td><td>All containers share the host kernel. No hardware emulation.</td></tr>
+<tr><td class="col-term">Startup time</td><td>Minutes (full OS boot)</td><td>Milliseconds (single process exec)</td></tr>
+<tr><td class="col-term">Image size</td><td>Gigabytes (full OS image)</td><td>Megabytes (only app + deps)</td></tr>
+<tr><td class="col-term">Isolation level</td><td>Hardware-level: full memory protection, separate CPU rings</td><td>Namespace-level: kernel feature isolation, same kernel ring</td></tr>
+<tr><td class="col-term">Resource overhead</td><td>High: dedicated RAM/CPU for each VM kernel</td><td>Low: only the process plus minimal overhead</td></tr>
+<tr><td class="col-term">Security boundary</td><td>Stronger: separate kernel, hypervisor gap</td><td>Weaker: shared kernel, container escape is possible</td></tr>
+<tr><td class="col-term">Use case</td><td>Multi-tenant hosting, different OS requirements, strong isolation</td><td>Microservices, CI/CD, high-density deployments</td></tr>
+<tr><td class="col-term">Mutability</td><td>VMs can be patched in-place (antipattern)</td><td>Containers are immutable; replace, don't patch</td></tr>
+</tbody></table>
+<div class="info-box">PRODUCTION NOTE: In high-security environments (financial, healthcare), you may run containers INSIDE VMs (e.g., on AWS EC2 or GCP VMs) to get both density (containers) and strong isolation (VM boundary). This is the standard cloud deployment model.</div>
+<h2 id="1-5-oci-standards">1.5 OCI Standards</h2>
+<p>The Open Container Initiative (OCI) is a Linux Foundation project that standardizes container formats and runtimes, ensuring interoperability between Docker, containerd, Podman, Kubernetes, and other tools.</p>
+<h3 id="oci-image-specification">OCI Image Specification</h3>
+<p>Defines the format of a container image: a manifest, a configuration object, and an ordered set of filesystem layers (tarballs). Any OCI-compliant tool can build, push, pull, and run any OCI image.</p>
+<ul class="tight"><li>Image Index (fat manifest): Points to platform-specific manifests (linux/amd64, linux/arm64, etc.)</li></ul>
+<ul class="tight"><li>Image Manifest: Lists the config and layer SHAs for one platform</li></ul>
+<ul class="tight"><li>Image Config: Contains environment variables, entrypoint, working directory, layer diff IDs</li></ul>
+<ul class="tight"><li>Layers: Content-addressable gzipped tarballs of filesystem diffs</li></ul>
+<h3 id="oci-runtime-specification">OCI Runtime Specification</h3>
+<p>Defines the interface between a container manager (containerd) and a low-level runtime (runc). Specifies the bundle format: a config.json describing namespaces, cgroups, capabilities, mounts, and a rootfs directory. runc reads config.json and creates the container.</p>
+<h3 id="oci-distribution-specification">OCI Distribution Specification</h3>
+<p>Defines the HTTP API for pushing and pulling container images to/from registries. Standardizes the /v2/ API endpoints used by Docker Hub, ECR, GCR, GHCR, and Harbor.</p>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Tool</th><th>OCI Relationship</th></tr>
+<tr><td class="col-term">docker build</td><td>Produces OCI-compliant images (was Docker Image Spec v1 historically)</td></tr>
+<tr><td class="col-term">docker push/pull</td><td>Uses OCI Distribution Spec API against any registry</td></tr>
+<tr><td class="col-term">containerd</td><td>Stores and runs OCI images; Docker's internal engine uses containerd</td></tr>
+<tr><td class="col-term">runc</td><td>OCI Runtime Spec reference implementation; actually creates the container</td></tr>
+<tr><td class="col-term">Podman</td><td>Fully OCI-compliant; builds and runs OCI images without a daemon</td></tr>
+</tbody></table>
+<h2 id="1-6-container-lifecycle">1.6 Container Lifecycle</h2>
+<pre class="ascii-diagram"><code>  ┌──────────────────────────────────────────────────────────────────┐
+  │                    CONTAINER STATE MACHINE                      │
+  └──────────────────────────────────────────────────────────────────┘
+
+   docker pull / build
+         │
+         ▼
+   ┌──────────┐   docker create   ┌──────────┐   docker start   ┌─────────┐
+   │  Image   │──────────────────▶│ Created  │────────────────▶│ Running │
+   └──────────┘                   └──────────┘                  └─────────┘
+                                                                      │  │
+                                          docker pause               │  │ docker stop/kill
+                                                │                    │  │
+                                                ▼                    │  ▼
+                                          ┌──────────┐              ┌─────────┐
+                                          │  Paused  │              │ Stopped │
+                                          └──────────┘              └─────────┘
+                                                │                       │
+                                          docker unpause          docker start
+                                                │                   (restart)
+                                                └──────────┬────────────┘
+                                                           │
+                                                    docker rm ──▶ [Deleted]</code></pre>
+<h3 id="lifecycle-states-explained">Lifecycle States Explained</h3>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>State</th><th>Description</th></tr>
+<tr><td class="col-term">created</td><td>Container created (filesystem, namespaces allocated) but PID 1 not started yet. docker create achieves this.</td></tr>
+<tr><td class="col-term">running</td><td>PID 1 is executing inside the container. All namespaces active. Network interfaces up.</td></tr>
+<tr><td class="col-term">paused</td><td>All container processes are sent SIGSTOP via cgroup freezer. CPU time suspended. Memory retained. State preserved exactly.</td></tr>
+<tr><td class="col-term">stopped/exited</td><td>PID 1 has exited (either normally or killed). Filesystem writable layer still exists. Can be restarted.</td></tr>
+<tr><td class="col-term">dead</td><td>Container failed to be properly deleted. Usually a daemon bug or storage driver error. Requires manual cleanup.</td></tr>
+<tr><td class="col-term">restarting</td><td>Container in restart loop due to restart policy (--restart=always). Brief state between exiting and starting.</td></tr>
+</tbody></table>
+<h2 id="1-7-docker-architecture-overview">1.7 Docker Architecture Overview</h2>
+<pre class="ascii-diagram"><code>  ┌─────────────────────────────────────────────────────────────────────┐
+  │                        Docker Architecture                         │
+  └─────────────────────────────────────────────────────────────────────┘
+
+  ┌──────────────┐    REST API    ┌─────────────────────────────────────┐
+  │ Docker CLI   │◀─────────────▶│           Docker Daemon (dockerd)   │
+  │ (docker)     │   Unix Socket  │                                     │
+  └──────────────┘                │  ┌─────────────────────────────┐   │
+                                  │  │       containerd             │   │
+  ┌──────────────┐                │  │  ┌──────────────────────┐   │   │
+  │ Docker       │  HTTPS/TLS     │  │  │  containerd-shim     │   │   │
+  │ Compose      │◀─────────────▶│  │  │  ┌────────────────┐  │   │   │
+  └──────────────┘                │  │  │  │   runc         │  │   │   │
+                                  │  │  │  │ (OCI runtime)  │  │   │   │
+  ┌──────────────┐                │  │  │  └────────────────┘  │   │   │
+  │ Docker Hub   │  Image pull    │  │  └──────────────────────┘   │   │
+  │ (Registry)   │◀─────────────▶│  └─────────────────────────────┘   │
+  └──────────────┘                └─────────────────────────────────────┘
+                                       │                                   
+                                       ▼                                   
+                          ┌────────────────────────┐                      
+                          │   Linux Kernel         │                      
+                          │  • Namespaces          │                      
+                          │  • cgroups             │                      
+                          │  • OverlayFS           │                      
+                          │  • netfilter/iptables  │                      
+                          └────────────────────────┘                      </code></pre>
+<h2 id="1-8-container-runtime-comparison">1.8 Container Runtime Comparison</h2>
+<table class="data-table three-col"><tbody>
+<tr class="header-row"><th>Runtime</th><th>Architecture</th><th>Best For</th></tr>
+<tr><td class="col-term">Docker</td><td>Client-server daemon model. Full ecosystem: build, run, push/pull, compose. Industry standard for dev. Uses containerd+runc internally.</td><td>Best for development, legacy production, teams needing full ecosystem.</td></tr>
+<tr><td class="col-term">Podman</td><td>Daemonless. Rootless natively. Drop-in Docker CLI replacement. Uses runc/crun. No central daemon — each container is a child process of the caller.</td><td>Security-conscious environments, rootless requirements, RHEL/Fedora shops.</td></tr>
+<tr><td class="col-term">containerd</td><td>Industry-standard container runtime used by Kubernetes. Manages image pull, storage, container lifecycle. No build tooling.</td><td>Kubernetes worker nodes, bare-metal CRI runtime, production k8s.</td></tr>
+<tr><td class="col-term">CRI-O</td><td>Lightweight CRI runtime for Kubernetes only. Implements CRI directly. Uses runc/kata. Minimal footprint.</td><td>OpenShift, k8s environments wanting lighter runtime than containerd.</td></tr>
+<tr><td class="col-term">LXC/LXD</td><td>System containers: run full Linux OS (init, systemd) in a container. Not app containers. Closer to lightweight VMs.</td><td>Running multiple distros on one host, legacy app migration, not for microservices.</td></tr>
+</tbody></table>
+<div class="page-break"></div>
+<h1 id="2-docker-architecture-deep-dive">2. Docker Architecture Deep Dive</h1>
+<h2 id="2-1-docker-client-cli">2.1 Docker Client (CLI)</h2>
+<p>The Docker CLI (docker) is a Go binary that reads commands from the user, formats them as REST API calls over a Unix socket (/var/run/docker.sock), and displays the responses. The CLI itself does no container work — it is purely a client. This design means you can point the Docker CLI at any Docker daemon, local or remote.</p>
+<h3 id="internal-workflow">Internal Workflow</h3>
+<ul class="tight"><li>User runs: docker run nginx</li></ul>
+<ul class="tight"><li>CLI parses the command into an API request: POST /v1.41/containers/create + POST /v1.41/containers/{id}/start</li></ul>
+<ul class="tight"><li>CLI serializes to JSON and sends via Unix socket</li></ul>
+<ul class="tight"><li>Daemon processes request, returns JSON response with container ID</li></ul>
+<ul class="tight"><li>CLI prints the container ID to stdout</li></ul>
+<h3 id="remote-docker-daemon">Remote Docker Daemon</h3>
+<pre class="code-block"><code># Connect to remote Docker daemon via TCP (insecure - dev only)
+export DOCKER_HOST=tcp://192.168.1.100:2375
+
+# Connect via TLS (production)
+export DOCKER_HOST=tcp://192.168.1.100:2376
+export DOCKER_TLS_VERIFY=1
+export DOCKER_CERT_PATH=~/.docker/certs
+
+# Verify connection
+docker info</code></pre>
+<h3 id="failure-scenarios">Failure Scenarios</h3>
+<ul class="tight"><li>Cannot connect to the Docker daemon: Unix socket /var/run/docker.sock doesn't exist → dockerd not running, or user not in docker group</li></ul>
+<ul class="tight"><li>Permission denied: User lacks read/write access to the socket → add user to docker group</li></ul>
+<ul class="tight"><li>TLS handshake failed: Certificate mismatch in remote connection → verify DOCKER_CERT_PATH</li></ul>
+<h2 id="2-2-docker-rest-api">2.2 Docker REST API</h2>
+<p>The Docker API is a versioned REST API served over a Unix domain socket (local) or TCP socket (remote). Every CLI command maps to one or more API calls. You can use it directly with curl or any HTTP client.</p>
+<pre class="code-block"><code># Direct API call via curl over Unix socket
+curl --unix-socket /var/run/docker.sock http://localhost/v1.41/version
+
+# List containers
+curl --unix-socket /var/run/docker.sock http://localhost/v1.41/containers/json
+
+# Create a container
+curl --unix-socket /var/run/docker.sock -X POST \
+  -H 'Content-Type: application/json' \
+  -d '{"Image":"nginx","Cmd":["/bin/bash"]}' \
+  http://localhost/v1.41/containers/create
+
+# API version negotiation - always use current or lower
+curl --unix-socket /var/run/docker.sock http://localhost/version</code></pre>
+<div class="info-box">SECURITY: The Docker socket gives root-equivalent access to the host. Any process that can write to /var/run/docker.sock can mount the host filesystem, create privileged containers, and escape. Never expose it to untrusted containers or processes.</div>
+<h2 id="2-3-docker-daemon-dockerd">2.3 Docker Daemon (dockerd)</h2>
+<p>The Docker daemon (dockerd) is the central server process that manages all Docker objects: images, containers, networks, and volumes. It listens on the Unix socket and handles API requests by orchestrating containerd.</p>
+<h3 id="what-dockerd-does">What dockerd Does</h3>
+<ul class="tight"><li>Receives API calls from clients</li></ul>
+<ul class="tight"><li>Image management: pull, build (via BuildKit), push, cache management</li></ul>
+<ul class="tight"><li>Container lifecycle: create, start, stop, kill via containerd</li></ul>
+<ul class="tight"><li>Network management: creates bridge networks, manages iptables rules</li></ul>
+<ul class="tight"><li>Volume management: creates and mounts named volumes</li></ul>
+<ul class="tight"><li>Plugin management: volume drivers, network plugins</li></ul>
+<ul class="tight"><li>Swarm mode: manages cluster state via Raft consensus</li></ul>
+<h3 id="dockerd-configuration">dockerd Configuration</h3>
+<pre class="code-block"><code># /etc/docker/daemon.json - main configuration file
+{
+  "data-root": "/var/lib/docker",
+  "storage-driver": "overlay2",
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m",
+    "max-file": "3"
+  },
+  "default-ulimits": {
+    "nofile": { "Hard": 65536, "Name": "nofile", "Soft": 65536 }
+  },
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "insecure-registries": [],
+  "registry-mirrors": ["https://mirror.example.com"],
+  "live-restore": true,
+  "userland-proxy": false,
+  "bip": "172.17.0.1/16",
+  "metrics-addr": "0.0.0.0:9323",
+  "experimental": false
+}</code></pre>
+<h3 id="dockerd-startup-and-failure-scenarios">dockerd Startup and Failure Scenarios</h3>
+<pre class="code-block"><code># Check daemon status
+systemctl status docker
+
+# View daemon logs
+journalctl -u docker --since '1 hour ago'
+
+# Restart daemon (note: with live-restore, containers keep running)
+systemctl restart docker
+
+# Debug mode - verbose logging
+dockerd --debug 2&gt;&amp;1 | tail -50</code></pre>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Failure</th><th>Resolution</th></tr>
+<tr><td class="col-term">Port conflict on 2376</td><td>Another service using the port. Change Docker's TLS port in daemon.json.</td></tr>
+<tr><td class="col-term">Storage driver errors</td><td>Incompatible kernel or existing data. Check kernel version, run docker system prune.</td></tr>
+<tr><td class="col-term">Failed to create bridge</td><td>IP range conflict. Change bip in daemon.json.</td></tr>
+<tr><td class="col-term">Daemon OOM killed</td><td>dockerd itself ran out of memory. Increase system RAM or limit container memory.</td></tr>
+<tr><td class="col-term">Corrupted daemon state</td><td>Stop daemon, remove /var/lib/docker/containers/*, restart.</td></tr>
+</tbody></table>
+<h2 id="2-4-containerd">2.4 containerd</h2>
+<p>containerd is an industry-standard container runtime that manages the complete container lifecycle: image transfer and storage, container execution and supervision, low-level storage, and network attachments. Docker uses containerd internally. Kubernetes uses containerd directly (bypassing dockerd entirely).</p>
+<pre class="ascii-diagram"><code>  containerd Architecture
+  ┌──────────────────────────────────────────────────────┐
+  │  containerd (daemon)                                 │
+  │                                                      │
+  │  ┌─────────────────┐  ┌──────────────────────────┐  │
+  │  │  gRPC API       │  │  Content Store           │  │
+  │  │  (client-facing)│  │  (image layers - CAS)    │  │
+  │  └─────────────────┘  └──────────────────────────┘  │
+  │  ┌─────────────────┐  ┌──────────────────────────┐  │
+  │  │  Snapshotter    │  │  Metadata Store (bolt)   │  │
+  │  │  (overlay2 etc) │  │  (containers, images)    │  │
+  │  └─────────────────┘  └──────────────────────────┘  │
+  │  ┌─────────────────┐  ┌──────────────────────────┐  │
+  │  │  Task Service   │  │  Events Service          │  │
+  │  │  (run/stop)     │  │  (pub/sub for lifecycle)  │  │
+  │  └─────────────────┘  └──────────────────────────┘  │
+  └──────────────────────────┬───────────────────────────┘
+                             │ spawns
+                             ▼
+                   ┌──────────────────┐
+                   │ containerd-shim  │  (one per container)
+                   └────────┬─────────┘
+                            │ exec
+                            ▼
+                   ┌──────────────────┐
+                   │      runc        │  (creates container, then exits)
+                   └──────────────────┘</code></pre>
+<h3 id="containerd-shim">containerd-shim</h3>
+<p>The containerd-shim is a small process that sits between containerd and runc. One shim process exists per container. Its purpose is critical: after runc creates the container and exits, the shim becomes the parent of PID 1 in the container. This means containerd itself can be restarted without affecting running containers (live-restore). The shim also:</p>
+<ul class="tight"><li>Holds the container's stdin/stdout/stderr pipes open</li></ul>
+<ul class="tight"><li>Reports container exit status back to containerd</li></ul>
+<ul class="tight"><li>Handles PTY allocation for interactive sessions</li></ul>
+<ul class="tight"><li>Reaps zombie processes (acts as mini-init)</li></ul>
+<h2 id="2-5-runc">2.5 runc</h2>
+<p>runc is the OCI-compliant low-level container runtime. It is a CLI tool that takes a bundle (OCI runtime spec config.json + rootfs/) and creates a container using Linux primitives directly. runc is the reference implementation of the OCI Runtime Specification.</p>
+<p>When runc creates a container, it:</p>
+<ol class="tight"><li>Reads config.json for namespaces, capabilities, seccomp profiles, mounts</li></ol>
+<ol class="tight"><li>Forks a new process with CLONE_NEWPID, CLONE_NEWNET, CLONE_NEWNS, CLONE_NEWUTS, CLONE_NEWIPC flags</li></ol>
+<ol class="tight"><li>Sets up cgroup limits (memory, CPU, pids)</li></ol>
+<ol class="tight"><li>Applies seccomp profile to filter syscalls</li></ol>
+<ol class="tight"><li>Drops Linux capabilities to the configured set</li></ol>
+<ol class="tight"><li>Chroots into the rootfs</li></ol>
+<ol class="tight"><li>Executes the container's entrypoint</li></ol>
+<ol class="tight"><li>Exits — the container now lives without runc</li></ol>
+<h2 id="2-6-buildkit">2.6 BuildKit</h2>
+<p>BuildKit is Docker's next-generation build engine, replacing the legacy builder. It provides massively improved build performance through parallelism, better caching, and new features.</p>
+<pre class="code-block"><code># Enable BuildKit (default in Docker 23.0+)
+export DOCKER_BUILDKIT=1
+
+# Or set in daemon.json permanently
+{ "features": { "buildkit": true } }
+
+# BuildKit-specific Dockerfile features
+# syntax=docker/dockerfile:1.4
+
+# Secret mount (never written to image layer)
+RUN --mount=type=secret,id=mysecret cat /run/secrets/mysecret
+
+# SSH agent forwarding
+RUN --mount=type=ssh git clone git@github.com:org/private-repo.git
+
+# Cache mount (persistent across builds)
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
+
+# Bind mount (read source without COPY)
+RUN --mount=type=bind,source=.,target=/app go build ./...</code></pre>
+<h3 id="buildkit-performance-advantages">BuildKit Performance Advantages</h3>
+<ul class="tight"><li>Parallel layer building: Independent Dockerfile stages run concurrently</li></ul>
+<ul class="tight"><li>Better cache invalidation: Content-based, not instruction-order-based</li></ul>
+<ul class="tight"><li>Garbage collection: Automatic cleanup of unused build cache</li></ul>
+<ul class="tight"><li>Distributed cache: Export/import cache to/from registries</li></ul>
+<ul class="tight"><li>No intermediate containers: Build happens in memory, no container commit</li></ul>
+<h2 id="2-7-docker-hub-and-registries">2.7 Docker Hub and Registries</h2>
+<p>A container registry is an OCI-compliant server that stores and distributes container images. Docker Hub (hub.docker.com) is the default public registry. When you docker pull nginx, Docker contacts Docker Hub at registry-1.docker.io.</p>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Registry</th><th>Notes</th></tr>
+<tr><td class="col-term">Docker Hub</td><td>Default public registry. Free tier (rate limits: 100 pulls/6h unauthenticated, 200 authenticated). docker.io/library/nginx</td></tr>
+<tr><td class="col-term">Docker Hub Pro/Team</td><td>No pull rate limits, private repos, vulnerability scanning via Docker Scout</td></tr>
+<tr><td class="col-term">Amazon ECR</td><td>AWS-native registry. IAM authentication. Per-region. Integrated with ECS/EKS. Auto-scan on push.</td></tr>
+<tr><td class="col-term">Google Artifact Registry</td><td>GCP registry. Supports containers and other artifacts (Maven, npm, etc.).</td></tr>
+<tr><td class="col-term">GitHub Container Registry (GHCR)</td><td>ghcr.io. Free for public, integrated with GitHub Actions. PAT or GITHUB_TOKEN auth.</td></tr>
+<tr><td class="col-term">Harbor</td><td>Self-hosted enterprise registry. RBAC, vulnerability scanning (Trivy), replication, proxy cache.</td></tr>
+<tr><td class="col-term">Quay.io</td><td>Red Hat registry. Good for RHEL/OCP environments. Robot accounts, org teams.</td></tr>
+</tbody></table>
+<div class="page-break"></div>
+<h1 id="3-linux-internals-behind-docker">3. Linux Internals Behind Docker</h1>
+<p>Docker is fundamentally a user-space tool that assembles Linux kernel primitives into a coherent runtime. Understanding these primitives is essential for debugging, performance tuning, and security hardening.</p>
+<h2 id="3-1-linux-namespaces">3.1 Linux Namespaces</h2>
+<p>Namespaces are a Linux kernel feature that partitions kernel resources so that processes in different namespaces see different views of the system. Docker creates one set of namespaces per container.</p>
+<table class="data-table three-col"><tbody>
+<tr class="header-row"><th>Namespace</th><th>Clone Flag</th><th>Docker Usage</th></tr>
+<tr><td class="col-term">pid</td><td>CLONE_NEWPID</td><td>Each container has its own PID numbering. Container's init is PID 1. From inside, can't see host PIDs.</td></tr>
+<tr><td class="col-term">net</td><td>CLONE_NEWNET</td><td>Isolated network stack: interfaces, routing tables, iptables rules, sockets. Each container gets its own eth0.</td></tr>
+<tr><td class="col-term">mnt</td><td>CLONE_NEWNS</td><td>Isolated mount table. Container sees its own filesystem root. Host mounts invisible unless explicitly shared.</td></tr>
+<tr><td class="col-term">uts</td><td>CLONE_NEWUTS</td><td>Hostname and NIS domain name isolation. Container can set its own hostname without affecting host.</td></tr>
+<tr><td class="col-term">ipc</td><td>CLONE_NEWIPC</td><td>Isolated SysV IPC, POSIX message queues. Processes in different containers can't use shared memory between them.</td></tr>
+<tr><td class="col-term">user</td><td>CLONE_NEWUSER</td><td>Map container UIDs/GIDs to different host UIDs/GIDs. Enables rootless containers.</td></tr>
+<tr><td class="col-term">cgroup</td><td>CLONE_NEWCGROUP</td><td>Isolated cgroup hierarchy view. Container sees its own cgroup root, not host cgroups.</td></tr>
+<tr><td class="col-term">time</td><td>CLONE_NEWTIME</td><td>Linux 5.6+. Per-process clock offsets. Not commonly used by Docker yet.</td></tr>
+</tbody></table>
+<h3 id="inspecting-container-namespaces">Inspecting Container Namespaces</h3>
+<pre class="code-block"><code># Get container PID on host
+CONTAINER_PID=$(docker inspect --format '{{.State.Pid}}' my_container)
+
+# View namespaces of the container process
+ls -la /proc/$CONTAINER_PID/ns/
+
+# Enter a namespace (like docker exec but manual)
+nsenter -t $CONTAINER_PID --net --pid --mount ip addr show
+
+# View all containers' PIDs
+docker inspect --format '{{.Name}} {{.State.Pid}}' $(docker ps -q)</code></pre>
+<h2 id="3-2-control-groups-cgroups">3.2 Control Groups (cgroups)</h2>
+<p>cgroups (control groups) are a Linux kernel mechanism that limits, accounts for, and isolates the resource usage of collections of processes. Docker uses cgroups to enforce --memory, --cpus, --pids-limit, and other resource constraints.</p>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>cgroup Subsystem</th><th>Docker Usage</th></tr>
+<tr><td class="col-term">cpu</td><td>CPU time allocation. cpu.shares (relative weight), cpu.cfs_quota_us / cpu.cfs_period_us (hard limits).</td></tr>
+<tr><td class="col-term">memory</td><td>RSS, swap, kernel memory limits. Triggers OOM killer when exceeded. Reports current usage.</td></tr>
+<tr><td class="col-term">blkio</td><td>Block I/O bandwidth and IOPS limits per device. Controls disk read/write rates.</td></tr>
+<tr><td class="col-term">pids</td><td>Limits total number of pids (processes + threads) in the container. Prevents fork bombs.</td></tr>
+<tr><td class="col-term">cpuset</td><td>Pin container to specific CPU cores and NUMA nodes. Critical for latency-sensitive workloads.</td></tr>
+<tr><td class="col-term">devices</td><td>Whitelist/blacklist device access. Prevents containers accessing raw disks, GPUs not assigned.</td></tr>
+<tr><td class="col-term">net_cls / net_prio</td><td>Mark network packets with class ID for tc (traffic control) prioritization.</td></tr>
+<tr><td class="col-term">freezer</td><td>Freeze/thaw all processes in a cgroup. Used by docker pause/unpause.</td></tr>
+</tbody></table>
+<h3 id="cgroups-v1-vs-v2">cgroups v1 vs v2</h3>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Aspect</th><th>cgroups v1 vs v2</th></tr>
+<tr><td class="col-term">Hierarchy</td><td>v1: each subsystem has its own hierarchy tree. Complex, inconsistent. | v2: unified hierarchy. All controllers under /sys/fs/cgroup/. Simpler, consistent.</td></tr>
+<tr><td class="col-term">Memory accounting</td><td>v1: memory and memsw are separate controllers, optional swap accounting. | v2: unified memory controller, swap always accounted.</td></tr>
+<tr><td class="col-term">CPU limits</td><td>v1: cpu.cfs_quota_us / cpu.cfs_period_us. | v2: cpu.max (replaces both in one file).</td></tr>
+<tr><td class="col-term">Delegation</td><td>v1: complex, security issues with delegation. | v2: clean delegation model for rootless containers.</td></tr>
+<tr><td class="col-term">Docker support</td><td>Both supported. Set exec-opts: [native.cgroupdriver=systemd] for k8s compatibility.</td></tr>
+</tbody></table>
+<pre class="code-block"><code># View cgroup limits for a running container
+docker inspect --format '{{json .HostConfig}}' my_container | python3 -m json.tool
+
+# Direct cgroup inspection (v2)
+CONTAINER_PID=$(docker inspect --format '{{.State.Pid}}' my_container)
+cat /proc/$CONTAINER_PID/cgroup
+
+# View memory limit in cgroup v2
+cat /sys/fs/cgroup/system.slice/docker-&lt;ID&gt;.scope/memory.max
+
+# View CPU limit in cgroup v2
+cat /sys/fs/cgroup/system.slice/docker-&lt;ID&gt;.scope/cpu.max</code></pre>
+<h2 id="3-3-union-filesystems-and-overlayfs">3.3 Union Filesystems and OverlayFS</h2>
+<p>Docker images are composed of layers. The union filesystem merges multiple directory trees into a single coherent view. OverlayFS (overlay2 storage driver) is the modern standard union filesystem used by Docker on Linux.</p>
+<pre class="ascii-diagram"><code>  OverlayFS Layer Stack
+  ┌────────────────────────────────────────────────────┐
+  │  Container View (merged)  -- what container sees   │
+  └───────────────────────┬────────────────────────────┘
+                          │ overlayfs mount
+  ┌───────────────────────┼────────────────────────────┐
+  │  upperdir (R/W)       │  workdir (temp for atomic) │
+  │  /var/lib/docker/     │  /var/lib/docker/          │
+  │  overlay2/&lt;id&gt;/diff   │  overlay2/&lt;id&gt;/work        │
+  └───────────────────────┼────────────────────────────┘
+                          │ lowerdir (R/O, stacked)
+  ┌────────────────────────────────────────────────────┐
+  │  Layer N (app layer, e.g. COPY . /app)             │
+  ├────────────────────────────────────────────────────┤
+  │  Layer N-1 (deps layer, e.g. RUN pip install)      │
+  ├────────────────────────────────────────────────────┤
+  │  Layer 2 (apt packages)                            │
+  ├────────────────────────────────────────────────────┤
+  │  Layer 1 (base OS, e.g. ubuntu:22.04)              │
+  └────────────────────────────────────────────────────┘</code></pre>
+<h3 id="copy-on-write-cow-semantics">Copy-on-Write (CoW) Semantics</h3>
+<p>When a container writes to a file that exists in a lower (read-only) layer, OverlayFS performs a copy-up: the file is copied from the lower layer to the upper (writable) layer, then modified there. The lower layer is never modified. This has performance implications:</p>
+<ul class="tight"><li>First write to a large file is expensive: the entire file is copied to upper before modification.</li></ul>
+<ul class="tight"><li>Subsequent writes to the same file are fast: the copy already exists in upper.</li></ul>
+<ul class="tight"><li>Reading files never modified is free: served directly from lower layers.</li></ul>
+<ul class="tight"><li>Deleting a file creates a whiteout file in upper, masking the lower layer entry.</li></ul>
+<h3 id="overlayfs-internals">OverlayFS Internals</h3>
+<pre class="code-block"><code># Inspect overlay mount for a container
+docker inspect --format '{{json .GraphDriver}}' my_container
+
+# Direct mount inspection
+mount | grep overlay
+
+# View layer directories
+ls /var/lib/docker/overlay2/
+
+# Show the actual overlayfs mount options
+cat /proc/mounts | grep overlay
+# output: overlay /var/lib/docker/overlay2/&lt;id&gt;/merged overlay
+#   rw,relatime,lowerdir=&lt;l1&gt;:&lt;l2&gt;:&lt;l3&gt;,upperdir=&lt;u&gt;,workdir=&lt;w&gt;</code></pre>
+<h2 id="3-4-linux-capabilities">3.4 Linux Capabilities</h2>
+<p>Traditional Unix security is binary: either you are root (can do anything) or you are not (limited). Linux capabilities break root privileges into distinct units that can be independently granted or revoked. Docker drops all non-essential capabilities by default.</p>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Capability</th><th>Notes</th></tr>
+<tr><td class="col-term">CAP_NET_ADMIN</td><td>Configure network interfaces, routing, iptables. Dropped by default.</td></tr>
+<tr><td class="col-term">CAP_NET_BIND_SERVICE</td><td>Bind to ports below 1024. Dropped by default (use --cap-add if needed).</td></tr>
+<tr><td class="col-term">CAP_SYS_ADMIN</td><td>Huge, dangerous capability. Mount filesystems, configure namespaces, many syscalls. Never add unless absolutely required.</td></tr>
+<tr><td class="col-term">CAP_SYS_PTRACE</td><td>ptrace system call. Required for strace, gdb inside containers. Security risk.</td></tr>
+<tr><td class="col-term">CAP_CHOWN</td><td>Change file ownership. Kept by default.</td></tr>
+<tr><td class="col-term">CAP_DAC_OVERRIDE</td><td>Bypass file read/write/execute permission checks. Kept by default.</td></tr>
+<tr><td class="col-term">CAP_SETUID</td><td>Change user IDs. Kept by default (required for su, sudo).</td></tr>
+<tr><td class="col-term">CAP_KILL</td><td>Send signals to processes. Kept by default.</td></tr>
+<tr><td class="col-term">CAP_AUDIT_WRITE</td><td>Write to kernel audit log. Kept by default.</td></tr>
+</tbody></table>
+<pre class="code-block"><code># Run with no capabilities
+docker run --cap-drop ALL nginx
+
+# Add only what's needed
+docker run --cap-drop ALL --cap-add NET_BIND_SERVICE nginx
+
+# Inspect container capabilities
+docker inspect --format '{{.HostConfig.CapAdd}} {{.HostConfig.CapDrop}}' my_container
+
+# Inside container: check capabilities
+cat /proc/1/status | grep -E 'Cap(Inh|Prm|Eff|Bnd)'
+capsh --decode=00000000a80425fb</code></pre>
+<h2 id="3-5-seccomp">3.5 seccomp</h2>
+<p>seccomp (Secure Computing Mode) is a Linux kernel feature that filters system calls available to a process. Docker applies a default seccomp profile that blocks ~44 dangerous syscalls while allowing the ~300+ needed for normal applications.</p>
+<pre class="code-block"><code># Run with no seccomp profile (dangerous - dev only)
+docker run --security-opt seccomp=unconfined nginx
+
+# Apply custom seccomp profile
+docker run --security-opt seccomp=/path/to/profile.json nginx
+
+# Blocked by default: keyctl, add_key, request_key, ptrace,
+# kexec_load, open_by_handle_at, init_module, finit_module,
+# delete_module, iopl, ioperm, swapon, swapoff...</code></pre>
+<h2 id="3-6-apparmor-and-selinux">3.6 AppArmor and SELinux</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>System</th><th>Docker Integration</th></tr>
+<tr><td class="col-term">AppArmor</td><td>Mandatory Access Control (MAC) via path-based profiles. Docker loads a default AppArmor profile (docker-default) on Ubuntu/Debian. Profiles define what files, capabilities, and network operations are allowed.</td></tr>
+<tr><td class="col-term">SELinux</td><td>Label-based MAC. Used on RHEL/CentOS/Fedora. Docker containers run with the svirt_lxc_net_t label. Files accessed by containers are labeled svirt_sandbox_file_t. Prevents container breakout by denying access to unlabeled host files.</td></tr>
+</tbody></table>
+<pre class="code-block"><code># Check AppArmor profile on container
+docker inspect --format '{{.AppArmorProfile}}' my_container
+
+# Disable AppArmor for container (dev/debug only)
+docker run --security-opt apparmor=unconfined nginx
+
+# SELinux: check label assigned to container process
+docker inspect --format '{{.HostConfig.SecurityOpt}}' my_container
+
+# SELinux: allow container to access host volume
+docker run -v /host/path:/container/path:z nginx  # shared label
+docker run -v /host/path:/container/path:Z nginx  # private label</code></pre>
+<h2 id="3-7-user-namespaces-rootless-docker">3.7 User Namespaces (Rootless Docker)</h2>
+<p>User namespaces allow mapping the root user (UID 0) inside a container to an unprivileged user on the host (e.g., UID 100000). This means even if a container escape occurs, the attacker has no host privileges. This is the foundation of rootless Docker.</p>
+<pre class="code-block"><code># Enable user namespace remapping in daemon.json
+{ "userns-remap": "default" }
+
+# This creates a 'dockremap' user with subuids/subgids
+cat /etc/subuid   # dockremap:100000:65536
+cat /etc/subgid   # dockremap:100000:65536
+
+# Rootless Docker (no daemon at all, per-user)
+# Install rootless mode
+dockerd-rootless-setuptool.sh install
+
+# Use rootless Docker
+export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock
+docker run nginx
+
+# Container root (UID 0) = host UID 100000 when remap is enabled</code></pre>
+<div class="page-break"></div>
+<h1 id="4-docker-images-deep-dive">4. Docker Images Deep Dive</h1>
+<h2 id="4-1-what-is-a-docker-image">4.1 What Is a Docker Image?</h2>
+<p>A Docker image is an immutable, read-only, layered filesystem that contains everything needed to run an application: code, runtime, libraries, environment variables, and configuration. Images are identified by a content-addressable SHA256 digest and optionally by a human-readable tag.</p>
+<p>An image is NOT a running process. It is a blueprint. When you docker run an image, Docker creates a container: a running instance of the image with an additional writable layer on top.</p>
+<h2 id="4-2-image-layers">4.2 Image Layers</h2>
+<p>Every instruction in a Dockerfile that modifies the filesystem (RUN, COPY, ADD) creates a new immutable layer. Layers are content-addressed (SHA256 of their contents) and stored once per host regardless of how many images or containers use them.</p>
+<pre class="code-block"><code># View image layers
+docker history nginx:latest
+
+# Detailed layer information
+docker inspect nginx:latest | python3 -m json.tool | grep -A 20 'RootFS'
+
+# View layer sizes
+docker history --no-trunc --format 'table {{.Size}}\t{{.CreatedBy}}' nginx:latest
+
+# List layer digests
+docker manifest inspect nginx:latest</code></pre>
+<h3 id="layer-sharing-why-it-matters">Layer Sharing - Why It Matters</h3>
+<p>If two images share the same base (e.g., both FROM ubuntu:22.04), the ubuntu layers are stored once and shared. This dramatically reduces disk usage and pull times. On a host running 20 microservices all based on node:18-alpine, the base Alpine and Node layers are stored once, not 20 times.</p>
+<h2 id="4-3-image-manifest">4.3 Image Manifest</h2>
+<p>The image manifest is a JSON document that describes the image: its configuration and its ordered list of layers. When you docker pull an image, Docker first fetches the manifest to discover what to download.</p>
+<pre class="code-block"><code># Fetch manifest directly from registry
+docker manifest inspect nginx:latest
+
+# Example manifest structure:
+{
+  "schemaVersion": 2,
+  "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+  "config": {
+    "mediaType": "application/vnd.docker.container.image.v1+json",
+    "size": 7682,
+    "digest": "sha256:a8758716bb6aa4d90071160d27028fe4edef82b0f7e28c3b4..."
+  },
+  "layers": [
+    { "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+      "size": 31379476, "digest": "sha256:a603fa5e3b4127..." },
+    { "size": 25355789, "digest": "sha256:c39e1cda007e..." }
+  ]
+}</code></pre>
+<h2 id="4-4-multi-stage-builds">4.4 Multi-Stage Builds</h2>
+<p>Multi-stage builds allow you to use multiple FROM statements in one Dockerfile. Each FROM starts a new stage with a clean filesystem. You can COPY files from earlier stages, leaving behind all the build tools. This produces tiny production images.</p>
+<pre class="code-block"><code># Multi-stage Go build - from 800MB builder to 15MB final
+# syntax=docker/dockerfile:1
+
+# Stage 1: Build
+FROM golang:1.21-alpine AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags='-w -s' -o /app/server .
+
+# Stage 2: Production image
+FROM scratch
+COPY --from=builder /app/server /server
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+USER 65534:65534
+EXPOSE 8080
+ENTRYPOINT ["/server"]
+
+# Result: ~5MB image with no shell, no package manager, no attack surface</code></pre>
+<pre class="code-block"><code># Multi-stage Python build with virtual environment
+FROM python:3.11-slim AS builder
+WORKDIR /app
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+FROM python:3.11-slim AS production
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+WORKDIR /app
+COPY --chown=nobody:nogroup . .
+USER nobody
+CMD ["python", "app.py"]</code></pre>
+<h2 id="4-5-multi-architecture-images">4.5 Multi-Architecture Images</h2>
+<p>Multi-arch images (also called fat manifests or image indices) allow a single image tag (e.g., nginx:latest) to serve multiple architectures. When you docker pull nginx on an ARM Mac and on an x86 server, you get the correct binary for each platform.</p>
+<pre class="code-block"><code># Build multi-arch image with buildx
+docker buildx create --name multiarch --driver docker-container --bootstrap
+docker buildx use multiarch
+
+# Build and push for multiple platforms
+docker buildx build \
+  --platform linux/amd64,linux/arm64,linux/arm/v7 \
+  --tag myrepo/myapp:latest \
+  --push \
+  .
+
+# Inspect the manifest list
+docker manifest inspect myrepo/myapp:latest
+
+# Pull specific platform
+docker pull --platform linux/arm64 myrepo/myapp:latest</code></pre>
+<h2 id="4-6-build-cache">4.6 Build Cache</h2>
+<p>Docker's build cache is a critical performance feature. Before executing each Dockerfile instruction, the builder checks whether a cached layer matching the same instruction and inputs exists. If found, it reuses the cache instead of re-executing.</p>
+<h3 id="cache-invalidation-rules">Cache Invalidation Rules</h3>
+<ul class="tight"><li>Cache miss on any instruction invalidates all subsequent layers (they must be rebuilt)</li></ul>
+<ul class="tight"><li>RUN instruction: cache hit only if previous layers match AND the command string is identical</li></ul>
+<ul class="tight"><li>COPY/ADD: cache hit only if file contents (checksums) match, not just names</li></ul>
+<ul class="tight"><li>ENV, ARG: changing a value invalidates the layer and all following layers</li></ul>
+<h3 id="cache-optimization-pattern">Cache Optimization Pattern</h3>
+<pre class="code-block"><code># BAD: Copies ALL source before installing deps
+# Any source change invalidates the pip install layer
+COPY . /app
+RUN pip install -r requirements.txt
+
+# GOOD: Install deps first (rarely changes), then copy source
+COPY requirements.txt /app/
+RUN pip install -r /app/requirements.txt
+COPY . /app
+# Now: only source changes force the slow 'pip install' to re-run?  NO
+# requirements.txt rarely changes -&gt; pip install is cached
+# source changes only invalidate COPY . /app layer (fast)</code></pre>
+<h2 id="4-7-image-optimization">4.7 Image Optimization</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Optimization</th><th>Explanation</th></tr>
+<tr><td class="col-term">Use minimal base images</td><td>alpine (5MB), distroless, scratch for Go/Rust. Reduces attack surface and image size.</td></tr>
+<tr><td class="col-term">Multi-stage builds</td><td>Strip build tools from final image. A Go app in scratch can be under 10MB.</td></tr>
+<tr><td class="col-term">Combine RUN commands</td><td>Each RUN is a layer. Combine: RUN apt-get update &amp;&amp; apt-get install -y pkg &amp;&amp; rm -rf /var/lib/apt/lists/*</td></tr>
+<tr><td class="col-term">Clean up in same layer</td><td>apt-get clean, pip cache purge, rm -rf must be in same RUN as the install. Different RUN = different layer, old data still in image.</td></tr>
+<tr><td class="col-term">.dockerignore</td><td>Prevent build context bloat. Exclude .git, node_modules, tests, docs, *.md from build context.</td></tr>
+<tr><td class="col-term">Use specific tags</td><td>FROM ubuntu:22.04 not FROM ubuntu:latest. Prevents surprise base image updates.</td></tr>
+<tr><td class="col-term">ORDER matters for cache</td><td>Put rarely-changing instructions early, frequently-changing instructions late.</td></tr>
+<tr><td class="col-term">Pin dependency versions</td><td>requirements.txt with exact versions. package-lock.json. Reproduces builds exactly.</td></tr>
+</tbody></table>
+<h2 id="4-8-image-signing-with-docker-content-trust">4.8 Image Signing with Docker Content Trust</h2>
+<pre class="code-block"><code># Enable Docker Content Trust
+export DOCKER_CONTENT_TRUST=1
+
+# Generate signing key (first push creates key)
+docker trust key generate mykey
+
+# Sign and push image
+docker trust sign myrepo/myapp:v1.0
+
+# Inspect trust data
+docker trust inspect --pretty myrepo/myapp
+
+# With DCT enabled, pulling unsigned images fails:
+# Error: remote trust data does not exist for docker.io/library/nginx</code></pre>
+<div class="page-break"></div>
+<h1 id="5-dockerfile-deep-dive">5. Dockerfile Deep Dive</h1>
+<p>The Dockerfile is a text file containing a sequence of instructions that Docker reads top-to-bottom to build an image. Each instruction (except FROM in multi-stage, and ARG before FROM) creates a new layer in the image. Understanding each instruction's internal behavior is essential for writing optimal Dockerfiles.</p>
+<h2 id="5-1-from">5.1 FROM</h2>
+<pre class="code-block"><code># Syntax
+FROM [--platform=&lt;platform&gt;] &lt;image&gt;[:&lt;tag&gt;|@&lt;digest&gt;] [AS &lt;name&gt;]
+
+# Examples
+FROM ubuntu:22.04
+FROM node:18-alpine AS builder
+FROM --platform=linux/amd64 nginx:latest
+FROM scratch  # empty filesystem - for statically compiled binaries
+FROM golang:1.21@sha256:a81bc5...  # pinned by digest</code></pre>
+<p>FROM initializes a new build stage and sets the base image. Every Dockerfile must start with FROM (except ARG before FROM). The base image provides the initial filesystem layers.</p>
+<p>Best practices: Always pin to a specific version tag or digest. Using :latest means builds break unpredictably when the base image updates. Use platform flag for cross-compilation. Use scratch for minimal attack surface.</p>
+<h2 id="5-2-run">5.2 RUN</h2>
+<pre class="code-block"><code># Shell form (runs via /bin/sh -c on Linux)
+RUN apt-get update &amp;&amp; apt-get install -y curl
+
+# Exec form (no shell, no string interpolation, no shell features)
+RUN ["/usr/bin/apt-get", "install", "-y", "curl"]
+
+# BuildKit: cache mount (pip cache persists across builds)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt
+
+# BuildKit: secret mount (not stored in any layer)
+RUN --mount=type=secret,id=aws,target=/root/.aws/credentials \
+    aws s3 cp s3://bucket/config.json /app/
+
+# Production pattern: combine, clean in same layer
+RUN apt-get update \
+    &amp;&amp; apt-get install -y --no-install-recommends \
+       curl wget ca-certificates \
+    &amp;&amp; rm -rf /var/lib/apt/lists/* \
+    &amp;&amp; apt-get clean</code></pre>
+<p>CRITICAL: The rm -rf /var/lib/apt/lists/* MUST be in the same RUN command as apt-get install. If placed in a separate RUN, the apt cache is committed to the lower layer and cannot be removed by a higher layer.</p>
+<h2 id="5-3-cmd-vs-entrypoint">5.3 CMD vs ENTRYPOINT</h2>
+<p>CMD and ENTRYPOINT are the most confusing Dockerfile instructions. Understanding them together is essential.</p>
+<pre class="ascii-diagram"><code>  ENTRYPOINT vs CMD interaction:
+
+  ┌─────────────────┬───────────────────┬────────────────────────────────────┐
+  │ ENTRYPOINT      │ CMD               │ docker run result                  │
+  ├─────────────────┼───────────────────┼────────────────────────────────────┤
+  │ (none)          │ ["cmd","args"]    │ cmd args                           │
+  │ ["ep"]          │ (none)            │ ep                                 │
+  │ ["ep"]          │ ["cmd","args"]   │ ep cmd args  (CMD = default args) │
+  │ ["ep"]          │ (none)            │ ep extra     (extra from CLI)      │
+  │ ["ep"]          │ ["cmd"]          │ ep extra     (CLI overrides CMD)   │
+  └─────────────────┴───────────────────┴────────────────────────────────────┘</code></pre>
+<pre class="code-block"><code># ENTRYPOINT: fixed executable, cannot be overridden without --entrypoint flag
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+
+# CMD: default arguments, overridden by docker run arguments
+CMD ["--worker-processes", "auto"]
+
+# Common pattern: wrapper script as ENTRYPOINT
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]
+
+# Anti-pattern: shell form ENTRYPOINT
+# ENTRYPOINT nginx -g 'daemon off;'  # BAD: runs as /bin/sh -c, PID 1 is shell
+# This breaks signal handling - SIGTERM to PID 1 goes to shell, not nginx
+
+# Correct: exec form for proper signal handling
+ENTRYPOINT ["nginx", "-g", "daemon off;"]</code></pre>
+<h2 id="5-4-copy-vs-add">5.4 COPY vs ADD</h2>
+<pre class="code-block"><code># COPY: simple, predictable - PREFERRED
+COPY source.txt /app/source.txt
+COPY ./src /app/src
+COPY --chown=node:node package*.json ./
+COPY --from=builder /app/dist /app/dist  # from build stage
+
+# ADD: superset of COPY with two additional features
+# 1. Auto-extracts .tar, .tar.gz, .tar.bz2, .tar.xz, .tgz
+ADD archive.tar.gz /app/  # extracts automatically
+
+# 2. Fetches remote URLs (AVOID in production)
+ADD https://example.com/file.txt /app/  # BAD: no cache invalidation guarantee
+
+# Best practice: use COPY for everything except tar extraction
+# For remote files: use RUN curl/wget in same layer
+RUN curl -fsSL https://example.com/file.txt -o /app/file.txt</code></pre>
+<h2 id="5-5-workdir">5.5 WORKDIR</h2>
+<pre class="code-block"><code># Sets working directory for subsequent RUN, CMD, ENTRYPOINT, COPY, ADD
+WORKDIR /app
+
+# Creates directory if it doesn't exist
+# Equivalent to: mkdir -p /app &amp;&amp; cd /app
+
+# Can be used multiple times (relative paths compound)
+WORKDIR /app
+WORKDIR src
+# Current dir is now /app/src
+
+# Best practice: always use absolute paths
+WORKDIR /app  # NOT: WORKDIR app</code></pre>
+<h2 id="5-6-user">5.6 USER</h2>
+<pre class="code-block"><code># Switch to non-root user - CRITICAL for security
+USER 1000:1000          # numeric UID:GID
+USER node               # named user (must exist in container)
+USER node:node          # user:group
+
+# Create user in build, then switch
+RUN groupadd -r appgroup &amp;&amp; useradd -r -g appgroup -u 1000 appuser
+USER appuser
+
+# For distroless images: use numeric UID
+USER 65534:65534  # nobody:nogroup
+
+# Common mistake: forgetting to chown files before USER switch
+COPY --chown=node:node . /app
+USER node</code></pre>
+<h2 id="5-7-env-and-arg">5.7 ENV and ARG</h2>
+<pre class="code-block"><code># ENV: runtime environment variable (persists in container)
+ENV NODE_ENV=production
+ENV PORT=8080 HOST=0.0.0.0  # multiple in one instruction
+
+# Override at runtime
+docker run -e NODE_ENV=development myimage
+
+# ARG: build-time variable only (NOT persisted in image)
+ARG APP_VERSION=1.0.0
+ARG BUILD_DATE
+RUN echo "Building version $APP_VERSION on $BUILD_DATE"
+
+# Pass at build time
+docker build --build-arg APP_VERSION=2.0.0 --build-arg BUILD_DATE=$(date) .
+
+# ARG before FROM: special scope (usable only in FROM)
+ARG BASE_IMAGE=ubuntu:22.04
+FROM $BASE_IMAGE
+
+# SECURITY WARNING: ARG values visible in docker history
+# NEVER pass secrets via ARG. Use BuildKit --mount=type=secret instead.</code></pre>
+<h2 id="5-8-expose-healthcheck-label-volume-stopsignal">5.8 EXPOSE, HEALTHCHECK, LABEL, VOLUME, STOPSIGNAL</h2>
+<pre class="code-block"><code># EXPOSE: documents which port the container listens on
+# Does NOT actually publish the port - that requires -p in docker run
+EXPOSE 8080
+EXPOSE 8080/tcp 5000/udp
+
+# HEALTHCHECK: defines how Docker checks container health
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Health states: starting, healthy, unhealthy
+# Exit 0 = healthy, Exit 1 = unhealthy, Exit 2 = reserved (don't use)
+
+# LABEL: adds metadata (key-value pairs)
+LABEL maintainer="ops@example.com"
+LABEL org.opencontainers.image.title="My App"
+LABEL org.opencontainers.image.version="1.0.0"
+LABEL org.opencontainers.image.created="2024-01-15T00:00:00Z"
+
+# VOLUME: declares mount points / creates anonymous volumes
+VOLUME ["/data", "/logs"]
+# This creates an anonymous volume - data here survives container deletion
+
+# STOPSIGNAL: signal sent to container's PID 1 on docker stop
+STOPSIGNAL SIGTERM  # default
+STOPSIGNAL SIGQUIT  # for nginx graceful shutdown</code></pre>
+<h2 id="5-9-production-dockerfile-example">5.9 Production Dockerfile Example</h2>
+<pre class="code-block"><code># syntax=docker/dockerfile:1
+# Production-grade Node.js Dockerfile
+
+# ─── Stage 1: Dependencies ───────────────────────────────
+FROM node:18-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --only=production &amp;&amp; npm cache clean --force
+
+# ─── Stage 2: Build ──────────────────────────────────────
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci
+COPY . .
+RUN npm run build
+
+# ─── Stage 3: Production ─────────────────────────────────
+FROM node:18-alpine AS production
+ENV NODE_ENV=production
+
+# Add non-root user
+RUN addgroup -g 1001 -S nodejs &amp;&amp; adduser -S nextjs -u 1001
+
+WORKDIR /app
+
+# Copy only production artifacts
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
+COPY --chown=nextjs:nodejs package.json .
+
+USER nextjs
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD node healthcheck.js || exit 1
+
+STOPSIGNAL SIGTERM
+
+ENTRYPOINT ["node"]
+CMD ["dist/server.js"]</code></pre>
+<h2 id="5-10-dockerignore">5.10 .dockerignore</h2>
+<pre class="code-block"><code># .dockerignore - keeps build context lean and prevents secrets leaking
+.git
+.gitignore
+**/.DS_Store
+node_modules
+npm-debug.log*
+dist
+build
+*.test.js
+__tests__
+coverage
+.env*
+!.env.example
+*.md
+docs/
+Dockerfile*
+docker-compose*
+.dockerignore
+**/*.log
+tmp/</code></pre>
+<div class="info-box">CRITICAL: Without .dockerignore, every docker build sends your entire project directory (including .git, node_modules, secrets) to the Docker daemon as the build context. A large build context (gigabytes) dramatically slows builds even if the files are never COPY'd.</div>
+<div class="page-break"></div>
+<h1 id="6-container-lifecycle">6. Container Lifecycle</h1>
+<h2 id="6-1-container-state-transitions">6.1 Container State Transitions</h2>
+<p>Every container transitions between states managed by dockerd and containerd. Understanding these transitions helps diagnose restart loops, stuck containers, and unexpected behavior.</p>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Command</th><th>Lifecycle Action</th></tr>
+<tr><td class="col-term">docker create</td><td>Allocates a container ID, creates the writable layer, sets up namespaces (but doesn't start them), returns the container ID. Container is in 'created' state. Filesystem exists on disk.</td></tr>
+<tr><td class="col-term">docker start</td><td>Tells containerd to create the OCI bundle, calls runc to fork into namespaces, executes ENTRYPOINT/CMD as PID 1. Container moves to 'running'.</td></tr>
+<tr><td class="col-term">docker run</td><td>Combines create + start. Also handles -d (detach) or interactive modes. Most commonly used command.</td></tr>
+<tr><td class="col-term">docker stop</td><td>Sends STOPSIGNAL (default SIGTERM) to PID 1 in the container. Waits up to --time seconds (default 10). If process hasn't exited, sends SIGKILL. Container moves to 'stopped/exited'.</td></tr>
+<tr><td class="col-term">docker kill</td><td>Sends a signal directly (default SIGKILL, immediate). No grace period. Use for force-stopping hung containers.</td></tr>
+<tr><td class="col-term">docker pause</td><td>Freezes all processes via cgroup freezer. Zero CPU usage. All memory retained. Perfect for snapshotting state without stopping.</td></tr>
+<tr><td class="col-term">docker unpause</td><td>Thaws frozen processes. They resume exactly where they were.</td></tr>
+<tr><td class="col-term">docker restart</td><td>Equivalent to docker stop followed by docker start. Uses restart policy for retries.</td></tr>
+<tr><td class="col-term">docker rm</td><td>Removes the container: deletes the writable layer, removes from Docker state. Container must be stopped first (use -f to force).</td></tr>
+<tr><td class="col-term">docker commit</td><td>Creates a new image from the container's current state (writable layer merged with base layers). Rarely used in modern workflows.</td></tr>
+</tbody></table>
+<h2 id="6-2-restart-policies">6.2 Restart Policies</h2>
+<pre class="code-block"><code># No restart (default)
+docker run --restart=no nginx
+
+# Always restart (even on docker stop - only stops on daemon shutdown)
+docker run --restart=always nginx
+
+# Restart unless manually stopped
+docker run --restart=unless-stopped nginx
+
+# Restart on failure (exit code != 0), with max retries
+docker run --restart=on-failure:5 nginx
+
+# Update restart policy on running container
+docker update --restart=always my_container</code></pre>
+<h2 id="6-3-container-export-and-import">6.3 Container Export and Import</h2>
+<pre class="code-block"><code># Export container filesystem to tarball (no metadata/layers)
+docker export my_container &gt; container_fs.tar
+docker export --output container_fs.tar my_container
+
+# Import tarball as new image (flat - no layers from original image)
+docker import container_fs.tar myrepo/myimage:v1
+docker import --message 'Imported from export' container_fs.tar myrepo/img:v1
+
+# Save image (with all layers and metadata) to tarball
+docker save nginx:latest | gzip &gt; nginx_image.tar.gz
+docker save -o nginx_image.tar nginx:latest
+
+# Load image from tarball
+docker load &lt; nginx_image.tar.gz
+docker load -i nginx_image.tar
+
+# Difference: export=container fs snapshot (flat), save=image with layers</code></pre>
+<h2 id="6-4-container-resource-limits">6.4 Container Resource Limits</h2>
+<pre class="code-block"><code># Memory limits
+docker run --memory=512m nginx
+docker run --memory=512m --memory-swap=1g nginx  # swap = total memory+swap
+docker run --memory=512m --memory-swap=-1 nginx  # unlimited swap
+docker run --memory-reservation=256m nginx        # soft limit
+
+# CPU limits
+docker run --cpus=1.5 nginx          # 1.5 CPU cores
+docker run --cpu-shares=512 nginx    # relative weight (default 1024)
+docker run --cpuset-cpus=0,1 nginx  # pin to cores 0 and 1
+
+# PID limit (prevent fork bombs)
+docker run --pids-limit=100 nginx
+
+# I/O limits
+docker run --device-read-bps=/dev/sda:100mb nginx
+docker run --device-write-bps=/dev/sda:50mb nginx
+docker run --device-read-iops=/dev/sda:1000 nginx
+
+# Update limits on running container
+docker update --memory=1g --cpus=2 my_container</code></pre>
+<h2 id="6-5-exec-and-debugging">6.5 Exec and Debugging</h2>
+<pre class="code-block"><code># Execute command in running container
+docker exec my_container ls /app
+
+# Interactive shell
+docker exec -it my_container /bin/bash
+docker exec -it my_container /bin/sh  # for Alpine
+
+# Run as specific user
+docker exec -u root my_container bash
+
+# Set environment variable for exec session
+docker exec -e DEBUG=true my_container app --debug
+
+# Attach to container's STDIN/STDOUT
+docker attach my_container
+
+# View container filesystem changes
+docker diff my_container
+# A = added, C = changed, D = deleted
+
+# Copy files in/out of container
+docker cp my_container:/app/logs/app.log ./app.log
+docker cp ./config.yaml my_container:/app/config.yaml</code></pre>
+<div class="page-break"></div>
+<h1 id="7-docker-networking">7. Docker Networking</h1>
+<h2 id="7-1-networking-architecture-overview">7.1 Networking Architecture Overview</h2>
+<p>Docker networking is implemented through a combination of Linux virtual interfaces (veth pairs), network namespaces, bridges, iptables/netfilter rules, and optionally overlay networks (VXLAN) for multi-host communication.</p>
+<pre class="ascii-diagram"><code>  Docker Bridge Network (default)
+  ┌────────────────────────────────────────────────────────────────────┐
+  │  Host Network Namespace                                            │
+  │                                                                    │
+  │  eth0 (172.20.1.5)  ───── internet                                │
+  │                                                                    │
+  │  docker0 bridge (172.17.0.1/16)                                   │
+  │       │                │               │                           │
+  │  veth0a            veth1a         veth2a  (host side of veth pair) │
+  └────┼────────────────────┼───────────────┼───────────────────────┘  │
+       │                    │               │                           │
+  ┌────┼───┐         ┌──────┼────┐   ┌──────┼────┐                    │
+  │ veth0b │         │  veth1b   │   │  veth2b   │  (container side)  │
+  │ eth0   │         │  eth0     │   │  eth0     │                    │
+  │172.17.0.2│       │172.17.0.3 │   │172.17.0.4 │                    │
+  │Container1│       │ Container2│   │ Container3│                    │
+  └──────────┘       └───────────┘   └───────────┘                    │</code></pre>
+<h2 id="7-2-network-drivers">7.2 Network Drivers</h2>
+<h3 id="bridge-default">Bridge (Default)</h3>
+<p>The bridge driver creates a Linux bridge (docker0 by default) and connects container network namespaces to it via veth pairs. Each container gets a private IP in the bridge subnet.</p>
+<pre class="code-block"><code># Create custom bridge network
+docker network create \
+  --driver bridge \
+  --subnet 192.168.100.0/24 \
+  --gateway 192.168.100.1 \
+  --opt com.docker.network.bridge.name=docker_br0 \
+  my_network
+
+# Connect containers to network
+docker run --network my_network --name web nginx
+docker run --network my_network --name db postgres
+
+# On custom networks, containers resolve each other by name
+# 'web' can ping 'db' by name (embedded DNS)
+
+# Connect existing container to additional network
+docker network connect my_network existing_container
+
+# Disconnect
+docker network disconnect my_network existing_container</code></pre>
+<h3 id="host-network">Host Network</h3>
+<p>Host networking removes network isolation: the container shares the host's network namespace directly. The container's port 80 IS host port 80. No port mapping needed. Best performance but no isolation.</p>
+<pre class="code-block"><code># Container uses host network directly
+docker run --network host nginx
+
+# nginx listens on host's port 80 directly
+# No -p flag needed or supported
+
+# Use case: performance-critical apps, network monitoring tools
+# Security risk: container can sniff all host traffic, bind any port</code></pre>
+<h3 id="none-network">None Network</h3>
+<p>No network interface except the loopback (lo). Container is completely isolated from all networks. Useful for batch jobs that need no network access.</p>
+<h3 id="overlay-network">Overlay Network</h3>
+<p>Overlay networks span multiple Docker hosts using VXLAN encapsulation. Required for Docker Swarm. Creates a virtual L2 network across physical hosts. Each container gets an IP in the overlay subnet regardless of which host it's on.</p>
+<pre class="code-block"><code># Overlay requires Swarm mode or standalone overlay setup
+docker swarm init
+
+# Create overlay network
+docker network create \
+  --driver overlay \
+  --attachable \
+  --subnet 10.20.0.0/16 \
+  my_overlay
+
+# Deploy service on overlay
+docker service create --network my_overlay nginx</code></pre>
+<h3 id="macvlan-and-ipvlan">Macvlan and IPvlan</h3>
+<pre class="code-block"><code># Macvlan: each container gets a unique MAC address on the physical network
+# Container appears as a physical device on the LAN
+docker network create \
+  --driver macvlan \
+  --subnet 192.168.1.0/24 \
+  --gateway 192.168.1.1 \
+  -o parent=eth0 \
+  macvlan_net
+
+docker run --network macvlan_net --ip 192.168.1.200 nginx
+
+# IPvlan L2: similar to macvlan but shares MAC, different IP
+docker network create \
+  --driver ipvlan \
+  --subnet 192.168.1.0/24 \
+  -o parent=eth0 \
+  ipvlan_net</code></pre>
+<h2 id="7-3-embedded-dns-and-service-discovery">7.3 Embedded DNS and Service Discovery</h2>
+<p>Docker includes an embedded DNS server running at 127.0.0.11 inside every container that joins a user-defined network. This server resolves container names, service names (in Swarm), and network aliases to their IPs.</p>
+<pre class="code-block"><code># Containers on the same user-defined network resolve each other by name
+docker network create app_net
+docker run -d --name database --network app_net postgres
+docker run -d --name api --network app_net my_api
+
+# Inside 'api' container:
+# ping database      -&gt; resolves to database container IP
+# curl http://database:5432  -&gt; connects to postgres
+
+# Add network aliases (multiple names for one container)
+docker run -d --name primary_db \
+  --network app_net \
+  --network-alias database \
+  --network-alias db \
+  postgres
+
+# DNS resolution order: container name &gt; alias &gt; external DNS
+
+# Check DNS from inside container
+docker exec api cat /etc/resolv.conf
+# nameserver 127.0.0.11
+# options ndots:0</code></pre>
+<h2 id="7-4-port-publishing">7.4 Port Publishing</h2>
+<pre class="code-block"><code># Publish specific port
+docker run -p 8080:80 nginx        # host:container
+
+# Publish to specific host IP
+docker run -p 127.0.0.1:8080:80 nginx  # only localhost
+
+# Publish UDP port
+docker run -p 5353:53/udp bind9
+
+# Publish all EXPOSE'd ports to random host ports
+docker run -P nginx
+
+# View port mappings
+docker port my_container
+docker port my_container 80
+
+# iptables rules Docker creates for port publishing:
+# DNAT: incoming on host:8080 -&gt; container:80
+iptables -t nat -L DOCKER -n
+
+# Disable userland proxy (use iptables only - better performance)
+# In daemon.json: { "userland-proxy": false }</code></pre>
+<h2 id="7-5-network-troubleshooting">7.5 Network Troubleshooting</h2>
+<pre class="code-block"><code># Inspect network details
+docker network inspect my_network
+
+# List networks
+docker network ls
+
+# Test connectivity between containers
+docker exec container1 ping container2
+docker exec container1 curl -v http://container2:80
+
+# Check iptables rules
+iptables -L -n -v | grep DOCKER
+iptables -t nat -L -n
+
+# Trace packet path
+docker exec container1 traceroute container2
+
+# DNS debugging
+docker exec container1 nslookup container2
+docker exec container1 dig container2 @127.0.0.11
+
+# Check network namespace directly
+CONTAINER_PID=$(docker inspect -f '{{.State.Pid}}' container1)
+nsenter -t $CONTAINER_PID --net ip addr show
+nsenter -t $CONTAINER_PID --net ip route show</code></pre>
+<div class="page-break"></div>
+<h1 id="8-docker-storage">8. Docker Storage</h1>
+<h2 id="8-1-storage-options-overview">8.1 Storage Options Overview</h2>
+<pre class="ascii-diagram"><code>  Docker Storage Options
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  Container Writable Layer  (ephemeral, tied to container lifecycle)  │
+  └─────────────────────────────────────────────────────────────────────┘
+                    │
+          ┌─────────┼──────────────┐
+          ▼         ▼              ▼
+  ┌──────────────┐ ┌──────────┐  ┌──────────────────────────┐
+  │   Volumes    │ │  Bind    │  │  tmpfs                   │
+  │  (Managed by │ │  Mounts  │  │  (In-memory, not saved)  │
+  │   Docker)    │ │          │  │                          │
+  └──────────────┘ └──────────┘  └──────────────────────────┘
+  Best for:          Best for:     Best for:
+  • DB data          • Dev hot     • Sensitive data
+  • Persistent data  •  reload     • Caches/sessions
+  • Named volumes    • Config       • /tmp workloads
+                     •  injection</code></pre>
+<h2 id="8-2-named-volumes">8.2 Named Volumes</h2>
+<p>Docker-managed volumes are stored in /var/lib/docker/volumes/ (or the data-root path). Docker manages creation, mounting, and cleanup. They are the recommended way to persist data.</p>
+<pre class="code-block"><code># Create a named volume
+docker volume create my_data
+
+# Use volume in container
+docker run -v my_data:/app/data nginx
+docker run --mount type=volume,source=my_data,target=/app/data nginx
+
+# Mount as read-only
+docker run -v my_data:/app/data:ro nginx
+
+# Inspect volume
+docker volume inspect my_data
+
+# List volumes
+docker volume ls
+
+# Volume location on host
+ls /var/lib/docker/volumes/my_data/_data/
+
+# Backup volume
+docker run --rm -v my_data:/data -v $(pwd):/backup \
+  alpine tar czf /backup/data_backup.tar.gz /data
+
+# Restore volume
+docker run --rm -v my_data:/data -v $(pwd):/backup \
+  alpine tar xzf /backup/data_backup.tar.gz -C /</code></pre>
+<h2 id="8-3-bind-mounts">8.3 Bind Mounts</h2>
+<p>Bind mounts mount a specific host filesystem path into the container. The host path must exist. Great for development (hot reload) and injecting host configuration, but creates tight coupling to host path structure.</p>
+<pre class="code-block"><code># Bind mount host directory into container
+docker run -v /host/path:/container/path nginx
+docker run --mount type=bind,source=/host/path,target=/container/path nginx
+
+# Read-only bind mount
+docker run -v /etc/nginx/conf.d:/etc/nginx/conf.d:ro nginx
+
+# Development hot reload pattern
+docker run -v $(pwd):/app -w /app node:18 npm run dev
+
+# Inject single file
+docker run -v $(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro nginx
+
+# SELinux: add :z (shared) or :Z (private) label
+docker run -v /host/data:/data:z mycontainer</code></pre>
+<h2 id="8-4-tmpfs-mounts">8.4 tmpfs Mounts</h2>
+<pre class="code-block"><code># tmpfs: in-memory filesystem, never written to disk
+docker run --tmpfs /run --tmpfs /tmp nginx
+
+# With options (size limit, unix permissions)
+docker run --mount type=tmpfs,destination=/tmp,tmpfs-size=100m,tmpfs-mode=1777 \
+  nginx
+
+# Use cases:
+# - Secrets that should never hit disk
+# - High-speed temporary storage
+# - Session data in stateless containers
+# - Reducing disk I/O pressure</code></pre>
+<h2 id="8-5-storage-drivers">8.5 Storage Drivers</h2>
+<p>Storage drivers manage how image layers and the container writable layer are stored on the host filesystem. The storage driver affects performance, memory use, and disk consumption.</p>
+<table class="data-table three-col"><tbody>
+<tr class="header-row"><th>Driver</th><th>Description</th><th>When to Use</th></tr>
+<tr><td class="col-term">overlay2</td><td>OverlayFS kernel feature. Default for modern Linux. Uses native kernel filesystem. Best performance and stability.</td><td>Requires Linux kernel 4.0+. Recommended for all production workloads.</td></tr>
+<tr><td class="col-term">aufs</td><td>Union filesystem predating OverlayFS. Legacy. Required custom kernel patch. Still seen on old Ubuntu.</td><td>Not available on modern kernels. Migration to overlay2 strongly recommended.</td></tr>
+<tr><td class="col-term">devicemapper</td><td>Block-device based. thin provisioning. Was default on RHEL/CentOS 7. Two modes: loopback (slow) and direct-lvm (fast).</td><td>Deprecated. Replaced by overlay2 on RHEL 8+. Very high operational complexity.</td></tr>
+<tr><td class="col-term">btrfs</td><td>Copy-on-Write filesystem. Native layer support. Good snapshot capabilities. High complexity.</td><td>Niche use. Only if host already uses btrfs. Not recommended generally.</td></tr>
+<tr><td class="col-term">zfs</td><td>Advanced CoW filesystem. Best data integrity. Snapshotting. High memory requirements.</td><td>Use if host is ZFS. Excellent for NAS/storage-centric deployments.</td></tr>
+<tr><td class="col-term">vfs</td><td>No copy-on-write. Full copy of each layer. Extremely slow and space-consuming.</td><td>Testing only. Never production.</td></tr>
+</tbody></table>
+<pre class="code-block"><code># Check current storage driver
+docker info | grep -E 'Storage Driver|Backing Filesystem'
+
+# Change storage driver in daemon.json
+{ "storage-driver": "overlay2" }
+
+# overlay2 configuration options
+{
+  "storage-driver": "overlay2",
+  "storage-opts": [
+    "overlay2.override_kernel_check=true",
+    "overlay2.size=20G"
+  ]
+}</code></pre>
+<h2 id="8-6-volume-drivers">8.6 Volume Drivers</h2>
+<p>Volume drivers (plugins) allow Docker volumes to be backed by external storage systems: NFS, AWS EBS, Azure Disk, GCE Persistent Disk, Ceph, GlusterFS, etc.</p>
+<pre class="code-block"><code># Install a volume driver plugin
+docker plugin install rexray/ebs REXRAY_PREEMPT=true EBS_REGION=us-east-1
+
+# Create volume with driver
+docker volume create \
+  --driver rexray/ebs \
+  --opt size=20 \
+  --opt volumetype=gp3 \
+  my_ebs_volume
+
+# Use NFS volume driver
+docker volume create \
+  --driver local \
+  --opt type=nfs \
+  --opt o=addr=192.168.1.100,rw,nfsvers=4 \
+  --opt device=:/exports/data \
+  nfs_data
+
+# Docker Compose volume with NFS
+# volumes:
+#   nfs_data:
+#     driver: local
+#     driver_opts:
+#       type: nfs
+#       o: addr=192.168.1.100,rw
+#       device: ':/exports/data'</code></pre>
+<div class="page-break"></div>
+<h1 id="9-docker-compose">9. Docker Compose</h1>
+<h2 id="9-1-compose-architecture">9.1 Compose Architecture</h2>
+<p>Docker Compose is a tool for defining and running multi-container applications. Compose reads a compose.yaml file, builds a dependency graph of services, and orchestrates their creation, networking, and lifecycle. Compose V2 (compose plugin) is built into Docker CLI as docker compose.</p>
+<h2 id="9-2-complete-compose-yaml-reference">9.2 Complete compose.yaml Reference</h2>
+<pre class="code-block"><code># compose.yaml - production-grade example
+name: myapp
+
+services:
+  web:
+    image: myrepo/web:${APP_VERSION:-latest}
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+      cache_from:
+        - myrepo/web:latest
+    restart: unless-stopped
+    ports:
+      - '${HTTP_PORT:-80}:3000'
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://db:5432/myapp
+    env_file:
+      - .env
+      - .env.production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - uploads:/app/uploads
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: '50m'
+        max-file: '3'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.web.rule=Host(`myapp.com`)'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: myapp
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U myuser -d myapp']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    secrets:
+      - db_password
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true  # No internet access
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  uploads:
+    driver: local
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt</code></pre>
+<h2 id="9-3-compose-commands">9.3 Compose Commands</h2>
+<pre class="code-block"><code># Start all services (foreground)
+docker compose up
+
+# Start detached
+docker compose up -d
+
+# Start specific service
+docker compose up -d web
+
+# Rebuild images before starting
+docker compose up -d --build
+
+# Scale service (docker compose v2)
+docker compose up -d --scale web=3
+
+# Stop services (keep containers)
+docker compose stop
+
+# Stop and remove containers/networks (keep volumes)
+docker compose down
+
+# Remove including volumes
+docker compose down -v
+
+# View running services
+docker compose ps
+
+# View logs
+docker compose logs -f web
+docker compose logs --since 1h
+
+# Execute command in service
+docker compose exec web bash
+
+# Run one-off command
+docker compose run --rm web python manage.py migrate
+
+# Pull latest images
+docker compose pull
+
+# Validate compose file
+docker compose config</code></pre>
+<h2 id="9-4-compose-profiles">9.4 Compose Profiles</h2>
+<pre class="code-block"><code># Profiles allow conditional service activation
+services:
+  web:
+    image: nginx
+    # No profile = always started
+
+  debug_tools:
+    image: nicolaka/netshoot
+    profiles: [debug]
+
+  prometheus:
+    image: prom/prometheus
+    profiles: [monitoring]
+
+# Start only default services
+docker compose up -d
+
+# Start with debug profile
+docker compose --profile debug up -d
+
+# Start with multiple profiles
+docker compose --profile debug --profile monitoring up -d</code></pre>
+<h2 id="9-5-compose-override-files">9.5 Compose Override Files</h2>
+<pre class="code-block"><code># docker-compose.yml (base/production)
+services:
+  web:
+    image: myapp:latest
+    restart: always
+
+# docker-compose.override.yml (development - auto-loaded)
+services:
+  web:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      DEBUG: 'true'
+
+# docker-compose.prod.yml (explicit production overrides)
+services:
+  web:
+    image: myapp:${TAG}
+    deploy:
+      replicas: 3
+
+# Explicit merge of files
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d</code></pre>
+<div class="page-break"></div>
+<h1 id="10-docker-registry">10. Docker Registry</h1>
+<h2 id="10-1-registry-architecture">10.1 Registry Architecture</h2>
+<p>A container registry is an OCI Distribution Spec-compliant server. It stores image manifests and layer blobs, indexed by repository name and tag. Docker clients interact with registries via the /v2/ HTTP API.</p>
+<pre class="ascii-diagram"><code>  Registry API Flow (docker push)
+
+  Docker Client                    Registry Server
+       │                                │
+       │─── GET /v2/ ──────────────────▶│  (Check API version)
+       │◀── 200 OK ─────────────────────│
+       │                                │
+       │─── POST /v2/&lt;name&gt;/blobs/uploads/start ──▶│
+       │◀── 202 Accepted (Location: /uploads/{uuid})│
+       │                                │
+       │─── PATCH /v2/&lt;name&gt;/blobs/uploads/{uuid} ▶│  (Upload layer)
+       │◀── 202 Accepted ───────────────│
+       │                                │
+       │─── PUT /v2/&lt;name&gt;/blobs/uploads/{uuid}?digest=sha256:...  ▶│
+       │◀── 201 Created ────────────────│
+       │                                │
+       │─── (repeat for each layer) ────│
+       │                                │
+       │─── PUT /v2/&lt;name&gt;/manifests/&lt;tag&gt; ──▶│  (Push manifest)
+       │◀── 201 Created ────────────────│</code></pre>
+<h2 id="10-2-registry-authentication">10.2 Registry Authentication</h2>
+<pre class="code-block"><code># Login to Docker Hub
+docker login
+docker login -u myuser -p mypassword
+
+# Login to private registry
+docker login registry.example.com
+docker login registry.example.com -u user -p pass
+
+# Login to AWS ECR
+aws ecr get-login-password --region us-east-1 | \
+  docker login --username AWS --password-stdin \
+  123456789.dkr.ecr.us-east-1.amazonaws.com
+
+# Login to Google Artifact Registry
+gcloud auth configure-docker us-central1-docker.pkg.dev
+
+# Login to GHCR
+echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
+
+# Credentials stored in ~/.docker/config.json
+cat ~/.docker/config.json
+
+# Use Docker credential helpers (more secure than plaintext)
+# macOS: credential store = osxkeychain
+# Linux: credential store = pass or secretservice</code></pre>
+<h2 id="10-3-image-tagging-and-pushing">10.3 Image Tagging and Pushing</h2>
+<pre class="code-block"><code># Tag image for pushing
+docker tag myapp:latest registry.example.com/myteam/myapp:v1.0.0
+docker tag myapp:latest registry.example.com/myteam/myapp:latest
+
+# Push image
+docker push registry.example.com/myteam/myapp:v1.0.0
+
+# Push all tags
+docker push --all-tags registry.example.com/myteam/myapp
+
+# Pull image
+docker pull registry.example.com/myteam/myapp:v1.0.0
+
+# Tagging strategy (semantic versioning)
+# 1.2.3     - exact version (immutable)
+# 1.2       - minor version alias (updated on patch releases)
+# 1         - major version alias (updated on minor releases)
+# latest    - always latest stable (updated on every release)
+
+# Tag promotion pattern
+docker tag myapp:sha-abc123 myapp:v2.1.0
+docker tag myapp:sha-abc123 myapp:v2.1
+docker tag myapp:sha-abc123 myapp:v2
+docker tag myapp:sha-abc123 myapp:latest</code></pre>
+<h2 id="10-4-self-hosted-registry-harbor">10.4 Self-Hosted Registry (Harbor)</h2>
+<p>Harbor is the CNCF-graduated enterprise container registry. It adds RBAC, vulnerability scanning, image replication, proxy caching, and content trust on top of a standard OCI registry.</p>
+<pre class="code-block"><code># Deploy Harbor with docker compose
+curl -LO https://github.com/goharbor/harbor/releases/download/v2.9.0/harbor-online-installer-v2.9.0.tgz
+tar xzf harbor-online-installer-v2.9.0.tgz
+cd harbor
+
+# Edit harbor.yml: set hostname, TLS cert paths, admin password
+vi harbor.yml
+
+./install.sh --with-trivy --with-notary
+
+# Use Harbor as proxy cache for Docker Hub
+# Configure in Harbor UI: Registry -&gt; New Endpoint -&gt; Docker Hub
+# Create proxy project pulling through</code></pre>
+<h2 id="10-5-image-lifecycle-management">10.5 Image Lifecycle Management</h2>
+<pre class="code-block"><code># ECR lifecycle policy (auto-delete old images)
+aws ecr put-lifecycle-policy \
+  --repository-name myapp \
+  --lifecycle-policy '{
+    "rules": [
+      {
+        "rulePriority": 1,
+        "description": "Keep last 10 images",
+        "selection": {
+          "tagStatus": "any",
+          "countType": "imageCountMoreThan",
+          "countNumber": 10
+        },
+        "action": { "type": "expire" }
+      }
+    ]
+  }'
+
+# Docker Hub: configure auto-delete in repository settings
+# Harbor: configure tag retention policies per project</code></pre>
+<div class="page-break"></div>
+<h1 id="11-docker-security">11. Docker Security</h1>
+<h2 id="11-1-security-threat-model">11.1 Security Threat Model</h2>
+<p>Docker security involves multiple layers of defense. The primary threat categories are: container escape (process in container gains host access), privilege escalation (gaining root from non-root), image supply chain attacks (malicious base images), and secrets exposure (credentials in images/envvars).</p>
+<pre class="ascii-diagram"><code>  Docker Security Layers
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ 1. Image Supply Chain: signed images, scanning, trusted sources │
+  ├─────────────────────────────────────────────────────────────────┤
+  │ 2. Dockerfile: non-root USER, minimal base, no secrets in layers│
+  ├─────────────────────────────────────────────────────────────────┤
+  │ 3. Runtime: --cap-drop ALL, seccomp profile, no --privileged    │
+  ├─────────────────────────────────────────────────────────────────┤
+  │ 4. Kernel: namespaces, cgroups, user namespace remapping        │
+  ├─────────────────────────────────────────────────────────────────┤
+  │ 5. MAC: AppArmor / SELinux profiles                            │
+  ├─────────────────────────────────────────────────────────────────┤
+  │ 6. Network: no unnecessary ports, internal networks             │
+  ├─────────────────────────────────────────────────────────────────┤
+  │ 7. Secrets: Docker secrets / vault, never in envvars or layers  │
+  └─────────────────────────────────────────────────────────────────┘</code></pre>
+<h2 id="11-2-rootless-docker">11.2 Rootless Docker</h2>
+<p>Rootless Docker runs the Docker daemon itself as a non-root user. Even if an attacker escapes the container, they are limited to the unprivileged user's host permissions.</p>
+<pre class="code-block"><code># Install rootless Docker (run as regular user)
+dockerd-rootless-setuptool.sh install
+
+# Configure for current user
+export PATH=/usr/bin:$PATH
+export DOCKER_HOST=unix:///run/user/1000/docker.sock
+
+# Enable systemd user service
+systemctl --user enable docker
+systemctl --user start docker
+
+# Limitations of rootless mode:
+# - No host port &lt; 1024 binding (use sysctl net.ipv4.ip_unprivileged_port_start=80)
+# - No host networking (--network host)
+# - No overlay network without additional setup
+# - Limited device access</code></pre>
+<h2 id="11-3-image-vulnerability-scanning">11.3 Image Vulnerability Scanning</h2>
+<pre class="code-block"><code># Docker Scout (built into Docker CLI)
+docker scout cves nginx:latest
+docker scout recommendations nginx:latest
+docker scout compare --to nginx:1.24 nginx:1.25
+
+# Trivy (open source, very comprehensive)
+trivy image nginx:latest
+trivy image --severity CRITICAL,HIGH nginx:latest
+trivy image --format json --output results.json nginx:latest
+
+# Grype (Anchore)
+grype nginx:latest
+grype --fail-on high nginx:latest
+
+# Scan in CI (fail pipeline on critical CVEs)
+trivy image --exit-code 1 --severity CRITICAL myapp:$TAG</code></pre>
+<h2 id="11-4-docker-bench-for-security">11.4 Docker Bench for Security</h2>
+<pre class="code-block"><code># Run Docker Bench (CIS Docker Benchmark checks)
+docker run --rm --net host --pid host --userns host --cap-add audit_control \
+  -e DOCKER_CONTENT_TRUST=$DOCKER_CONTENT_TRUST \
+  -v /etc:/etc:ro \
+  -v /lib/systemd/system:/lib/systemd/system:ro \
+  -v /usr/bin/containerd:/usr/bin/containerd:ro \
+  -v /usr/bin/runc:/usr/bin/runc:ro \
+  -v /usr/lib/systemd:/usr/lib/systemd:ro \
+  -v /var/lib:/var/lib:ro \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  --label docker_bench_security \
+  docker/docker-bench-security</code></pre>
+<h2 id="11-5-security-hardening-checklist">11.5 Security Hardening Checklist</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Control</th><th>Implementation</th></tr>
+<tr><td class="col-term">Never run --privileged</td><td>--privileged gives the container nearly all host capabilities. Use --cap-add for specific needs.</td></tr>
+<tr><td class="col-term">Drop all capabilities</td><td>--cap-drop ALL then add only what's needed. Most apps need zero extra caps.</td></tr>
+<tr><td class="col-term">Use non-root user</td><td>USER directive in Dockerfile. Never run as root.</td></tr>
+<tr><td class="col-term">Read-only root filesystem</td><td>--read-only with --tmpfs /tmp /run for writable temp space.</td></tr>
+<tr><td class="col-term">Limit system calls</td><td>Custom seccomp profile or use default. Never --security-opt seccomp=unconfined.</td></tr>
+<tr><td class="col-term">No host paths in production</td><td>Avoid -v /:/host or -v /var/run/docker.sock:/var/run/docker.sock in containers.</td></tr>
+<tr><td class="col-term">Resource limits always</td><td>--memory, --cpus, --pids-limit on every container. Prevents resource exhaustion attacks.</td></tr>
+<tr><td class="col-term">Scan images in CI/CD</td><td>Fail pipeline on CRITICAL CVEs. Scan base images and built images.</td></tr>
+<tr><td class="col-term">Use private registry</td><td>Don't pull untrusted public images without scanning. Use proxy with allowlist.</td></tr>
+<tr><td class="col-term">Enable Docker Content Trust</td><td>DOCKER_CONTENT_TRUST=1. Only pull/run signed images.</td></tr>
+<tr><td class="col-term">No-new-privileges</td><td>--security-opt=no-new-privileges prevents privilege escalation via setuid.</td></tr>
+<tr><td class="col-term">Separate networks</td><td>Frontend/backend networks. DB not on internet-facing network.</td></tr>
+</tbody></table>
+<h2 id="11-6-secrets-management">11.6 Secrets Management</h2>
+<pre class="code-block"><code># WRONG: Secrets in environment variables (visible in docker inspect, logs)
+docker run -e DB_PASSWORD=supersecret myapp  # BAD
+
+# WRONG: Secrets in Dockerfile (visible in docker history)
+ENV DB_PASSWORD=supersecret  # BAD
+RUN echo $SECRET &gt; /app/secret  # BAD
+
+# CORRECT: Docker Swarm Secrets
+echo 'mysecretpassword' | docker secret create db_password -
+docker service create --secret db_password myapp
+# Available at: /run/secrets/db_password
+
+# CORRECT: BuildKit secret (never in layer)
+docker buildx build --secret id=mytoken,src=./token.txt .
+# In Dockerfile:
+# RUN --mount=type=secret,id=mytoken cat /run/secrets/mytoken
+
+# CORRECT: Vault integration
+# App reads secrets from Vault at startup, not at build time
+# Use Vault Agent Injector in Kubernetes</code></pre>
+<div class="page-break"></div>
+<h1 id="12-performance-optimization">12. Performance &amp; Optimization</h1>
+<h2 id="12-1-build-performance">12.1 Build Performance</h2>
+<pre class="code-block"><code># Use BuildKit for parallel builds
+DOCKER_BUILDKIT=1 docker build .
+
+# Remote cache from registry (CI/CD optimization)
+docker buildx build \
+  --cache-from type=registry,ref=myrepo/myapp:buildcache \
+  --cache-to type=registry,ref=myrepo/myapp:buildcache,mode=max \
+  --push -t myrepo/myapp:latest .
+
+# Local cache with inline mode
+docker buildx build \
+  --cache-from type=local,src=/tmp/buildcache \
+  --cache-to type=local,dest=/tmp/buildcache,mode=max .
+
+# Parallel multi-stage: stages with no dependency run concurrently
+# BuildKit automatically detects and parallelizes independent stages
+
+# Prune build cache
+docker buildx prune --filter until=24h</code></pre>
+<h2 id="12-2-image-size-optimization">12.2 Image Size Optimization</h2>
+<table class="data-table three-col"><tbody>
+<tr class="header-row"><th>Technique</th><th>Before</th><th>After</th></tr>
+<tr><td class="col-term">Base Image</td><td>FROM ubuntu:22.04 → 77MB</td><td>FROM ubuntu:22.04-slim → 28MB / FROM alpine:3.18 → 7MB / FROM scratch → 0MB</td></tr>
+<tr><td class="col-term">Multi-stage</td><td>Go builder: 800MB</td><td>Final scratch image: 8-15MB (binary only)</td></tr>
+<tr><td class="col-term">Layer merging</td><td>3 RUN commands: 3 layers, 3 apt caches</td><td>1 RUN with &amp;&amp; chaining: 1 layer, apt cache cleaned</td></tr>
+<tr><td class="col-term">Package managers</td><td>pip install (with cache in layer)</td><td>pip install --no-cache-dir (no cache written)</td></tr>
+<tr><td class="col-term">Dev dependencies</td><td>npm install (all deps)</td><td>npm ci --only=production (prod only)</td></tr>
+<tr><td class="col-term">DockerSlim</td><td>Full Python app: 200MB</td><td>DockerSlim result: 15MB (auto-profiles and removes unused)</td></tr>
+</tbody></table>
+<h2 id="12-3-runtime-performance">12.3 Runtime Performance</h2>
+<pre class="code-block"><code># CPU pinning for latency-sensitive workloads
+docker run --cpuset-cpus=0,1 --cpu-realtime-runtime=950000 myapp
+
+# NUMA-aware placement
+docker run --cpuset-cpus=0-7 --cpuset-mems=0 myapp  # NUMA node 0
+
+# Disable swapping for predictable latency
+docker run --memory=2g --memory-swap=2g myapp  # swap=memory = no swap
+
+# Huge pages (databases, JVMs)
+docker run --privileged \
+  --sysctl kernel.shmmax=68719476736 \
+  oracle-db
+
+# Disable userland proxy for network performance
+# daemon.json: { "userland-proxy": false }
+
+# Use host networking for ultra-low latency
+docker run --network host myapp</code></pre>
+<h2 id="12-4-logging-driver-configuration">12.4 Logging Driver Configuration</h2>
+<pre class="code-block"><code># Default: json-file (rotated logs on disk)
+docker run --log-driver json-file \
+  --log-opt max-size=100m \
+  --log-opt max-file=3 \
+  nginx
+
+# Journald (systemd integration)
+docker run --log-driver journald nginx
+journalctl CONTAINER_NAME=nginx
+
+# Syslog
+docker run --log-driver syslog \
+  --log-opt syslog-address=tcp://loghost:514 \
+  nginx
+
+# Fluentd
+docker run --log-driver fluentd \
+  --log-opt fluentd-address=fluentd:24224 \
+  --log-opt tag=docker.{{.Name}} \
+  nginx
+
+# Disable logging (benchmark/batch jobs)
+docker run --log-driver none nginx
+
+# Global default in daemon.json
+{
+  "log-driver": "json-file",
+  "log-opts": { "max-size": "100m", "max-file": "5" }
+}</code></pre>
+<h2 id="12-5-resource-monitoring">12.5 Resource Monitoring</h2>
+<pre class="code-block"><code># Real-time container stats
+docker stats
+docker stats --no-stream --format '{{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}'
+
+# Per-container resource usage
+docker stats my_container --no-stream
+
+# System-wide disk usage
+docker system df
+docker system df -v  # verbose: per-image, per-container breakdown
+
+# Container top (processes inside container)
+docker top my_container
+docker top my_container aux
+
+# Events stream
+docker events
+docker events --filter type=container --filter event=die
+
+# cAdvisor (per-container metrics for Prometheus)
+docker run -d --name cadvisor \
+  -v /:/rootfs:ro -v /var/run:/var/run:ro \
+  -v /sys:/sys:ro -v /var/lib/docker/:/var/lib/docker:ro \
+  -p 8080:8080 gcr.io/cadvisor/cadvisor:latest</code></pre>
+<div class="page-break"></div>
+<h1 id="13-docker-in-kubernetes">13. Docker in Kubernetes</h1>
+<h2 id="13-1-why-kubernetes-deprecated-dockershim">13.1 Why Kubernetes Deprecated Dockershim</h2>
+<p>Prior to Kubernetes 1.24, Kubernetes used dockershim — a shim layer that translated the Container Runtime Interface (CRI) calls into Docker API calls. This added unnecessary complexity. Docker itself uses containerd internally, so Kubernetes was calling Docker which called containerd. Kubernetes 1.24 removed dockershim, making containerd (or CRI-O) the direct runtime.</p>
+<pre class="ascii-diagram"><code>  Before Kubernetes 1.24 (with dockershim):
+  kubelet → CRI → dockershim → Docker API → dockerd → containerd → runc
+
+  After Kubernetes 1.24 (direct CRI):
+  kubelet → CRI → containerd (with CRI plugin) → runc
+  kubelet → CRI → CRI-O → runc
+
+  Docker images still work perfectly - OCI images are OCI images.
+  'docker build' still produces OCI-compliant images that Kubernetes runs.</code></pre>
+<h2 id="13-2-container-runtime-interface-cri">13.2 Container Runtime Interface (CRI)</h2>
+<p>CRI is a plugin interface in Kubernetes that allows the kubelet to use different container runtimes. It defines a gRPC API with two services: RuntimeService (manage pods/containers) and ImageService (pull/list/remove images).</p>
+<pre class="code-block"><code># Configure containerd as CRI runtime in kubelet
+# /var/lib/kubelet/config.yaml:
+containerRuntimeEndpoint: unix:///run/containerd/containerd.sock
+
+# Inspect containerd containers from host (bypassing Docker)
+crictl ps
+crictl images
+crictl pods
+crictl logs &lt;container-id&gt;
+crictl exec -it &lt;container-id&gt; sh
+
+# ctr (containerd CLI) - lower level than crictl
+ctr namespaces list
+ctr -n k8s.io containers list
+ctr -n k8s.io images list</code></pre>
+<h2 id="13-3-building-for-kubernetes">13.3 Building for Kubernetes</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Practice</th><th>Kubernetes Implication</th></tr>
+<tr><td class="col-term">No ENTRYPOINT shell form</td><td>Exec form required for proper signal handling and graceful shutdown.</td></tr>
+<tr><td class="col-term">SIGTERM handling</td><td>App must handle SIGTERM for graceful shutdown. k8s sends SIGTERM, waits terminationGracePeriodSeconds, then SIGKILL.</td></tr>
+<tr><td class="col-term">Health endpoints</td><td>/health and /ready HTTP endpoints for liveness and readiness probes.</td></tr>
+<tr><td class="col-term">Non-root user</td><td>Required for PodSecurityAdmission restricted policies.</td></tr>
+<tr><td class="col-term">Read-only root FS</td><td>readOnlyRootFilesystem: true in securityContext. Design app to write only to mounted volumes.</td></tr>
+<tr><td class="col-term">Stateless design</td><td>State in external storage (DB, Redis, S3). Pods are ephemeral — can be killed/rescheduled anytime.</td></tr>
+<tr><td class="col-term">12-factor config</td><td>All config via environment variables or mounted ConfigMaps/Secrets. No hardcoded config.</td></tr>
+<tr><td class="col-term">Resource requests/limits</td><td>Always set resources: requests: and resources: limits: in pod spec.</td></tr>
+</tbody></table>
+<h2 id="13-4-debugging-containers-in-kubernetes">13.4 Debugging Containers in Kubernetes</h2>
+<pre class="code-block"><code># kubectl exec (like docker exec)
+kubectl exec -it pod-name -c container-name -- bash
+
+# Copy files (like docker cp)
+kubectl cp pod-name:/app/logs/app.log ./app.log
+
+# Ephemeral debug container (no shell in distroless)
+kubectl debug -it pod-name --image=busybox --target=mycontainer
+
+# Debug via node (access containers via containerd)
+kubectl node-shell node-name
+crictl ps
+crictl exec -it &lt;container-id&gt; sh
+
+# Port forward for direct access
+kubectl port-forward pod-name 8080:8080
+
+# View container logs
+kubectl logs pod-name -c container-name -f
+kubectl logs pod-name --previous  # crashed container logs</code></pre>
+<div class="page-break"></div>
+<h1 id="14-production-best-practices">14. Production Best Practices</h1>
+<h2 id="14-1-image-versioning-and-tagging-strategy">14.1 Image Versioning and Tagging Strategy</h2>
+<pre class="code-block"><code># Semantic versioning strategy
+# At build time (CI/CD):
+TAG=$(git describe --tags --always --dirty)
+COMMIT=$(git rev-parse --short HEAD)
+DATE=$(date -u +%Y%m%d)
+
+# Build and tag with multiple tags
+docker build -t myrepo/myapp:${TAG} .
+docker tag myrepo/myapp:${TAG} myrepo/myapp:${COMMIT}
+docker tag myrepo/myapp:${TAG} myrepo/myapp:${DATE}
+
+# On successful tests, tag as latest
+docker tag myrepo/myapp:${TAG} myrepo/myapp:latest
+
+# Push all tags
+docker push myrepo/myapp --all-tags
+
+# Never use :latest in production pod specs
+# Use: image: myrepo/myapp:v1.2.3
+# Not: image: myrepo/myapp:latest</code></pre>
+<h2 id="14-2-health-checks">14.2 Health Checks</h2>
+<pre class="code-block"><code># Dockerfile HEALTHCHECK
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# Docker Compose healthcheck
+# healthcheck:
+#   test: ['CMD-SHELL', 'pg_isready -U postgres']
+#   interval: 10s
+#   timeout: 5s
+#   retries: 5
+#   start_period: 20s
+
+# Check container health status
+docker inspect --format '{{json .State.Health}}' my_container
+
+# Wait for healthy status in scripts
+until [ "$(docker inspect -f '{{.State.Health.Status}}' container)" = 'healthy' ]; do
+  echo 'Waiting for container to be healthy...'
+  sleep 2
+done</code></pre>
+<h2 id="14-3-logging-best-practices">14.3 Logging Best Practices</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Practice</th><th>Rationale</th></tr>
+<tr><td class="col-term">Log to stdout/stderr</td><td>Never log to files inside containers. Docker/k8s collect stdout/stderr automatically.</td></tr>
+<tr><td class="col-term">Structured JSON logging</td><td>Log as JSON for easy parsing by log aggregators (ELK, Loki, CloudWatch).</td></tr>
+<tr><td class="col-term">Log rotation</td><td>Configure max-size and max-file on log driver. Prevents disk exhaustion.</td></tr>
+<tr><td class="col-term">Include correlation IDs</td><td>Every request gets a trace/correlation ID logged with every message.</td></tr>
+<tr><td class="col-term">Never log secrets</td><td>Scrub credentials, tokens, PII from logs. Audit logging code.</td></tr>
+<tr><td class="col-term">Centralized logging</td><td>Ship logs to Elasticsearch, Loki, Datadog, CloudWatch. Don't rely on container logs surviving.</td></tr>
+<tr><td class="col-term">Log levels</td><td>Support LOG_LEVEL environment variable. Default INFO in prod, DEBUG available.</td></tr>
+</tbody></table>
+<h2 id="14-4-ci-cd-integration">14.4 CI/CD Integration</h2>
+<pre class="code-block"><code># GitHub Actions Docker workflow
+name: Build and Push
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          severity: CRITICAL
+          exit-code: 1</code></pre>
+<h2 id="14-5-monitoring-with-prometheus">14.5 Monitoring with Prometheus</h2>
+<pre class="code-block"><code># Docker daemon metrics (daemon.json)
+{
+  "metrics-addr": "0.0.0.0:9323",
+  "experimental": true
+}
+
+# Prometheus scrape config for Docker daemon metrics
+scrape_configs:
+  - job_name: docker
+    static_configs:
+      - targets: ['localhost:9323']
+
+# cAdvisor for per-container metrics
+docker run -d --name cadvisor \
+  -v /:/rootfs:ro \
+  -v /var/run:/var/run:ro \
+  -v /sys:/sys:ro \
+  -v /var/lib/docker/:/var/lib/docker:ro \
+  -p 8080:8080 \
+  gcr.io/cadvisor/cadvisor:latest
+
+# Key metrics to alert on:
+# container_memory_usage_bytes &gt; memory_limit = approaching OOM
+# container_cpu_usage_seconds_rate &gt; 0.9 = CPU throttling
+# container_last_seen = container restart detected</code></pre>
+<div class="page-break"></div>
+<h1 id="15-troubleshooting-guide">15. Troubleshooting Guide</h1>
+<h2 id="15-1-container-crash-restart-loops">15.1 Container Crash / Restart Loops</h2>
+<pre class="code-block"><code># Diagnose restart loop
+
+# Step 1: Check container status
+docker ps -a | grep my_container
+
+# Step 2: Get exit code
+docker inspect --format '{{.State.ExitCode}} {{.State.Error}}' my_container
+# Exit 0: clean exit (CMD returned 0 - is CMD correct?)
+# Exit 1: application error
+# Exit 137: SIGKILL (OOM or docker kill)
+# Exit 139: segfault
+# Exit 143: SIGTERM not handled (graceful shutdown failed)
+
+# Step 3: View logs from crashed container
+docker logs my_container
+docker logs --tail 100 my_container
+
+# Step 4: Logs from previous instance (after restart)
+docker logs my_container 2&gt;&amp;1 | head -50
+
+# Step 5: Check events
+docker events --filter container=my_container --since 1h
+
+# Step 6: Try running interactively
+docker run -it --entrypoint /bin/sh my_image</code></pre>
+<h2 id="15-2-oomkilled-out-of-memory">15.2 OOMKilled (Out of Memory)</h2>
+<pre class="code-block"><code># Detect OOM kill
+docker inspect --format '{{.State.OOMKilled}}' my_container
+# Returns: true
+
+# Check kernel OOM killer log
+dmesg | grep -i 'oom\|killed process'
+
+# Check current memory usage
+docker stats my_container --no-stream
+
+# Check memory limit set
+docker inspect --format '{{.HostConfig.Memory}}' my_container
+# 0 = unlimited, otherwise bytes
+
+# Solutions:
+# 1. Increase memory limit
+docker update --memory=2g my_container
+
+# 2. Add memory to docker run
+docker run --memory=2g --memory-swap=2g myapp
+
+# 3. Profile memory leak in app
+docker exec my_container jmap -heap &lt;pid&gt;  # Java
+docker exec my_container cat /proc/1/status | grep VmRSS  # any</code></pre>
+<h2 id="15-3-permission-issues">15.3 Permission Issues</h2>
+<pre class="code-block"><code># Symptoms:
+# 'Permission denied' when accessing volume mounts
+# 'Cannot open /etc/config: Permission denied'
+
+# Diagnose
+docker exec my_container id
+docker exec my_container ls -la /problematic/path
+
+# Fix 1: chown volume on host
+sudo chown -R 1000:1000 /host/volume/path
+
+# Fix 2: Run container as correct user
+docker run --user 0 my_container  # run as root (debug only)
+
+# Fix 3: Set correct USER in Dockerfile
+RUN chown -R node:node /app
+USER node
+
+# Fix 4: SELinux volume labels
+docker run -v /host/data:/data:z mycontainer  # shared label
+
+# Fix 5: Fix COPY permissions in Dockerfile
+COPY --chown=node:node . /app</code></pre>
+<h2 id="15-4-networking-issues">15.4 Networking Issues</h2>
+<pre class="code-block"><code># Container cannot reach external internet
+docker exec container ping 8.8.8.8
+
+# Check iptables FORWARD chain (must be ACCEPT or have DOCKER rule)
+iptables -L FORWARD -n
+
+# Check IP forwarding enabled on host
+cat /proc/sys/net/ipv4/ip_forward
+# Must be 1. If 0: sysctl -w net.ipv4.ip_forward=1
+
+# Container cannot resolve DNS
+docker exec container cat /etc/resolv.conf
+docker exec container nslookup google.com
+
+# Fix DNS: set custom DNS server
+docker run --dns 8.8.8.8 mycontainer
+# Or in daemon.json: { "dns": ["8.8.8.8", "8.8.4.4"] }
+
+# Containers on same network cannot communicate
+docker network inspect my_network
+# Check both containers are on same network
+
+# Port not accessible from host
+docker port my_container
+iptables -t nat -L DOCKER -n
+ss -tlnp | grep &lt;port&gt;</code></pre>
+<h2 id="15-5-storage-and-disk-exhaustion">15.5 Storage and Disk Exhaustion</h2>
+<pre class="code-block"><code># Check disk usage
+docker system df
+docker system df -v
+df -h /var/lib/docker
+
+# Clean up unused resources
+# Remove stopped containers
+docker container prune
+
+# Remove unused images
+docker image prune
+docker image prune -a  # including images with no containers
+
+# Remove unused volumes
+docker volume prune
+
+# Remove unused networks
+docker network prune
+
+# NUCLEAR: Remove everything unused
+docker system prune -a --volumes
+
+# Find which container is using most space
+du -sh /var/lib/docker/overlay2/*/diff | sort -rh | head -20
+
+# Check container log size
+find /var/lib/docker/containers -name '*.log' -exec du -sh {} \; | sort -rh
+
+# Truncate a huge log file (emergency)
+truncate -s 0 /var/lib/docker/containers/&lt;id&gt;/&lt;id&gt;-json.log</code></pre>
+<h2 id="15-6-docker-daemon-failures">15.6 Docker Daemon Failures</h2>
+<pre class="code-block"><code># Daemon not starting
+journalctl -u docker --since today -f
+dockerd --debug  # run foreground for full output
+
+# Common daemon failures:
+
+# 1. Storage driver error
+# Error: failed to start daemon: error initializing graphdriver
+# Fix: rm -rf /var/lib/docker &amp;&amp; systemctl start docker
+# WARNING: destroys all containers/images
+
+# 2. Port in use
+# Fix: change dockerd port in daemon.json or kill conflicting process
+
+# 3. Daemon config error (bad JSON in daemon.json)
+python3 -m json.tool /etc/docker/daemon.json
+
+# 4. Low disk space prevents daemon start
+df -h / /var/lib/docker
+# Free space then restart
+
+# 5. containerd socket issue
+systemctl status containerd
+systemctl restart containerd
+systemctl start docker</code></pre>
+<h2 id="15-7-build-failures">15.7 Build Failures</h2>
+<pre class="code-block"><code># Debug build failures
+
+# Show full build output
+docker build --progress=plain .
+
+# Common failures:
+
+# 1. Package not found
+# E: Unable to locate package xyz
+# Fix: apt-get update before apt-get install
+
+# 2. COPY file not found
+# COPY failed: file not found in build context
+# Fix: check .dockerignore isn't excluding the file
+# Check path is relative to build context
+
+# 3. Network issues during build
+# Retry with --network host
+docker build --network host .
+
+# 4. Out of disk during build
+docker system prune -f
+docker buildx prune -f
+
+# 5. Inspect failed layer
+# After failure, the failed layer stays in cache
+# Run a container from the last successful layer
+docker run -it &lt;last-successful-layer-id&gt; /bin/sh</code></pre>
+<h2 id="15-8-performance-bottleneck-diagnosis">15.8 Performance Bottleneck Diagnosis</h2>
+<pre class="code-block"><code># Identify CPU-bound containers
+docker stats --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}'
+
+# Identify I/O bottlenecks
+docker exec my_container iostat -x 1
+docker exec my_container iotop
+
+# Profile network bandwidth
+docker exec my_container iftop
+docker exec my_container nethogs
+
+# Check for CPU throttling (cgroup)
+cat /sys/fs/cgroup/cpu/docker/&lt;id&gt;/cpu.stat
+# throttled_time &gt; 0 means CPU limits are too low
+
+# Memory pressure
+docker exec my_container cat /proc/meminfo
+
+# Slow overlay2 writes (large file CoW)
+docker exec my_container dd if=/dev/zero of=/tmp/test bs=1M count=100
+# If slow: consider using volumes for heavy I/O instead of container FS</code></pre>
+<div class="page-break"></div>
+<h1 id="16-docker-commands-reference">16. Docker Commands Reference</h1>
+<h2 id="16-1-image-management">16.1 Image Management</h2>
+<pre class="code-block"><code># Pull image
+docker pull nginx:latest
+docker pull nginx@sha256:abc123...  # by digest (immutable)
+
+# Build image
+docker build -t myapp:v1 .
+docker build -t myapp:v1 -f Dockerfile.prod --no-cache .
+docker build --build-arg APP_VERSION=1.0 -t myapp:v1 .
+
+# List images
+docker images
+docker image ls --format 'table {{.Repository}}\t{{.Tag}}\t{{.Size}}'
+docker images --filter dangling=true
+
+# Remove image
+docker rmi myapp:v1
+docker image rm -f myapp:v1
+
+# Tag image
+docker tag myapp:v1 registry.example.com/myapp:v1
+
+# Push image
+docker push registry.example.com/myapp:v1
+
+# Inspect image layers
+docker history myapp:v1
+docker history --no-trunc myapp:v1
+
+# Image details
+docker inspect myapp:v1
+docker inspect --format '{{.Config.Entrypoint}}' myapp:v1
+
+# Save/load images
+docker save -o myapp.tar myapp:v1
+docker load -i myapp.tar
+
+# Search Docker Hub
+docker search nginx --filter stars=100 --limit 10
+
+# Prune dangling images
+docker image prune
+docker image prune -a --filter until=72h</code></pre>
+<h2 id="16-2-container-management">16.2 Container Management</h2>
+<pre class="code-block"><code># Run container
+docker run nginx
+docker run -d -p 80:80 --name web nginx
+docker run -it ubuntu bash
+docker run --rm alpine echo 'hello'  # auto-remove on exit
+
+# Container lifecycle
+docker start my_container
+docker stop my_container
+docker stop -t 30 my_container  # 30s grace period
+docker restart my_container
+docker pause my_container
+docker unpause my_container
+docker kill my_container
+docker kill -s SIGHUP my_container
+
+# Remove containers
+docker rm my_container
+docker rm -f my_container  # force-stop and remove
+docker container prune  # remove all stopped containers
+
+# List containers
+docker ps
+docker ps -a  # include stopped
+docker ps -q  # only IDs
+docker ps --filter status=exited
+docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+
+# Container inspection
+docker inspect my_container
+docker inspect --format '{{.State.Pid}}' my_container
+docker inspect --format '{{json .NetworkSettings.Networks}}' my_container
+
+# Container stats
+docker stats
+docker stats --no-stream
+docker top my_container
+
+# Execute commands
+docker exec my_container ls /app
+docker exec -it my_container bash
+docker exec -u root my_container bash
+
+# Attach to container
+docker attach my_container
+# Detach: Ctrl+P Ctrl+Q
+
+# Logs
+docker logs my_container
+docker logs -f my_container  # follow
+docker logs --tail 100 my_container
+docker logs --since 1h my_container
+docker logs --timestamps my_container
+
+# Copy files
+docker cp my_container:/app/log.txt .
+docker cp config.yaml my_container:/app/
+
+# Filesystem diff
+docker diff my_container
+
+# Commit container to image
+docker commit my_container myrepo/myimage:v2
+
+# Export/Import
+docker export my_container | gzip &gt; container.tar.gz
+gunzip -c container.tar.gz | docker import - myrepo/imported:v1
+
+# Rename container
+docker rename old_name new_name
+
+# Update resource limits
+docker update --memory=2g --cpus=2 my_container
+
+# Port mapping info
+docker port my_container
+docker port my_container 80/tcp
+
+# Wait for container to exit
+docker wait my_container</code></pre>
+<h2 id="16-3-volume-commands">16.3 Volume Commands</h2>
+<pre class="code-block"><code>docker volume create my_vol
+docker volume ls
+docker volume inspect my_vol
+docker volume rm my_vol
+docker volume prune
+docker volume prune --filter label=env=dev</code></pre>
+<h2 id="16-4-network-commands">16.4 Network Commands</h2>
+<pre class="code-block"><code>docker network create my_net
+docker network create --driver overlay --attachable my_overlay
+docker network ls
+docker network inspect my_net
+docker network connect my_net my_container
+docker network disconnect my_net my_container
+docker network rm my_net
+docker network prune</code></pre>
+<h2 id="16-5-system-commands">16.5 System Commands</h2>
+<pre class="code-block"><code># System info
+docker info
+docker version
+
+# Disk usage
+docker system df
+docker system df -v
+
+# Events
+docker events
+docker events --filter type=container
+docker events --since '2024-01-01'
+
+# System cleanup
+docker system prune                    # stopped containers, unused networks, dangling images
+docker system prune -a                 # also removes unused images
+docker system prune -a --volumes       # also removes volumes
+docker system prune --filter until=24h # older than 24h</code></pre>
+<h2 id="16-6-buildx-commands-multi-platform">16.6 Buildx Commands (Multi-Platform)</h2>
+<pre class="code-block"><code># List builders
+docker buildx ls
+
+# Create builder
+docker buildx create --name mybuilder --driver docker-container --bootstrap
+docker buildx use mybuilder
+
+# Build multi-platform
+docker buildx build --platform linux/amd64,linux/arm64 -t myapp:v1 --push .
+
+# Build cache management
+docker buildx du
+docker buildx prune --filter until=72h
+
+# Inspect builder
+docker buildx inspect mybuilder
+
+# Bake (build from HCL file)
+docker buildx bake
+docker buildx bake --push</code></pre>
+<h2 id="16-7-context-commands">16.7 Context Commands</h2>
+<pre class="code-block"><code># List contexts
+docker context ls
+
+# Create context (remote Docker daemon)
+docker context create remote-server \
+  --docker host=ssh://user@server.example.com
+
+# Use context
+docker context use remote-server
+
+# Inspect context
+docker context inspect remote-server
+
+# Remove context
+docker context rm remote-server
+
+# One-off with context
+docker --context remote-server ps</code></pre>
+<h2 id="16-8-manifest-commands">16.8 Manifest Commands</h2>
+<pre class="code-block"><code># Inspect multi-arch manifest
+docker manifest inspect nginx:latest
+
+# Create manifest list
+docker manifest create myrepo/myapp:latest \
+  myrepo/myapp:latest-amd64 \
+  myrepo/myapp:latest-arm64
+
+# Annotate manifest
+docker manifest annotate myrepo/myapp:latest myrepo/myapp:latest-arm64 \
+  --arch arm64 --os linux
+
+# Push manifest list
+docker manifest push myrepo/myapp:latest</code></pre>
+<div class="page-break"></div>
+<h1 id="17-real-world-production-architectures">17. Real-World Production Architectures</h1>
+<h2 id="17-1-single-host-production">17.1 Single-Host Production</h2>
+<pre class="ascii-diagram"><code>  Single-Host Docker Production
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  Linux Host (EC2/VM)                                                │
+  │                                                                     │
+  │  ┌─────────┐  ┌──────────────────────────┐  ┌──────────────────┐  │
+  │  │ Traefik │  │  App Container (×N)       │  │  DB Container    │  │
+  │  │ (proxy) │  │  node:18 myapp:v1.2       │  │  postgres:15     │  │
+  │  │ :80 :443│  │  :3000                    │  │  (internal only) │  │
+  │  └────┬────┘  └──────────┬───────────────┘  └─────────┬────────┘  │
+  │       │       frontend net│                  backend   │           │
+  │       └───────────────────┤                  net       │           │
+  │                          └───────────────────┘         │           │
+  │                                                         │           │
+  │  ┌──────────────────────────────────────────────────────────────┐  │
+  │  │  Named Volume: postgres_data (/var/lib/postgresql/data)      │  │
+  │  └──────────────────────────────────────────────────────────────┘  │
+  └─────────────────────────────────────────────────────────────────────┘</code></pre>
+<h2 id="17-2-docker-compose-production">17.2 Docker Compose Production</h2>
+<pre class="code-block"><code># Production deployment workflow
+
+# 1. Pull new image
+docker compose pull web
+
+# 2. Deploy with rolling restart (Compose doesn't do rolling natively)
+docker compose up -d --no-deps web
+
+# 3. Zero-downtime with load balancer
+# Scale to 2 instances
+docker compose up -d --scale web=2 --no-recreate
+
+# Update one instance
+docker compose stop web_1
+docker compose rm -f web_1
+docker compose up -d --scale web=2
+
+# 4. Verify health
+docker compose ps
+docker compose logs --tail 50 web</code></pre>
+<h2 id="17-3-microservices-platform">17.3 Microservices Platform</h2>
+<pre class="ascii-diagram"><code>  Microservices on Docker + Traefik
+  ┌───────────────────────────────────────────────────────────────────┐
+  │                        Internet                                   │
+  └────────────────────────────┬──────────────────────────────────────┘
+                               │ :443
+  ┌────────────────────────────▼──────────────────────────────────────┐
+  │  Traefik Reverse Proxy (auto-discovers containers via labels)     │
+  └────┬──────────┬──────────┬──────────┬───────────────────────────┘
+       │          │          │          │
+  ┌────▼──┐  ┌────▼──┐  ┌───▼───┐  ┌──▼────┐
+  │User   │  │Order  │  │Product│  │Notif  │
+  │Service│  │Service│  │Service│  │Service│
+  │:3001  │  │:3002  │  │:3003  │  │:3004  │
+  └───┬───┘  └───┬───┘  └───┬───┘  └───┬───┘
+      │          │          │          │
+  ┌───▼──────────▼──────────▼──────────▼────────────┐
+  │  Internal network (services not exposed directly) │
+  └───┬──────────────┬────────────────────────────────┘
+  ┌───▼───┐      ┌───▼───┐
+  │Postgres│      │Redis  │
+  │       │      │       │
+  └───────┘      └───────┘</code></pre>
+<h2 id="17-4-ci-cd-pipeline-architecture">17.4 CI/CD Pipeline Architecture</h2>
+<pre class="ascii-diagram"><code>  Docker in CI/CD Pipeline
+
+  Developer                GitHub/GitLab              Registry
+      │                        │                          │
+  git push──────────────────▶ │                          │
+                        ┌─────▼──────┐                  │
+                        │ CI Runner  │                  │
+                        │ (Runner w/ │                  │
+                        │  Docker)   │                  │
+                        │ 1. Checkout│                  │
+                        │ 2. Build   │                  │
+                        │ 3. Test    │                  │
+                        │ 4. Scan    │                  │
+                        │ 5. Push───────────────────▶   │
+                        └─────┬──────┘                  │
+                              │                          │
+                              ▼                          │
+                        Deploy trigger              Pull image
+                              │                          │
+                        ┌─────▼──────┐                  │
+                        │ Production │◀─────────────────┘
+                        │ Server     │
+                        └────────────┘</code></pre>
+<div class="page-break"></div>
+<h1 id="18-docker-vs-alternatives">18. Docker vs Alternatives</h1>
+<table class="data-table three-col"><tbody>
+<tr class="header-row"><th>Runtime</th><th>Architecture</th><th>Best For</th></tr>
+<tr><td class="col-term">Docker</td><td>Client-server (dockerd). Full ecosystem: build, run, compose, swarm. Requires root daemon (or rootless). Very mature tooling.</td><td>Development, teams wanting one integrated tool, legacy production.</td></tr>
+<tr><td class="col-term">Podman</td><td>Daemonless. Each container is direct child process. Rootless by design. Docker-compatible CLI. No single point of failure.</td><td>Security-first environments, RHEL/Fedora production, rootless requirements.</td></tr>
+<tr><td class="col-term">containerd</td><td>Pure runtime: no build, no compose. gRPC API. CRI-compliant. Lightweight. Manages images and container lifecycle.</td><td>Kubernetes worker nodes. Not for standalone dev use.</td></tr>
+<tr><td class="col-term">CRI-O</td><td>Kubernetes-only CRI runtime. Minimal footprint. No image building. Follows Kubernetes release cycle.</td><td>OpenShift, k8s-only environments wanting lightest possible runtime.</td></tr>
+<tr><td class="col-term">LXC/LXD</td><td>System containers (full OS with init). Not app containers. VM-like but no hypervisor. Rich profile/snapshot system.</td><td>Multi-distro on one host, legacy app migration, NOT microservices.</td></tr>
+<tr><td class="col-term">Kata Containers</td><td>VM-based container runtime. Each container in lightweight VM. OCI-compatible. Strong isolation.</td><td>Multi-tenant SaaS, untrusted workloads, high security environments.</td></tr>
+</tbody></table>
+<h2 id="18-1-podman-deep-dive">18.1 Podman Deep Dive</h2>
+<pre class="code-block"><code># Podman is a drop-in Docker replacement
+alias docker=podman
+
+# Rootless - no daemon
+podman run -d nginx
+
+# Podman Compose
+podman-compose up -d
+
+# Generate systemd unit from container
+podman generate systemd --new --name my_container &gt; ~/.config/systemd/user/container-my_container.service
+systemctl --user enable container-my_container
+systemctl --user start container-my_container
+
+# Pods (like Kubernetes pods)
+podman pod create --name my_pod -p 8080:80
+podman run --pod my_pod nginx
+podman run --pod my_pod php-fpm
+
+# Key differences from Docker:
+# - No daemon (each container is a child process of the caller)
+# - No swarm support (use Kubernetes instead)
+# - Native systemd integration
+# - Pods support out of box
+# - rootless by default</code></pre>
+<h2 id="18-2-docker-swarm-vs-kubernetes">18.2 Docker Swarm vs Kubernetes</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Aspect</th><th>Comparison</th></tr>
+<tr><td class="col-term">Setup complexity</td><td>Swarm: docker swarm init (1 command, ready in 30 seconds). Kubernetes: multi-component setup, kubeadm or managed service (hours).</td></tr>
+<tr><td class="col-term">Learning curve</td><td>Swarm: uses Docker Compose concepts. Very simple. Kubernetes: new abstractions (Pods, Deployments, Services, Ingress, etc.).</td></tr>
+<tr><td class="col-term">Auto-scaling</td><td>Swarm: manual scaling only. Kubernetes: HPA, KEDA, VPA for automatic scaling.</td></tr>
+<tr><td class="col-term">Rolling updates</td><td>Swarm: built-in, simple. Kubernetes: powerful with many strategies (RollingUpdate, Blue/Green, Canary).</td></tr>
+<tr><td class="col-term">Network</td><td>Swarm: overlay with built-in LB. Kubernetes: CNI plugins (Cilium, Calico), more flexible.</td></tr>
+<tr><td class="col-term">Storage</td><td>Swarm: basic volume support. Kubernetes: StorageClasses, dynamic provisioning, CSI drivers.</td></tr>
+<tr><td class="col-term">Community/Ecosystem</td><td>Swarm: declining adoption. Kubernetes: massive ecosystem, CNCF, cloud-native standard.</td></tr>
+<tr><td class="col-term">Recommendation</td><td>Swarm for simple, small deployments where k8s is overkill. Kubernetes for production multi-service, multi-team platforms.</td></tr>
+</tbody></table>
+<div class="page-break"></div>
+<h1 id="19-interview-preparation">19. Interview Preparation</h1>
+<h2 id="19-1-top-docker-interview-questions">19.1 Top Docker Interview Questions</h2>
+<h3 id="fundamentals">Fundamentals</h3>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Question</th><th>Model Answer</th></tr>
+<tr><td class="col-term">What is the difference between a container and a VM?</td><td>Containers share host kernel, use namespaces/cgroups for isolation, start in ms, are MBs in size. VMs have full kernel, hardware-level isolation, take minutes to start, are GBs. Containers trade isolation strength for density and speed.</td></tr>
+<tr><td class="col-term">What is the OCI standard and why does it matter?</td><td>Open Container Initiative defines portable image format (Image Spec), runtime interface (Runtime Spec), and registry API (Distribution Spec). Ensures Docker images run on containerd, Podman, CRI-O — vendor lock-in avoided.</td></tr>
+<tr><td class="col-term">Explain Docker's layered filesystem.</td><td>Images are built from stacked read-only layers (OverlayFS). Each Dockerfile instruction creates a layer. Layers are content-addressed (SHA256) and shared between images. Containers add a writable layer on top. Copy-on-Write: writes go to upper layer, reads come from first layer that has the file.</td></tr>
+<tr><td class="col-term">What happens when you run 'docker run nginx'?</td><td>CLI sends POST /containers/create + /containers/start to dockerd. dockerd instructs containerd to pull image if needed, create OCI bundle. containerd-shim spawns runc. runc creates namespaces (pid, net, mnt, uts, ipc), configures cgroups, applies seccomp, chroots into rootfs, execs nginx. runc exits. shim stays as parent of nginx process.</td></tr>
+<tr><td class="col-term">CMD vs ENTRYPOINT?</td><td>ENTRYPOINT is the fixed executable (can't be overridden without --entrypoint). CMD provides default arguments, overridden by docker run args. Use exec form for both (["executable"]) for proper signal handling. Shell form wraps in /bin/sh -c making it PID 2, not PID 1.</td></tr>
+<tr><td class="col-term">How do Docker networks work?</td><td>Bridge: veth pairs, Linux bridge, NAT iptables rules. Host: no network namespace isolation. Overlay: VXLAN tunneling across hosts for Swarm. Embedded DNS resolves container names on user-defined networks at 127.0.0.11.</td></tr>
+<tr><td class="col-term">Volumes vs Bind Mounts?</td><td>Volumes: Docker-managed (/var/lib/docker/volumes/), portable, can use drivers for NFS/EBS. Bind mounts: specific host path, coupled to host, better for dev hot-reload. tmpfs: in-memory, no persistence. Prefer volumes in production.</td></tr>
+</tbody></table>
+<h3 id="advanced-architecture">Advanced / Architecture</h3>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Question</th><th>Model Answer</th></tr>
+<tr><td class="col-term">Why did Kubernetes remove Dockershim?</td><td>kubelet → dockershim → dockerd → containerd → runc was unnecessary indirection. Docker itself just wraps containerd. k8s 1.24+ talks directly to containerd via CRI. Docker images still work (OCI-compliant). Only the runtime path changed.</td></tr>
+<tr><td class="col-term">Explain container escape scenarios.</td><td>Privileged containers: CAP_SYS_ADMIN + /proc/sys access = host root. Mounted docker.sock: create privileged container from inside. runc CVE (CVE-2019-5736): malicious image overwrites runc binary. Kernel exploits: shared kernel = kernel CVE affects all containers. Defense: drop caps, no --privileged, user namespaces, no socket mount.</td></tr>
+<tr><td class="col-term">How does BuildKit differ from legacy builder?</td><td>BuildKit: parallel stage execution, content-based cache (not instruction order), --mount=type=secret|cache|ssh support, no intermediate containers, distributed cache export/import, garbage collection. Legacy: sequential, instruction-order cache, secrets in ARG (visible in history).</td></tr>
+<tr><td class="col-term">Design a production Dockerfile for a Python microservice.</td><td>Multi-stage: builder stage installs all deps including dev; production stage copies only venv/dist. Alpine or slim base. RUN --mount=type=cache for pip. COPY requirements.txt before source. Non-root USER. HEALTHCHECK. exec-form ENTRYPOINT. Read-only FS design.</td></tr>
+<tr><td class="col-term">What is copy-on-write and its performance implications?</td><td>First write to a file from a lower layer triggers a copy-up: entire file copied to upper layer before modification. Large files (databases, VM disk images) in container FS = huge CoW overhead. Solution: use volumes for heavy I/O paths. Subsequent writes to the same file are fast (already in upper).</td></tr>
+</tbody></table>
+<h3 id="troubleshooting-scenarios">Troubleshooting Scenarios</h3>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Scenario</th><th>Diagnosis Steps</th></tr>
+<tr><td class="col-term">Container keeps restarting. How do you diagnose?</td><td>docker inspect --format '{{.State.ExitCode}}' container. 137=OOMKill, 1=app error, 143=SIGTERM not handled. docker logs --previous for last run's output. docker events for timeline. Check OOMKilled field. docker stats for memory pressure.</td></tr>
+<tr><td class="col-term">Network connectivity lost after reboot.</td><td>Check iptables FORWARD policy: iptables -L FORWARD -n. Docker restarts may not restore iptables rules if UFW/firewalld interfered. systemctl restart docker. Check /proc/sys/net/ipv4/ip_forward = 1.</td></tr>
+<tr><td class="col-term">Build is slow despite no code changes.</td><td>Build context too large (node_modules not in .dockerignore). Layer cache invalidated early (COPY . before dependency install). No BuildKit enabled. Solution: .dockerignore, reorder instructions (deps before source), DOCKER_BUILDKIT=1.</td></tr>
+<tr><td class="col-term">Production container ran out of disk.</td><td>docker system df to identify usage. Container FS writes (logs to container FS instead of volume). Missing log rotation (json-file without max-size). Build cache accumulation. Solution: volumes for logs, log rotation config, scheduled docker system prune.</td></tr>
+</tbody></table>
+<h2 id="19-2-security-questions">19.2 Security Questions</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Question</th><th>Model Answer</th></tr>
+<tr><td class="col-term">How would you harden a Docker deployment?</td><td>Rootless Docker or user namespace remapping. All containers: --cap-drop ALL --cap-add (only needed). --read-only --tmpfs for temp. --security-opt no-new-privileges. --memory --cpus --pids-limit. Non-root USER in Dockerfile. Scan images with Trivy. DOCKER_CONTENT_TRUST=1. Avoid docker.sock mounts. Network segmentation: internal networks for DBs.</td></tr>
+<tr><td class="col-term">What is the Docker socket security risk?</td><td>/var/run/docker.sock gives root-equivalent host access. Mounting into containers (e.g., CI runners) allows: creating privileged containers, mounting host filesystem, running host commands as root. Defense: avoid socket mounts, use rootless Docker, use dedicated socket proxy (tecnativa/docker-socket-proxy) with limited API access.</td></tr>
+<tr><td class="col-term">How do you manage secrets in Docker?</td><td>Build time: BuildKit --mount=type=secret (never in layer). Runtime: Docker Swarm secrets (/run/secrets/), Kubernetes secrets, HashiCorp Vault agent. Never: ENV, ARG, COPY of plaintext files, docker inspect-visible envvars. Production pattern: app reads from /run/secrets/ or Vault API at startup.</td></tr>
+</tbody></table>
+<div class="page-break"></div>
+<h1 id="20-comprehensive-glossary">20. Comprehensive Glossary</h1>
+<h2 id="core-container-terms">Core Container Terms</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Term</th><th>Definition</th></tr>
+<tr><td class="col-term">Container</td><td>A running instance of an OCI image. An isolated process (or process tree) with its own namespaces, cgroup limits, and layered filesystem view.</td></tr>
+<tr><td class="col-term">Image</td><td>An immutable, layered, content-addressable filesystem snapshot. The blueprint from which containers are created.</td></tr>
+<tr><td class="col-term">Layer</td><td>An immutable filesystem diff (added/modified/deleted files) stored as a content-addressed tar archive. Images are ordered stacks of layers.</td></tr>
+<tr><td class="col-term">Dockerfile</td><td>A text recipe that Docker/BuildKit reads to build an image. Each instruction (RUN, COPY, etc.) creates a new image layer.</td></tr>
+<tr><td class="col-term">Registry</td><td>An OCI Distribution Spec-compliant server that stores and distributes container images (Docker Hub, ECR, Harbor, etc.).</td></tr>
+<tr><td class="col-term">Manifest</td><td>JSON document describing an image: its config JSON SHA and ordered list of layer SHAs.</td></tr>
+<tr><td class="col-term">Manifest list / Image index</td><td>A manifest pointing to platform-specific manifests (linux/amd64, linux/arm64). Enables multi-arch images under one tag.</td></tr>
+<tr><td class="col-term">Tag</td><td>A human-readable name for an image version (nginx:1.25.3). Tags are mutable; digests (sha256:...) are immutable.</td></tr>
+<tr><td class="col-term">Digest</td><td>Content-addressable SHA256 identifier for an image or layer. Immutable: same digest = same content always.</td></tr>
+<tr><td class="col-term">OCI</td><td>Open Container Initiative. Defines Image Spec, Runtime Spec, Distribution Spec for container portability.</td></tr>
+</tbody></table>
+<h2 id="docker-architecture-terms">Docker Architecture Terms</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Term</th><th>Definition</th></tr>
+<tr><td class="col-term">dockerd</td><td>The Docker daemon. Central server managing images, containers, networks, volumes via REST API.</td></tr>
+<tr><td class="col-term">Docker CLI</td><td>Client binary (docker) that sends REST API calls to dockerd over Unix socket.</td></tr>
+<tr><td class="col-term">Docker API</td><td>Versioned REST API (/v1.41/) served over /var/run/docker.sock (local) or TCP 2375/2376 (remote).</td></tr>
+<tr><td class="col-term">containerd</td><td>CNCF container runtime. Manages image storage, container lifecycle, and snapshots. Used by Docker and Kubernetes.</td></tr>
+<tr><td class="col-term">containerd-shim</td><td>Per-container process that stays running after runc exits. Holds container's I/O open. Enables live-restore.</td></tr>
+<tr><td class="col-term">runc</td><td>OCI Runtime Spec reference implementation. Low-level binary that creates container namespaces and execs PID 1. Exits after container starts.</td></tr>
+<tr><td class="col-term">BuildKit</td><td>Docker's next-gen build engine. Parallel stages, better caching, --mount=type=secret/cache/ssh support.</td></tr>
+<tr><td class="col-term">Docker Desktop</td><td>Cross-platform GUI application (Mac/Windows/Linux) providing Docker within a VM, with UI, Compose, Extensions.</td></tr>
+<tr><td class="col-term">CRI</td><td>Container Runtime Interface. Kubernetes gRPC API that kubelet uses to talk to container runtimes.</td></tr>
+<tr><td class="col-term">Dockershim</td><td>Removed in k8s 1.24. Was a shim translating CRI calls into Docker API calls. Eliminated unnecessary indirection.</td></tr>
+</tbody></table>
+<h2 id="linux-kernel-terms">Linux Kernel Terms</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Term</th><th>Definition</th></tr>
+<tr><td class="col-term">Namespace</td><td>Linux kernel feature that partitions global resources. Docker uses pid, net, mnt, uts, ipc, user namespaces for isolation.</td></tr>
+<tr><td class="col-term">cgroup (control group)</td><td>Linux mechanism to limit, account, and isolate resource usage (CPU, memory, I/O, pids) for process groups.</td></tr>
+<tr><td class="col-term">OverlayFS (overlay2)</td><td>Union filesystem that merges read-only lower layers with a read-write upper layer. Docker's default storage driver.</td></tr>
+<tr><td class="col-term">Copy-on-Write (CoW)</td><td>Write triggers a copy of the file from lower layer to upper layer before modification. Enables layer sharing.</td></tr>
+<tr><td class="col-term">veth pair</td><td>Virtual ethernet cable: two virtual interfaces linked together. Docker connects container netns to bridge via veth pair.</td></tr>
+<tr><td class="col-term">Linux capabilities</td><td>Fine-grained breakdown of root privileges into ~40 distinct units. Docker drops most by default.</td></tr>
+<tr><td class="col-term">seccomp</td><td>Secure Computing Mode. Filters system calls available to a process. Docker applies default profile blocking ~44 dangerous syscalls.</td></tr>
+<tr><td class="col-term">AppArmor</td><td>Mandatory Access Control via path-based profiles. Ubuntu/Debian Docker applies docker-default AppArmor profile.</td></tr>
+<tr><td class="col-term">SELinux</td><td>Label-based MAC. RHEL/CentOS. Containers run with svirt_lxc_net_t type label.</td></tr>
+<tr><td class="col-term">cgroup freezer</td><td>cgroup subsystem that sends SIGSTOP/SIGCONT to freeze/thaw all processes. Used by docker pause/unpause.</td></tr>
+</tbody></table>
+<h2 id="networking-terms">Networking Terms</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Term</th><th>Definition</th></tr>
+<tr><td class="col-term">Bridge network</td><td>Default Docker network mode. Linux bridge (docker0) connects containers via veth pairs. NAT for external access.</td></tr>
+<tr><td class="col-term">Host network</td><td>Container shares host network namespace. No port mapping. Highest performance, no network isolation.</td></tr>
+<tr><td class="col-term">Overlay network</td><td>Multi-host virtual L2 network using VXLAN encapsulation. Required for Docker Swarm services.</td></tr>
+<tr><td class="col-term">Macvlan</td><td>Assigns unique MAC to each container. Container appears as physical device on LAN.</td></tr>
+<tr><td class="col-term">Embedded DNS</td><td>DNS server at 127.0.0.11 in every container on user-defined networks. Resolves container/service names.</td></tr>
+<tr><td class="col-term">VXLAN</td><td>Virtual Extensible LAN. L2 tunneling over L3 (UDP/4789). Used for overlay networks.</td></tr>
+<tr><td class="col-term">userland proxy</td><td>Docker process that proxies traffic for port publishing. Performance overhead. Can disable with userland-proxy=false.</td></tr>
+</tbody></table>
+<h2 id="storage-terms">Storage Terms</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Term</th><th>Definition</th></tr>
+<tr><td class="col-term">Named volume</td><td>Docker-managed volume stored in /var/lib/docker/volumes/. Portable, supports drivers. Recommended for persistence.</td></tr>
+<tr><td class="col-term">Bind mount</td><td>Mounts specific host path into container. Tight coupling to host. Good for dev hot-reload.</td></tr>
+<tr><td class="col-term">tmpfs mount</td><td>In-memory filesystem. No persistence. Zero disk I/O. Good for secrets and temp data.</td></tr>
+<tr><td class="col-term">Anonymous volume</td><td>Volume created without a name (VOLUME instruction, -v /path). Hard to manage. Prefer named volumes.</td></tr>
+<tr><td class="col-term">Volume driver</td><td>Plugin that backends Docker volumes to external storage (EBS, NFS, Ceph, GlusterFS).</td></tr>
+<tr><td class="col-term">Storage driver</td><td>Manages image layer storage on host (overlay2, aufs, devicemapper, btrfs, zfs).</td></tr>
+<tr><td class="col-term">upperdir</td><td>The writable layer in OverlayFS. Container writes go here. Represents the container's changes.</td></tr>
+<tr><td class="col-term">lowerdir</td><td>The read-only layers in OverlayFS. Stacked image layers. Never modified.</td></tr>
+</tbody></table>
+<h2 id="operations-compose-terms">Operations / Compose Terms</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Term</th><th>Definition</th></tr>
+<tr><td class="col-term">Docker Compose</td><td>Tool for defining multi-container apps in compose.yaml. Manages service dependencies, networks, volumes.</td></tr>
+<tr><td class="col-term">Service</td><td>In Compose/Swarm: a definition of a container including image, ports, volumes, replicas.</td></tr>
+<tr><td class="col-term">Replica</td><td>A running instance of a Swarm service. Multiple replicas provide redundancy and load distribution.</td></tr>
+<tr><td class="col-term">Healthcheck</td><td>Periodic command to determine container health (healthy/unhealthy/starting). Affects Compose depends_on and Swarm scheduling.</td></tr>
+<tr><td class="col-term">Docker Swarm</td><td>Docker's built-in orchestrator. Cluster of Docker nodes, overlay networking, service scheduling, secrets management.</td></tr>
+<tr><td class="col-term">Manager node</td><td>Swarm node that holds cluster state (Raft consensus), schedules services. Minimum 3 for HA.</td></tr>
+<tr><td class="col-term">Worker node</td><td>Swarm node that runs service tasks (containers). No cluster state. Can scale horizontally.</td></tr>
+<tr><td class="col-term">Stack</td><td>Docker Swarm equivalent of a Compose project. Deployed with docker stack deploy -c compose.yaml stackname.</td></tr>
+<tr><td class="col-term">Live restore</td><td>daemon.json option: containers continue running if dockerd crashes/restarts. Requires containerd-shim.</td></tr>
+<tr><td class="col-term">Multi-stage build</td><td>Dockerfile with multiple FROM statements. Earlier stages (builders) provide artifacts COPY'd to final stage.</td></tr>
+</tbody></table>
+<h2 id="security-terms">Security Terms</h2>
+<table class="data-table"><tbody>
+<tr class="header-row"><th>Term</th><th>Definition</th></tr>
+<tr><td class="col-term">Privileged container</td><td>--privileged: gives container almost all host capabilities and disables seccomp. Major security risk. Avoid.</td></tr>
+<tr><td class="col-term">Rootless Docker</td><td>Docker daemon runs as non-root user. Requires user namespaces. Container escape has no host root access.</td></tr>
+<tr><td class="col-term">User namespace remapping</td><td>Maps container UID 0 to unprivileged host UID (e.g., 100000). Security defense against container escape.</td></tr>
+<tr><td class="col-term">Docker Content Trust (DCT)</td><td>Image signing using Notary. DOCKER_CONTENT_TRUST=1 enforces signed images only.</td></tr>
+<tr><td class="col-term">Docker Scout</td><td>Docker's vulnerability scanning service. Integrates with Docker Hub and Docker CLI.</td></tr>
+<tr><td class="col-term">no-new-privileges</td><td>--security-opt no-new-privileges prevents setuid escalation inside container.</td></tr>
+<tr><td class="col-term">Docker Bench</td><td>CIS Docker Benchmark security audit tool. Checks daemon config, container config, image security.</td></tr>
+<tr><td class="col-term">Container escape</td><td>Exploitation that moves a process from container namespace to host namespace. Enabled by misconfig or kernel CVEs.</td></tr>
+</tbody></table>
+
+    </div>
+  </div>
+</div>
+
+<a href="#toc" class="back-to-top" id="backToTop">&uarr;</a>
+
+<script>
+  const btn = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 800) btn.classList.add('show');
+    else btn.classList.remove('show');
+  });
+</script>
+
+</body>
+</html>
